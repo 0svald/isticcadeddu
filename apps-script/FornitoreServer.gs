@@ -30,12 +30,15 @@ function linkFornitore_(f, breve) {
 function fornitoreDati(token) {
   const f = fornitoreDaToken_(token);
   const ordini = leggiTabella(SHEETS.ORDINI);
+  const consegne = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(co => consegne[String(co.id)] = co);
   const cicli = leggiTabella(SHEETS.RACCOLTE)
     .filter(c => String(c.fornitore_id) === String(f.id))
     .map(c => {
       const suoi = ordini.filter(o => String(o.raccolta_id) === String(c.id));
+      const dt = dataConsegnaRaccolta_(c, consegne) || parseChiusura_(c.chiusura);
       return {
-        id: String(c.id), stato: c.stato,
+        id: String(c.id), stato: String(c.stato || '').trim().toLowerCase(),
+        conclusa: raccoltaConclusa_(c), dt: dt ? dt.getTime() : 0, // le concluse vanno in "Raccolte concluse"
         chiusura: testoData_(c.chiusura),
         dataConsegna: consegnaDiRaccolta_(c).data,
         nValidi: suoi.filter(o => String(o.stato) === 'valido').length,

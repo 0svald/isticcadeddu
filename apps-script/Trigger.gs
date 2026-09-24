@@ -79,14 +79,59 @@ function chiudiSeScaduta_(c, ordini, chi) {
   return true;
 }
 
-/** Chiude tutte le raccolte scadute o al completo. Eseguita dal trigger e all'apertura del pannello. */
+/** La raccolta è conclusa (consegnata o archiviata)? Le raccolte concluse vanno nello storico. */
+function raccoltaConclusa_(c) {
+  const s = String(c.stato || '').trim().toLowerCase();
+  return s === 'consegnato' || s === 'consegnata' || s === 'archiviato' || s === 'archiviata';
+}
+
+/** Data di consegna di una raccolta (dalla consegna assegnata o dai vecchi campi), come Date. Null se manca. */
+function dataConsegnaRaccolta_(r, consegneById) {
+  const cid = String(r.consegna_id || '');
+  if (cid && consegneById[cid]) return parseChiusura_(consegneById[cid].data);
+  return String(r.data_consegna || '').trim() ? parseChiusura_(r.data_consegna) : null;
+}
+
+/** Il giorno della consegna è finito? (vero da mezzanotte del giorno dopo) */
+function consegnaPassata_(dt, ora) {
+  if (!dt) return false;
+  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() + 1) <= (ora || new Date());
+}
+
+/**
+ * Il giorno dopo la consegna, le raccolte chiuse passano a "consegnato" e finiscono nello storico.
+ * Le raccolte senza data di consegna restano chiuse: le segna un amministratore dal pannello.
+ */
+function concludiConsegnate_(raccolte, chi) {
+  const consegne = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(co => consegne[String(co.id)] = co);
+  const ora = new Date();
+  let n = 0;
+  raccolte.forEach(r => {
+    const s = String(r.stato || '').trim().toLowerCase();
+    if (s !== 'chiuso' && s !== 'chiusa' && s !== 'definitivo') return;
+    if (!consegnaPassata_(dataConsegnaRaccolta_(r, consegne), ora)) return;
+    aggiornaCella(SHEETS.RACCOLTE, r._riga, 'stato', 'consegnato');
+    r.stato = 'consegnato';
+    log_(chi || 'trigger', 'consegna_conclusa', String(r.id));
+    n++;
+  });
+  return n;
+}
+
+/**
+ * Chiude tutte le raccolte scadute o al completo, e porta a "consegnato" quelle già consegnate.
+ * Eseguita dal trigger e all'apertura del pannello.
+ */
 function chiusuraAutomatica(chi) {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return 0;
   try {
+    const autore = typeof chi === 'string' ? chi : 'trigger';
     const ordini = leggiTabella(SHEETS.ORDINI);
+    const raccolte = leggiTabella(SHEETS.RACCOLTE);
     let chiuse = 0;
-    leggiTabella(SHEETS.RACCOLTE).forEach(c => { if (chiudiSeScaduta_(c, ordini, typeof chi === 'string' ? chi : 'trigger')) chiuse++; });
+    raccolte.forEach(c => { if (chiudiSeScaduta_(c, ordini, autore)) chiuse++; });
+    try { concludiConsegnate_(raccolte, autore); } catch (e) { log_(autore, 'errore_conclusione_consegne', String(e && e.message || e)); }
     return chiuse;
   } finally {
     lock.releaseLock();

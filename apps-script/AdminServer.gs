@@ -24,22 +24,72 @@ var _ADMIN_TESSERA = '';
 function logAdmin_(azione, dettaglio) { log_(_ADMIN_CORRENTE || 'admin', azione, dettaglio); }
 
 /** Elenco dei cicli con conteggi utili, per la dashboard. */
-function adminListaCicli(token) {
+/**
+ * Elenco raccolte. vista = 'storico': solo quelle concluse (consegnate o archiviate), dalla più recente;
+ * altrimenti solo quelle in corso. Lo storico si carica solo quando l'amministratore lo apre.
+ */
+function adminListaCicli(token, vista) {
   checkToken_(token);
   try { chiusuraAutomatica('pannello'); } catch (e) {} // chiude subito le raccolte scadute
+  const storico = vista === 'storico';
   const fornitori = {}; leggiTabella(SHEETS.FORNITORI).forEach(f => fornitori[String(f.id)] = f);
-  const ordini = leggiTabella(SHEETS.ORDINI);
-  return leggiTabella(SHEETS.RACCOLTE).map(c => {
-    const suoi = ordini.filter(o => String(o.raccolta_id) === String(c.id));
+  const consegne = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(co => consegne[String(co.id)] = co);
+  const conta = {}; // raccolta_id -> { valido, da_verificare }
+  leggiTabella(SHEETS.ORDINI).forEach(o => {
+    const k = String(o.raccolta_id); const x = conta[k] = conta[k] || { valido: 0, da_verificare: 0 };
+    if (String(o.stato) === 'valido') x.valido++; else if (String(o.stato) === 'da_verificare') x.da_verificare++;
+  });
+  const lista = leggiTabella(SHEETS.RACCOLTE).filter(c => raccoltaConclusa_(c) === storico).map(c => {
+    const f = fornitori[String(c.fornitore_id)] || {};
+    const dtCons = dataConsegnaRaccolta_(c, consegne);
+    const dt = dtCons || parseChiusura_(c.chiusura);
+    const x = conta[String(c.id)] || { valido: 0, da_verificare: 0 };
+    const cid = String(c.consegna_id || '');
     return {
       id: String(c.id),
-      fornitore: (fornitori[String(c.fornitore_id)] || {}).nome || String(c.fornitore_id),
-      stato: c.stato,
-      chiusura: c.chiusura ? String(c.chiusura) : '',
-      nValidi: suoi.filter(o => String(o.stato) === 'valido').length,
-      nDaVerificare: suoi.filter(o => String(o.stato) === 'da_verificare').length
+      fornitore: f.nome || String(c.fornitore_id),
+      fornitoreId: String(c.fornitore_id || ''),
+      fornitoreAttivo: isSi(f.attivo),
+      stato: String(c.stato || '').trim().toLowerCase(),
+      chiusura: c.chiusura ? testoData_(c.chiusura) : '',
+      dataConsegna: cid && consegne[cid] ? testoData_(consegne[cid].data) : testoData_(c.data_consegna || ''),
+      dt: dt ? dt.getTime() : 0,
+      consegnaPassata: consegnaPassata_(dtCons),
+      nValidi: x.valido,
+      nDaVerificare: x.da_verificare
     };
   });
+  if (storico) lista.sort((a, b) => b.dt - a.dt);
+  return lista;
+}
+
+/** (Admin) Segna una raccolta come consegnata: esce dalle consegne in corso e va nello storico. */
+function adminSegnaConsegnata(token, cicloId) {
+  checkToken_(token);
+  const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
+  if (!c) throw new Error('Raccolta non trovata.');
+  if (raccoltaAperta_(c)) throw new Error('Prima chiudi gli ordini di questa raccolta.');
+  const st = String(c.stato || '').trim().toLowerCase();
+  if (st !== 'chiuso' && st !== 'chiusa' && st !== 'definitivo') throw new Error('Si può segnare come consegnata solo una raccolta chiusa.');
+  aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'consegnato');
+  logAdmin_('raccolta_consegnata', String(cicloId));
+  return true;
+}
+
+/**
+ * (Admin) Riporta una raccolta conclusa tra quelle in corso (stato "chiuso"), per correggere
+ * un "Segna come consegnata" toccato per errore. Non vale per le raccolte con la data di consegna
+ * già passata: la chiusura automatica le rimetterebbe subito nello storico.
+ */
+function adminRiportaInCorso(token, cicloId) {
+  checkToken_(token);
+  const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
+  if (!c) throw new Error('Raccolta non trovata.');
+  const consegne = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(co => consegne[String(co.id)] = co);
+  if (consegnaPassata_(dataConsegnaRaccolta_(c, consegne))) throw new Error('La data di consegna è già passata: per spostarla, cambia prima la data della consegna.');
+  aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'chiuso');
+  logAdmin_('raccolta_riportata_in_corso', String(cicloId));
+  return true;
 }
 
 /** Restituisce il link (accorciato) al form del ciclo. */

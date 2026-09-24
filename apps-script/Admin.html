@@ -101,7 +101,9 @@
 
   <section id="sez_racc" style="display:none">
   <div id="racc_main">
-    <div class="secbar"><h2>Raccolte</h2><button class="addbtn" onclick="toggleAdd('racc')">+</button></div>
+    <div class="secbar"><h2>Raccolte</h2><button class="addbtn" id="racc_add" onclick="toggleAdd('racc')">+</button></div>
+    <div class="seg" id="racc_seg"><button aria-pressed="true" data-v="in_corso" onclick="vistaRacc('in_corso')">In corso</button><button aria-pressed="false" data-v="storico" onclick="vistaRacc('storico')">Storico</button></div>
+    <div id="racc_filtro" class="frow hidden"><label for="racc_forn">Fornitore</label><select id="racc_forn" onchange="renderRacc(RACC_L)"></select></div>
     <div id="add_racc" class="addpanel hidden">
       <div class="frow"><label>Fornitore</label><select id="nr_forn" onchange="caricaProd('nr_prod','nr_forn',null)"></select></div>
       <div id="nr_prod" class="muted" style="margin:6px 0">Scegli prima il fornitore…</div>
@@ -116,7 +118,9 @@
   </section>
 
   <section id="sez_cons" style="display:none">
-    <div class="secbar"><h2>Consegne</h2><button class="addbtn" onclick="toggleAdd('cons')">+</button></div>
+    <div class="secbar"><h2>Consegne</h2><button class="addbtn" id="cons_add" onclick="toggleAdd('cons')">+</button></div>
+    <div class="seg" id="cons_seg"><button aria-pressed="true" data-v="in_corso" onclick="vistaCons('in_corso')">In corso</button><button aria-pressed="false" data-v="storico" onclick="vistaCons('storico')">Storico</button></div>
+    <div id="cons_filtro" class="frow hidden"><label for="cons_forn">Fornitore</label><select id="cons_forn" onchange="renderCons()"></select></div>
     <div id="add_cons" class="addpanel hidden">
       <div class="frow"><label>Data</label><input type="text" id="nc_data" placeholder="es. 02-07-2026"></div>
       <div class="frow"><label>Fascia oraria</label><input type="text" id="nc_fascia" placeholder="es. dalle 17:00"></div>
@@ -242,48 +246,91 @@
   function caricaProd(cid, selForn, selArr){ const fid=document.getElementById(selForn).value; if(!fid){ document.getElementById(cid).innerHTML='<div class="muted">Scegli prima il fornitore…</div>'; return; }
     document.getElementById(cid).innerHTML=SPIN; run().withSuccessHandler(l=>renderProdCheck(cid,l,selArr?new Set(selArr):null)).withFailureHandler(()=>{}).adminProdottiFornitore(TOKEN,fid); }
 
+  /* ---------- STORICO (raccolte e consegne concluse) ---------- */
+  const MESI_L=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  function meseAnno(dt){ if(!dt) return 'Senza data'; const d=new Date(dt); return MESI_L[d.getMonth()]+' '+d.getFullYear(); }
+  function segna(segId, v){ document.querySelectorAll('#'+segId+' button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===v?'true':'false')); }
+  // menu "Fornitore" dello storico: solo i fornitori presenti, anche quelli non più attivi
+  function riempiFiltroForn(selId, voci){ const sel=document.getElementById(selId); const cur=sel.value; const m={};
+    voci.forEach(x=>{ if(x.fornitoreId && !m[x.fornitoreId]) m[x.fornitoreId]={ id:x.fornitoreId, nome:x.fornitore, attivo:x.fornitoreAttivo }; });
+    const l=Object.keys(m).map(k=>m[k]).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
+    fillSel(selId,'— tutti i fornitori —',l,f=>f.nome+(f.attivo?'':' (non attivo)'));
+    sel.value=l.some(f=>f.id===cur)?cur:''; }
+  function titoloMese(box, testo){ box.appendChild(Object.assign(document.createElement('div'),{className:'catlab',textContent:testo})); }
+
   /* ---------- RACCOLTE ---------- */
-  function renderRacc(cicli){ RACC_L=cicli; const box=document.getElementById('lista'); box.innerHTML=''; if(!cicli.length){ box.innerHTML='<div class="muted">Nessuna raccolta.</div>'; return; }
+  let VISTA_RACC='in_corso';
+  function vistaRacc(vv){ VISTA_RACC=vv; segna('racc_seg',vv);
+    document.getElementById('racc_filtro').classList.toggle('hidden', vv!=='storico');
+    document.getElementById('racc_add').classList.toggle('hidden', vv==='storico'); hideAdd('racc');
+    document.getElementById('lista').innerHTML=SPIN; ricaricaCicli(); }
+  function concl(st){ return st==='consegnato'||st==='archiviato'; }
+  function renderRacc(cicli){ RACC_L=cicli; if(VISTA_RACC==='storico'){ renderStoricoRacc(cicli); return; }
+    const box=document.getElementById('lista'); box.innerHTML=''; if(!cicli.length){ box.innerHTML='<div class="muted">Nessuna raccolta in corso.</div>'; return; }
     cicli.forEach(c=>{ const badge=chipStato(c.stato); const dav=c.nDaVerificare?' · <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'';
       const row=document.createElement('div'); row.className='litem rowflex'; row.dataset.id=c.id; row.dataset.nome=c.fornitore;
       const left=document.createElement('div'); left.className='rl'; left.innerHTML='<div class="li1">'+esc(c.fornitore)+' '+badge+'</div><div class="li2">'+c.nValidi+' ordini'+dav+' · chiusura '+(c.chiusura||'—')+'</div>';
       left.onclick=()=>openRacc(c.id, c.fornitore, row);
       const af=document.createElement('a'); af.className='btnlink'; af.target='_blank'; af.rel='noopener'; af.textContent='Apri form'; af.href=(APP_URL||'')+'?form='+encodeURIComponent(c.id);
       row.appendChild(left); row.appendChild(af); box.appendChild(row); }); }
+  // storico: dalla più recente, divise per mese della consegna
+  function renderStoricoRacc(cicli){ const box=document.getElementById('lista'); box.innerHTML='';
+    riempiFiltroForn('racc_forn', cicli); const fid=v('racc_forn');
+    const l=cicli.filter(c=>!fid||c.fornitoreId===fid);
+    if(!l.length){ box.innerHTML='<div class="muted">Nessuna raccolta conclusa'+(fid?' per questo fornitore':'')+'.</div>'; return; }
+    let mese=null;
+    l.forEach(c=>{ const m=meseAnno(c.dt); if(m!==mese){ mese=m; titoloMese(box,m); }
+      const row=document.createElement('div'); row.className='litem';
+      row.innerHTML='<div class="li1">'+esc(c.fornitore)+(c.fornitoreAttivo?'':' <span class="badge off">non attivo</span>')+' '+chipStato(c.stato)+'</div>'+
+        '<div class="li2">'+(c.dataConsegna?('consegna '+esc(c.dataConsegna)+' · '):'')+c.nValidi+' ordini'+(c.nDaVerificare?' · <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'')+'</div>';
+      row.onclick=()=>openRacc(c.id, c.fornitore, row); box.appendChild(row); }); }
   function openRacc(id, nome, row){
     const c=RACC_L.find(x=>x.id===id)||{fornitore:nome,stato:'',nValidi:0,nDaVerificare:0,chiusura:''};
+    const conclusa=concl(c.stato);
+    // pulsanti per lo stato: aperta → chiudi; chiusa → riapri o segna consegnata; conclusa → solo correzioni
+    const azioni = conclusa
+      ? (c.consegnaPassata?'':'<button class="ghost" onclick="riportaInCorso()">Riporta tra le raccolte in corso</button>')
+      : (c.stato==='aperto'?'<button class="warn" onclick="chiudiCiclo()">Chiudi gli ordini adesso</button>'
+         :'<button class="ghost" onclick="riapriCiclo()">Riapri gli ordini</button>'+(c.stato==='bozza'?'':'<button class="sec" onclick="segnaConsegnata()">Segna come consegnata</button>'));
     const html=
       '<button class="backlink" onclick="chiudiRacc()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Raccolte</button>'+
       '<div class="ptitle"><div><h1>'+esc(c.fornitore)+'</h1><div>'+chipStato(c.stato)+' <span class="muted">chiusura '+esc(c.chiusura||'—')+'</span></div></div>'+
-      '<a class="btnlink" target="_blank" rel="noopener" href="'+(APP_URL||'')+'?form='+encodeURIComponent(id)+'">Apri form</a></div>'+
+      (conclusa?'':'<a class="btnlink" target="_blank" rel="noopener" href="'+(APP_URL||'')+'?form='+encodeURIComponent(id)+'">Apri form</a>')+'</div>'+
+      (conclusa?'<p class="notice">Raccolta conclusa: è nello storico. Puoi ancora vedere e correggere gli ordini e scaricare il foglio per la consegna.</p>':'')+
       '<div class="kpis"><div class="kpi"><b>'+c.nValidi+'</b><span>ordini</span></div><div class="kpi'+(c.nDaVerificare?' warn':'')+'"><b>'+c.nDaVerificare+'</b><span>da verificare</span></div><div class="kpi"><b id="kpi_cons">—</b><span>consegna</span></div></div>'+
       '<div id="verifica"></div>'+
-      '<div class="grp"><div class="grpt">Messaggi per WhatsApp<small>Il testo si apre pronto da copiare.</small></div>'+
+      (conclusa?'':'<div class="grp"><div class="grpt">Messaggi per WhatsApp<small>Il testo si apre pronto da copiare.</small></div>'+
         '<div class="edact"><button class="sec" onclick="genera(\'apertura\')">Apertura</button><button class="sec" onclick="genera(\'chiusura\')">Chiusura</button></div>'+
-        '<div id="msgwrap" class="hidden" style="margin-top:10px"><textarea id="p_msg" readonly></textarea><div class="edact"><button onclick="copiaMsg()">Copia il messaggio</button><span id="copia_msg" class="ok"></span></div></div></div>'+
+        '<div id="msgwrap" class="hidden" style="margin-top:10px"><textarea id="p_msg" readonly></textarea><div class="edact"><button onclick="copiaMsg()">Copia il messaggio</button><span id="copia_msg" class="ok"></span></div></div></div>')+
       '<div class="grp"><div class="grpt">Foglio per la consegna (PDF)<small>Il definitivo dopo la conferma dei pesi.</small></div>'+
         '<div class="edact"><button class="sec" onclick="scaricaPdf(\'stato\')">Provvisorio</button><button class="sec" onclick="scaricaPdf(\'definitivo\')">Definitivo</button><span id="pdf_msg" class="muted"></span></div></div>'+
       '<div class="grp"><div class="grpt">Ordini dei soci</div>'+
-        '<div class="edact"><button class="sec" onclick="ordiniRacc()">Gestisci ordini</button>'+(c.stato==='aperto'?'<button class="warn" onclick="chiudiCiclo()">Chiudi gli ordini adesso</button>':'<button class="ghost" onclick="riapriCiclo()">Riapri gli ordini</button>')+'</div>'+
+        '<div class="edact"><button class="sec" onclick="ordiniRacc()">Gestisci ordini</button>'+azioni+'</div>'+
         '<div id="ord_out" style="margin-top:8px"></div></div>'+
-      '<details class="grp" style="padding:8px 14px"><summary>Impostazioni: prodotti, chiusura, consegna</summary>'+
+      (conclusa?'':'<details class="grp" style="padding:8px 14px"><summary>Impostazioni: prodotti, chiusura, consegna</summary>'+
       '<div class="frow"><label>Fornitore</label><select id="er_forn" onchange="caricaProd(\'er_prod\',\'er_forn\',[])"></select></div>'+
       '<div id="er_prod" class="muted" style="margin:6px 0">'+SPIN+'</div>'+
       '<div class="frow"><label>Chiusura</label><input type="text" id="er_chiusura"></div>'+
       '<div class="frow"><label>Max ordini</label><input type="text" id="er_max"></div>'+
       '<div class="frow"><label>Avvisi</label><input type="text" id="er_avvisi"></div>'+
       '<div class="frow"><label>Consegna</label><select id="er_cons"></select></div>'+
-      '<div class="edact"><button onclick="salvaRaccolta()">Salva modifiche</button><span id="er_msg" class="ok"></span></div></details>';
+      '<div class="edact"><button onclick="salvaRaccolta()">Salva modifiche</button><span id="er_msg" class="ok"></span></div></details>');
     const det=document.getElementById('racc_det'); det.innerHTML=html; det.classList.remove('hidden'); det.classList.remove('enter'); void det.offsetWidth; det.classList.add('enter');
     document.getElementById('racc_main').classList.add('hidden'); window.scrollTo({top:0}); CICLO=id;
-    fillSel('er_cons','— nessuna —',CONSEGNE_L,c=>(c.data||'(senza data)')+' · '+c.luogoNome);
+    document.getElementById('kpi_cons').textContent=c.dataConsegna?c.dataConsegna.substring(0,5):'—';
+    run().withSuccessHandler(mostraVerifica).withFailureHandler(()=>{}).adminOrdiniDaVerificare(TOKEN,id);
+    if(conclusa) return; // le concluse non hanno le impostazioni
+    // consegne che si possono scegliere: quelle in corso, più quella già assegnata
+    fillSel('er_cons','— nessuna —',CONSEGNE_L.filter(x=>!x.conclusa),x=>(x.data||'(senza data)')+' · '+x.luogoNome);
     run().withSuccessHandler(r=>{ const sf=document.getElementById('er_forn'); sf.innerHTML=''; sf.appendChild(new Option('— fornitore —','')); FORN_SEMPL.forEach(f=>sf.appendChild(new Option(f.nome,f.id)));
       sf.value=r.fornitoreId||''; document.getElementById('er_chiusura').value=r.chiusura||''; document.getElementById('er_max').value=(r.maxOrdini===''||r.maxOrdini==null)?'':r.maxOrdini; document.getElementById('er_avvisi').value=r.avvisi||'';
       const selP = (r.prodottiIds && r.prodottiIds.length) ? r.prodottiIds : null; // vuoto = tutti inclusi
       caricaProd('er_prod','er_forn', selP);
     }).withFailureHandler(()=>{}).adminRaccolta(TOKEN,id);
-    run().withSuccessHandler(d=>{ document.getElementById('er_cons').value=d.consegnaId||''; const co=CONSEGNE_L.find(x=>x.id===d.consegnaId); document.getElementById('kpi_cons').textContent=co&&co.data?co.data.substring(0,5):'—'; }).withFailureHandler(()=>{}).adminConsegnaDiRaccolta(TOKEN,id);
-    run().withSuccessHandler(mostraVerifica).withFailureHandler(()=>{}).adminOrdiniDaVerificare(TOKEN,id);
+    run().withSuccessHandler(d=>{ const sel=document.getElementById('er_cons'); if(!sel) return;
+      const co=CONSEGNE_L.find(x=>x.id===d.consegnaId);
+      if(d.consegnaId && !Array.from(sel.options).some(o=>o.value===d.consegnaId)) sel.appendChild(new Option(co?((co.data||'(senza data)')+' · '+co.luogoNome):d.consegnaId, d.consegnaId));
+      sel.value=d.consegnaId||''; }).withFailureHandler(()=>{}).adminConsegnaDiRaccolta(TOKEN,id);
   }
   let CICLO=null, RACC_L=[];
   function chipStato(st){ const m={aperto:['Aperta',''],chiuso:['Chiusa',' grey'],definitivo:['Definitiva',' grey'],consegnato:['Consegnata',' grey'],archiviato:['Archiviata',' grey'],bozza:['Bozza',' off']}; const x=m[st]||[st,' grey']; return '<span class="badge'+x[1]+'">'+x[0]+'</span>'; }
@@ -296,9 +343,13 @@
     run().withSuccessHandler(res=>{ document.getElementById('pdf_msg').textContent=res.filename+' scaricato'; const b=Uint8Array.from(atob(res.base64||''),c=>c.charCodeAt(0)); const url=URL.createObjectURL(new Blob([b],{type:'application/pdf'})); const a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); }).withFailureHandler(err)[fn](TOKEN,CICLO); }
   function copiaMsg(){ const ta=document.getElementById('p_msg'); ta.select(); navigator.clipboard.writeText(ta.value).then(()=>{ document.getElementById('copia_msg').textContent='Copiato ✓'; }).catch(()=>avvisa('Seleziona il testo e copialo a mano.')); }
   function chiudiCiclo(){ chiedi('I soci non potranno più ordinare per questa raccolta.',{titolo:'Chiudere gli ordini?',ok:'Chiudi gli ordini',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(aggiornaDettaglio).withFailureHandler(err).adminChiudiCiclo(TOKEN,CICLO); }); }
-  function aggiornaDettaglio(){ const id=CICLO; run().withSuccessHandler(l=>{ renderRacc(l); if(id) openRacc(id,''); }).withFailureHandler(err).adminListaCicli(TOKEN); }
+  function aggiornaDettaglio(){ const id=CICLO; run().withSuccessHandler(l=>{ renderRacc(l); if(id && l.some(x=>x.id===id)) openRacc(id,''); else chiudiRacc(); }).withFailureHandler(err).adminListaCicli(TOKEN,VISTA_RACC); }
   function riapriCiclo(){ run().withSuccessHandler(aggiornaDettaglio).withFailureHandler(err).adminRiapriCiclo(TOKEN,CICLO); }
-  function ricaricaCicli(){ run().withSuccessHandler(renderRacc).withFailureHandler(err).adminListaCicli(TOKEN); }
+  function ricaricaCicli(){ run().withSuccessHandler(renderRacc).withFailureHandler(err).adminListaCicli(TOKEN,VISTA_RACC); }
+  function segnaConsegnata(){ chiedi('La raccolta esce dalle consegne in corso e va nello storico. I soci la vedranno nel loro Storico.',{titolo:'Segnare come consegnata?',ok:'Segna come consegnata'}).then(ok=>{ if(!ok)return;
+    run().withSuccessHandler(()=>{ chiudiRacc(); ricaricaCicli(); avvisa('La raccolta ora è nello storico.','Fatto'); }).withFailureHandler(err).adminSegnaConsegnata(TOKEN,CICLO); }); }
+  function riportaInCorso(){ chiedi('La raccolta torna tra quelle in corso, come chiusa.',{titolo:'Riportare in corso?',ok:'Riporta in corso'}).then(ok=>{ if(!ok)return;
+    run().withSuccessHandler(()=>{ chiudiRacc(); ricaricaCicli(); avvisa('La raccolta ora è tra quelle in corso.','Fatto'); }).withFailureHandler(err).adminRiportaInCorso(TOKEN,CICLO); }); }
   function mostraVerifica(l){ const box=document.getElementById('verifica'); if(!box) return; if(!l.length){ box.innerHTML='<p class="muted">Nessun ordine da verificare.</p>'; return; }
     let h='<b>Da verificare</b>'; l.forEach(o=>{ h+='<div class="litem" style="margin-top:6px"><div class="li1">'+esc(o.nominativo)+' (tess. '+o.tessera+')</div><div class="li2">'+esc(o.motivo)+'</div><div class="edact"><button class="mini" onclick="confOrd(\''+o.id+'\')">Conferma</button> <button class="warn mini" onclick="annOrd(\''+o.id+'\')">Annulla</button></div></div>'; }); box.innerHTML=h; }
   function confOrd(id){ run().withSuccessHandler(()=>{ run().withSuccessHandler(mostraVerifica).adminOrdiniDaVerificare(TOKEN,CICLO); ricaricaCicli(); }).withFailureHandler(err).adminConfermaOrdine(TOKEN,id); }
@@ -374,11 +425,22 @@
     run().withSuccessHandler(()=>{ ['ns_tess','ns_nome','ns_tel'].forEach(i=>document.getElementById(i).value=''); document.getElementById('ns_msg').textContent=''; hideAdd('soci'); LOAD.soci=false; caricaSoci(); }).withFailureHandler(e=>{document.getElementById('ns_msg').textContent='Errore: '+e.message;}).adminAggiungiSocio(TOKEN,d); }
 
   /* ---------- CONSEGNE ---------- */
+  let VISTA_CONS='in_corso';
+  function vistaCons(vv){ VISTA_CONS=vv; segna('cons_seg',vv);
+    document.getElementById('cons_filtro').classList.toggle('hidden', vv!=='storico');
+    document.getElementById('cons_add').classList.toggle('hidden', vv==='storico'); hideAdd('cons'); closeAllEd(); renderCons(); }
   function caricaConsegne(){ LOAD.cons=true; document.getElementById('cons_lista').innerHTML=SPIN;
-    run().withSuccessHandler(l=>{ CONSEGNE_L=l; const box=document.getElementById('cons_lista'); box.innerHTML=''; if(!l.length){ box.innerHTML='<div class="muted">Nessuna consegna.</div>'; return; }
-      l.forEach(c=>{ const forn=c.raccolte.map(r=>(r.emoji?r.emoji+' ':'')+r.fornitore).join(', ')||'(nessuna raccolta)'; const row=document.createElement('div'); row.className='litem';
-        row.innerHTML='<div class="li1">'+esc(c.data||'(senza data)')+' · '+esc(c.luogoNome)+(c.oraInizio?(' · dalle '+c.oraInizio):'')+'</div><div class="li2">'+esc(forn)+'</div>'; row.onclick=()=>openCons(c.id,row); box.appendChild(row); });
-    }).withFailureHandler(e=>{document.getElementById('cons_lista').textContent='Errore: '+e.message;}).adminListaConsegne(TOKEN); }
+    run().withSuccessHandler(l=>{ CONSEGNE_L=l; renderCons(); }).withFailureHandler(e=>{document.getElementById('cons_lista').textContent='Errore: '+e.message;}).adminListaConsegne(TOKEN); }
+  // in corso: dalla più vicina; storico: dalla più recente, divise per mese (l'ordine arriva già dal server)
+  function renderCons(){ const box=document.getElementById('cons_lista'); if(!LOAD.cons) return; box.innerHTML='';
+    const storico=VISTA_CONS==='storico'; let l=CONSEGNE_L.filter(c=>!!c.conclusa===storico);
+    if(storico){ const voci=[]; l.forEach(c=>c.raccolte.forEach(r=>voci.push(r))); riempiFiltroForn('cons_forn', voci);
+      const fid=v('cons_forn'); if(fid) l=l.filter(c=>c.raccolte.some(r=>r.fornitoreId===fid)); }
+    if(!l.length){ box.innerHTML='<div class="muted">'+(storico?'Nessuna consegna conclusa.':'Nessuna consegna in programma.')+'</div>'; return; }
+    let mese=null;
+    l.forEach(c=>{ if(storico){ const m=meseAnno(c.dt); if(m!==mese){ mese=m; titoloMese(box,m); } }
+      const forn=c.raccolte.map(r=>(r.emoji?r.emoji+' ':'')+r.fornitore+(storico&&!r.fornitoreAttivo?' (non attivo)':'')).join(', ')||'(nessuna raccolta)'; const row=document.createElement('div'); row.className='litem';
+      row.innerHTML='<div class="li1">'+esc(c.data||'(senza data)')+' · '+esc(c.luogoNome)+(c.oraInizio?(' · dalle '+c.oraInizio):'')+'</div><div class="li2">'+esc(forn)+'</div>'; row.onclick=()=>openCons(c.id,row); box.appendChild(row); }); }
   function openCons(id,row){ const html='<div id="ce" class="muted">'+SPIN+'</div>'; const ed=openEd('cons',id,row,html); if(!ed) return;
     run().withSuccessHandler(d=>{ let opts='<option value="">— luogo —</option>'; LUOGHI.forEach(l=>opts+='<option value="'+l.id+'"'+(String(l.id)===String(d.luogoId)?' selected':'')+'>'+esc(l.nome)+'</option>');
       document.getElementById('ce').outerHTML=
@@ -516,7 +578,7 @@
   }
   function dfConf(id){ run().withSuccessHandler(()=>{caricaDaFare();ricaricaCicli();}).withFailureHandler(err).adminConfermaOrdine(TOKEN,id); }
   function dfAnn(id){ chiediTesto('Scrivi il motivo:','Ordine doppio',{titolo:'Annullare l\'ordine?',ok:'Annulla l\'ordine'}).then(m=>{ if(m===null)return; run().withSuccessHandler(()=>{caricaDaFare();ricaricaCicli();}).withFailureHandler(err).adminAnnullaOrdine(TOKEN,id,m); }); }
-  function vaiRacc(id){ mostraSez('racc'); const trova=(k)=>{ if(RACC_L.find(x=>x.id===id)) openRacc(id,''); else if(k<25) setTimeout(()=>trova(k+1),200); }; trova(0); }
+  function vaiRacc(id){ mostraSez('racc'); if(VISTA_RACC!=='in_corso') vistaRacc('in_corso'); const trova=(k)=>{ if(RACC_L.find(x=>x.id===id)) openRacc(id,''); else if(k<25) setTimeout(()=>trova(k+1),200); }; trova(0); }
   function apriAltro(){ const voci=[['segn','Segnalazioni'],['soci','Soci'],['forn','Fornitori'],['cat','Categorie'],['stat','Statistiche'],['admin','Amministratori'],['aiuto','Aiuto']];
     const ov=document.createElement('div'); ov.className='ov';
     let h='<div class="sheet"><div class="grab"></div><h2>Altre sezioni</h2><div class="btns">';

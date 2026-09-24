@@ -125,6 +125,10 @@
   .rowflex .rl{ flex:1; min-width:0; cursor:pointer; }
   .ed, .addpanel{ background:var(--sub); border:1px solid var(--line); border-radius:var(--r-lg); padding:14px; margin:4px 0 10px; animation:entra .2s ease both; }
   .secbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 12px; }
+  /* selettore a due voci (es. In corso | Storico) */
+  .seg{ display:flex; gap:4px; padding:4px; background:var(--sunk); border-radius:14px; margin:0 0 12px; }
+  .seg button{ flex:1; min-height:48px; background:transparent; color:var(--ink); border:none; border-radius:10px; font-weight:600; box-shadow:none; }
+  .seg button[aria-pressed="true"]{ background:var(--surface); color:var(--green-d); box-shadow:0 1px 3px rgba(31,38,28,.15); }
   .catlab{ font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:18px 2px 6px; }
   .grp{ margin-top:14px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:14px; }
   .grpt{ font-size:1.02rem; font-weight:700; color:var(--ink); margin-bottom:8px; }
