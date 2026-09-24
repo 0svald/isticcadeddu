@@ -29,17 +29,31 @@
   .cons .body{ flex:1; min-width:0; }
   .fornit{ font-weight:700; margin-top:10px; }
   .vuoto{ color:var(--muted); padding:6px 0; }
+  .anno{ margin:22px 0 8px; font-size:1.35rem; }
+  details.storico{ padding:0; }
+  details.storico > summary{ display:block; list-style:none; cursor:pointer; padding:14px 16px; min-height:48px; font-weight:400; color:var(--ink); }
+  details.storico > summary::-webkit-details-marker{ display:none; }
+  details.storico > summary .ct span{ white-space:nowrap; }
+  details.storico > summary .apri{ color:var(--green-d); font-size:.95rem; margin-top:4px; }
+  details.storico[open] > summary .apri{ display:none; }
+  details.storico .dentro{ padding:0 16px 14px; }
 </style>
 </head>
 <body>
 <header class="topbar"><div class="brand"><div class="mark" role="img" aria-label="GAS Isticcadeddu"></div><div class="bt"><b>GAS Isticcadeddu</b><small id="tb_sub">La mia pagina</small></div></div></header>
 <div class="wrap">
   <div id="out" role="status"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
+  <div id="sez_storico" class="hidden">
+    <h1 style="font-size:2rem;margin:0">Storico</h1>
+    <div class="meta">I tuoi ordini delle consegne già fatte, dal più recente.</div>
+    <div id="storico_box" role="status" style="margin-top:14px"></div>
+  </div>
   <div id="sez_profilo" class="hidden"><div id="prof_box"></div></div>
   <div id="sez_aiuto" class="hidden"><div id="aiuto_box"></div></div>
 </div>
 <nav class="bottomnav" aria-label="Menu">
   <button class="navbtn active" data-s="ordini" onclick="vai('ordini')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.5 12h-11z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>I miei ordini</button>
+  <button class="navbtn" data-s="storico" onclick="vai('storico')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Storico</button>
   <button class="navbtn" data-s="profilo" onclick="vai('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profilo</button>
   <button class="navbtn" data-s="aiuto" onclick="vai('aiuto')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg>Aiuto</button>
 </nav>
@@ -54,12 +68,13 @@
   function chiusura(t){ const m=String(t||'').match(/^(\d{2})-(\d{2})-\d{4}(?:\s+(\d{1,2}[:.]\d{2}))?/); return m?(m[1]+'-'+m[2]+(m[3]?(' alle '+m[3].replace('.',':')):'')):(t||''); }
   function datebox(t,mia){ const d=pd(t); if(!d) return '<div class="datebox grey"><small>DATA</small><b>?</b></div>'; return '<div class="datebox'+(mia?'':' grey')+'"><small>'+MESI[d.getMonth()]+'</small><b>'+d.getDate()+'</b></div>'; }
 
-  function righeHtml(o){
+  // passato = ordine di una consegna già fatta (Storico): niente "da pagare" né avvisi
+  function righeHtml(o, passato){
     let h=''; o.righe.forEach(r=>{ h+='<div class="riga"><span>'+esc(r.nome)+'<br><span class="q">'+esc(r.quantita)+'</span></span><span>'+euro(r.importo)+'</span></div>'; });
-    h+='<div class="tot"><span>'+(o.definitivo?'Da pagare':'Totale indicativo')+'</span><span>'+euro(o.totale)+'</span></div>';
-    if(!o.definitivo) h+='<div class="meta">Alcuni prodotti si pesano: il fornitore confermerà l\'importo esatto.</div>';
+    h+='<div class="tot"><span>'+(passato?(o.definitivo?'Totale':'Totale indicativo'):(o.definitivo?'Da pagare':'Totale indicativo'))+'</span><span>'+euro(o.totale)+'</span></div>';
+    if(!o.definitivo && !passato) h+='<div class="meta">Alcuni prodotti si pesano: il fornitore confermerà l\'importo esatto.</div>';
     if(o.note) h+='<div class="meta">Nota: '+esc(o.note)+'</div>';
-    if(o.stato!=='valido') h+='<div class="notice warn">Questo ordine è in verifica: un amministratore o il fornitore potrebbero contattarti.</div>';
+    if(o.stato!=='valido' && !passato) h+='<div class="notice warn">Questo ordine è in verifica: un amministratore o il fornitore potrebbero contattarti.</div>';
     return h;
   }
 
@@ -67,7 +82,9 @@
     document.getElementById('out').classList.toggle('hidden', k!=='ordini');
     document.getElementById('sez_profilo').classList.toggle('hidden', k!=='profilo');
     document.getElementById('sez_aiuto').classList.toggle('hidden', k!=='aiuto');
+    document.getElementById('sez_storico').classList.toggle('hidden', k!=='storico');
     document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.s===k));
+    if(k==='storico' && !STORICO.caricato) caricaStorico();
     if(k==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'socio');
     if(k==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'socio', pagina:'pagina socio', sezione:'aiuto' });
     window.scrollTo({top:0});
@@ -107,15 +124,33 @@
         h+='</div></div>'; });
       h+='</div>'; }
 
-    // storico
-    h+='<h2 class="sez">I miei ordini passati</h2>';
-    if(!d.storico.length) h+='<div class="vuoto">Nessun ordine passato.</div>';
-    else { h+='<details><summary>Mostra gli ultimi '+d.storico.length+' ordini</summary>';
-      d.storico.forEach(s=>{ h+='<div class="card"><div class="ct"><b>'+esc(s.fornitore)+'</b><span class="meta">'+esc(s.data||'')+'</span></div>'+righeHtml(s.ordine)+'</div>'; });
-      h+='</details>'; }
-
+    h+='<p class="meta" style="margin-top:22px">Gli ordini delle consegne già fatte sono nella voce <b>Storico</b>, nel menu in basso.</p>';
     h+='<p class="meta" style="margin-top:28px">Questo link è solo tuo: non inoltrarlo. Se lo perdi, chiedine uno nuovo a un amministratore.</p>';
     const out=document.getElementById('out'); out.className='enter'; out.innerHTML=h;
+  }
+  // storico: si carica la prima volta che si apre la voce, poi a pagine con "Mostra altri"
+  const STORICO={ caricato:false, voci:[], altri:false };
+  function caricaStorico(){
+    const box=document.getElementById('storico_box');
+    if(!STORICO.caricato) box.innerHTML='<div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div>';
+    else { const b=document.getElementById('storico_altri'); if(b){ b.disabled=true; b.textContent='Caricamento…'; } }
+    google.script.run.withSuccessHandler(r=>{ STORICO.caricato=true; STORICO.voci=STORICO.voci.concat(r.voci); STORICO.altri=r.altri; renderStorico(); })
+      .withFailureHandler(e=>{ if(!STORICO.caricato) box.textContent=e.message||'Qualcosa è andato storto. Riprova.'; else avvisa(e.message||'Qualcosa è andato storto. Riprova.'); renderStorico(); })
+      .socioStorico(TOKEN, STORICO.voci.length);
+  }
+  function renderStorico(){
+    const box=document.getElementById('storico_box');
+    if(!STORICO.caricato) return;
+    if(!STORICO.voci.length){ box.innerHTML='<div class="vuoto">Non hai ancora ordini passati.</div>'; return; }
+    let h='', anno=null;
+    STORICO.voci.forEach(s=>{
+      if(s.anno!==anno){ anno=s.anno; h+='<h2 class="sez anno">'+esc(anno||'Senza data')+'</h2>'; }
+      h+='<details class="card storico"><summary><div class="ct"><b>'+esc((s.emoji?s.emoji+' ':'')+s.fornitore)+'</b><span>'+euro(s.ordine.totale)+'</span></div>'+
+         '<div class="meta">'+esc(s.data?('Consegna del '+s.data):'Consegna senza data')+'</div><div class="apri">Tocca per vedere i prodotti</div></summary>'+
+         '<div class="dentro">'+righeHtml(s.ordine,true)+'</div></details>';
+    });
+    if(STORICO.altri) h+='<button class="btn sec block" id="storico_altri" style="margin-top:14px" onclick="caricaStorico()">Mostra altri</button>';
+    box.innerHTML=h;
   }
   google.script.run.withSuccessHandler(render)
     .withFailureHandler(e=>{ const o=document.getElementById('out'); o.className='center'; o.textContent=e.message||'Qualcosa è andato storto. Riprova.'; })

@@ -80,19 +80,29 @@ function adminListaConsegne(token) {
   const fornitori = {}; leggiTabella(SHEETS.FORNITORI).forEach(f => fornitori[String(f.id)] = f);
   const raccolte = leggiTabella(SHEETS.RACCOLTE);
 
-  return leggiTabellaSafe_(SHEETS.CONSEGNE).map(co => {
+  const ora = new Date();
+  const lista = leggiTabellaSafe_(SHEETS.CONSEGNE).map(co => {
     const lu = luoghi[String(co.luogo_id || '')] || {};
     const rs = raccolte.filter(r => String(r.consegna_id || '') === String(co.id));
+    const dt = parseChiusura_(co.data);
+    // conclusa: il giorno della consegna è finito, oppure (senza data) tutte le sue raccolte sono concluse
+    const conclusa = dt ? consegnaPassata_(dt, ora) : (rs.length > 0 && rs.every(r => raccoltaConclusa_(r)));
     return {
       id: String(co.id), data: testoData_(co.data), fascia: co.fascia_oraria || '',
       luogoId: String(co.luogo_id || ''), luogoNome: lu.nome || '(luogo non impostato)', luogoIndirizzo: lu.indirizzo || '',
       oraInizio: oraMin_([co.fascia_oraria]),
+      dt: dt ? dt.getTime() : 0, conclusa: conclusa,
       raccolte: rs.map(r => {
         const f = fornitori[String(r.fornitore_id)] || {};
-        return { id: String(r.id), fornitore: f.nome || String(r.fornitore_id), emoji: f.emoji || '' };
+        return { id: String(r.id), fornitore: f.nome || String(r.fornitore_id), emoji: f.emoji || '',
+          fornitoreId: String(r.fornitore_id || ''), fornitoreAttivo: isSi(f.attivo) };
       })
     };
-  }).sort((a, b) => String(a.data).localeCompare(String(b.data)));
+  });
+  // in corso: dalla più vicina (senza data in fondo); concluse: dalla più recente
+  const lontano = 8.64e15;
+  return lista.sort((a, b) => a.conclusa !== b.conclusa ? (a.conclusa ? 1 : -1)
+    : (a.conclusa ? (b.dt - a.dt) : ((a.dt || lontano) - (b.dt || lontano))));
 }
 
 /** (Admin) Consegna attualmente assegnata a una raccolta. */

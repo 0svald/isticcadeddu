@@ -79,12 +79,24 @@
   function toggleAdd(){ document.getElementById('add_prod').classList.toggle('hidden'); }
 
   /* raccolte */
-  function renderCicli(){ const box=document.getElementById('cicli'); box.innerHTML=''; if(!DATI.cicli.length){ box.innerHTML='<div class="muted">Nessuna raccolta.</div>'; return; }
-    DATI.cicli.forEach(c=>{ const card=document.createElement('div'); card.className='card ccard'+(c.nDaVerificare?' mine':''); const badge=chipStato(c.stato)+(c.nDaVerificare?' <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'');
-      let b='';
-      b+='<button class="sec" onclick="ordiniF(\''+c.id+'\')">Ordini</button><button class="sec" onclick="riepilogo(\''+c.id+'\')">Riepilogo</button><button class="sec" onclick="pesi(\''+c.id+'\')">Conferma pesi</button>';
-      const chiudiB = c.stato==='aperto' ? '<button class="warn block" style="margin-top:8px" onclick="chiudi(\''+c.id+'\')">Chiudi gli ordini adesso</button>' : '';
-      card.innerHTML='<div><b style="font-size:1.1rem">Raccolta'+(c.dataConsegna?(' – consegna '+c.dataConsegna):'')+'</b> '+badge+'<div class="muted">'+c.nValidi+' ordini'+(c.chiusura?(' · chiusura '+c.chiusura):'')+(c.dataConsegna?(' · consegna '+c.dataConsegna):'')+'</div></div><div class="actions">'+b+'</div>'+chiudiB+'<div id="det_'+c.id+'" style="margin-top:10px"></div>'; box.appendChild(card); }); }
+  // raccolte in corso in alto; quelle concluse (consegnate) in un riquadro chiuso in fondo, dalla più recente
+  let CONCLUSE_APERTE=false;
+  function cardCiclo(c){ const card=document.createElement('div'); card.className='card ccard'+(c.nDaVerificare?' mine':''); const badge=chipStato(c.stato)+(c.nDaVerificare?' <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'');
+    let b='';
+    b+='<button class="sec" onclick="ordiniF(\''+c.id+'\')">Ordini</button><button class="sec" onclick="riepilogo(\''+c.id+'\')">Riepilogo</button><button class="sec" onclick="pesi(\''+c.id+'\')">Conferma pesi</button>';
+    const chiudiB = c.stato==='aperto' ? '<button class="warn block" style="margin-top:8px" onclick="chiudi(\''+c.id+'\')">Chiudi gli ordini adesso</button>' : '';
+    card.innerHTML='<div><b style="font-size:1.1rem">Raccolta'+(c.dataConsegna?(' – consegna '+c.dataConsegna):'')+'</b> '+badge+'<div class="muted">'+c.nValidi+' ordini'+(c.chiusura?(' · chiusura '+c.chiusura):'')+(c.dataConsegna?(' · consegna '+c.dataConsegna):'')+'</div></div><div class="actions">'+b+'</div>'+chiudiB+'<div id="det_'+c.id+'" style="margin-top:10px"></div>';
+    return card; }
+  function renderCicli(){ const box=document.getElementById('cicli'); box.innerHTML='';
+    const inCorso=DATI.cicli.filter(c=>!c.conclusa), concluse=DATI.cicli.filter(c=>c.conclusa).sort((a,b)=>b.dt-a.dt);
+    if(!inCorso.length) box.innerHTML='<div class="muted">Nessuna raccolta in corso.</div>';
+    inCorso.forEach(c=>box.appendChild(cardCiclo(c)));
+    if(!concluse.length) return;
+    const det=document.createElement('details'); det.className='grp'; det.style.marginTop='18px'; det.open=CONCLUSE_APERTE;
+    det.innerHTML='<summary style="min-height:48px;display:flex;align-items:center;cursor:pointer"><b>Raccolte concluse ('+concluse.length+')</b></summary><p class="muted" style="margin:6px 0 0">Le raccolte già consegnate, dalla più recente.</p>';
+    det.addEventListener('toggle',()=>{ CONCLUSE_APERTE=det.open; });
+    concluse.forEach(c=>det.appendChild(cardCiclo(c)));
+    box.appendChild(det); }
   function chiudi(id){ chiedi('I soci non potranno più ordinare per questa raccolta.',{titolo:'Chiudere gli ordini?',ok:'Chiudi gli ordini',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>ricarica()).withFailureHandler(err).fornitoreChiudiCiclo(TOKEN,id); }); }
   function pesi(id){ const det=document.getElementById('det_'+id); det.innerHTML=SPIN; run().withSuccessHandler(l=>{ if(!l.length){ det.innerHTML='<div class="muted">Nessun prodotto a peso variabile.</div>'; return; } let h='<table><tr><th>Socio</th><th>Prodotto</th><th>Q.tà</th><th>Peso kg</th><th></th></tr>'; l.forEach(r=>{ h+='<tr><td>'+esc(r.nominativo)+'</td><td>'+esc(r.prodotto)+'</td><td>'+nfmt(r.quantita)+'</td><td><input id="pw_'+r.rigaId+'" style="width:80px" value="'+(r.pesoConfermato>0?nfmt(r.pesoConfermato):'')+'"></td><td><button class="mini" onclick="salvaPeso(\''+r.rigaId+'\')">Salva</button></td></tr>'; }); det.innerHTML=h+'</table>'; }).withFailureHandler(err).fornitoreRigheDaConfermare(TOKEN,id); }
   function salvaPeso(rid){ const val=v('pw_'+rid).replace(',','.'); run().withSuccessHandler(()=>{}).withFailureHandler(err).fornitoreConfermaPeso(TOKEN,rid,val); }

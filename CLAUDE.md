@@ -50,6 +50,8 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - Tessera non attiva o scaduta: l'ordine è accettato ma `da_verificare`.
 - Chi arriva primo prende il prodotto: nessuna regola di priorità. L'invio degli ordini usa `LockService` solo per evitare numeri d'ordine duplicati.
 - **Chiusura automatica** (`Trigger.gs`): trigger ogni 15 minuti **e** controllo a ogni apertura di form, pannello o pagina socio. Date lette in modo tollerante (`parseChiusura_`). `diagnosiChiusura()` spiega perché una raccolta non si chiude.
+- **Consegne concluse**: la stessa chiusura automatica, **il giorno dopo la data di consegna**, porta le raccolte `chiuso`/`definitivo` a `consegnato` (`concludiConsegnate_`). Le raccolte senza data di consegna le segna un amministratore ("Segna come consegnata"); "Riporta tra le raccolte in corso" vale solo se la data non è passata. Nessun'altra parte del codice imposta `definitivo` o `archiviato`.
+- **Storico**: le raccolte concluse (`consegnato`/`archiviato`, `raccoltaConclusa_`) spariscono dalle viste in corso. Socio: voce **Storico** nel menu in basso (`socioStorico`, 20 ordini per volta). Pannello: schede **In corso | Storico** in Raccolte e Consegne, per mese, con filtro per fornitore (anche non attivi); il dettaglio di una raccolta conclusa permette solo di vedere/correggere ordini e scaricare il PDF. Portale fornitore: riquadro "Raccolte concluse" in fondo.
 - Prodotti "a peso": prezzo indicativo finché il fornitore non **conferma il peso**.
 - Opzioni di un prodotto: solo **variante** (stesso prezzo, es. gusti) e **supplemento** (costo in più, es. tanica). Niente "formato".
 - **Pagamento** in contanti al fornitore, al ritiro: l'app calcola gli importi ma non registra pagamenti.
@@ -64,6 +66,7 @@ A4 **verticale**, una riga per tessera, una colonna per prodotto (nomi ruotati, 
 - Niente `alert/confirm/prompt` del browser: usare `chiedi()`, `chiediTesto()`, `avvisa()` di `Stile.html`.
 - Icona del GAS: le **quattro mani** del logo del comitato (`design/mani.svg`), incorporata in `Stile.html`. Durante i caricamenti ruota con il movimento "a ribaltamento" (giro completo in 4 quarti) e la scritta "Caricamento…".
 - Menu: su telefono barra in basso, su computer menu laterale nel pannello.
+- Selettore a due voci (es. In corso | Storico): classe `.seg` di `Stile.html`, pulsanti con `aria-pressed`.
 - `Profilo.html` e `Aiuto.html` sono condivisi da pagina socio, portale fornitore e pannello.
 - Nessuna emoji sui singoli prodotti: resta solo quella della categoria.
 
@@ -110,4 +113,4 @@ Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPRE
 - **Referenti** del comitato e **regole del GAS** (ordini per altri, ritiri mancati, tempi per le modifiche): da definire, poi da aggiungere alle domande frequenti (scheda `Aiuto`).
 - **`LINK_BASE_URL`**: da impostare a `https://0svald.github.io/isticcadeddu/` perché i nuovi link personali aprano l'app installabile; dopo, eseguire una volta `azzeraLinkBrevi()`.
 - Fornitori del foglio senza tessera: vanno collegati a un socio, altrimenti non entrano nel portale.
-- Guide PDF (`guide/`): rigenerate il 24-09-2026; da aggiornare quando cambiano le funzioni.
+- Guide PDF (`guide/`): rigenerate il 24-09-2026; da aggiornare con lo **Storico** (soci, amministratori) e le **raccolte concluse** (fornitori).
