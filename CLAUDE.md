@@ -106,6 +106,8 @@ Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPRE
 
 ## In sospeso / prossimi passi
 
+Le idee di nuove funzioni dell'utente sono in **`RICHIESTE.md`** (una sezione per richiesta, con domande aperte e stato): aggiornale lì quando si decide o si realizza qualcosa.
+
 - **GitHub Pages "vero"**: spostare le pagine su Pages e usare Apps Script solo come servizio. Primo passo concordato: aggiungere al server un punto di accesso per richieste web (solo un elenco di funzioni pubbliche) e, nelle pagine, un adattatore che imita `google.script.run`. Le pagine di Google restano attive durante il passaggio. Ordine: pagina socio e form, poi portale fornitore, poi pannello.
 - **Rinforzo del foglio**: schede protette, scritture per id (non per numero di riga), colonne tessera/telefono/date come testo, letture in memoria per richiesta, archivio annuale. Più avanti, se il GAS cresce: valutare **Supabase** come base di dati.
 - **Messaggi WhatsApp**: nuovi testi proposti (apertura con giorno della settimana e "(a peso)" invece dell'asterisco, promemoria, chiusura, foglio di consegna senza totali, avviso di ritiro), tutti modificabili dalla scheda `TemplateMessaggi`: **in attesa di approvazione**. Oggi `msgStatoProvvisorio`/`msgStatoDefinitivo` mostrano ancora totali complessivi: da togliere.
