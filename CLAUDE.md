@@ -78,10 +78,19 @@ A4 **verticale**, una riga per tessera, una colonna per prodotto (nomi ruotati, 
 ## Come si pubblica
 
 1. Modifica i file in `apps-script/`, commit su GitHub.
-2. `clasp push` dalla cartella `apps-script/` (configurazione in `.clasp.json`, escluso dal repository; esempio in `.clasp.json.example`).
-3. Pubblica una **nuova versione del deployment esistente** (mai un deployment nuovo: cambierebbero tutti i link).
-4. Se il codice chiede **nuove autorizzazioni** Google: l'utente le approva nel browser, poi vanno rieseguite `installaTriggerChiusura` e `installaTriggerBackup` (Google sospende i trigger dopo un cambio di permessi).
-5. `docs/` si pubblica da solo con GitHub Pages (ramo `main`, cartella `/docs`).
+2. Prima di caricare, `clasp pull` in una cartella **separata** e confronto con `apps-script/`: se qualcuno ha modificato il codice dall'editor, `clasp push` lo sovrascriverebbe.
+3. `clasp push --force` dalla cartella `apps-script/` (configurazione in `.clasp.json`, escluso dal repository; esempio in `.clasp.json.example`).
+4. Pubblica una **nuova versione del deployment esistente** (mai un deployment nuovo: cambierebbero tutti i link):
+   `clasp create-deployment -i <ID-DEPLOYMENT> -d "descrizione"` (con clasp più vecchi: `clasp deploy -i …`).
+   L'ID del deployment è quello dentro l'indirizzo in `docs/config.js` (inizia con `AKfycbzY888…`). `clasp list-deployments` mostra la versione in uso.
+5. Se il codice chiede **nuove autorizzazioni** Google: l'utente le approva nel browser, poi vanno rieseguite `installaTriggerChiusura` e `installaTriggerBackup` (Google sospende i trigger dopo un cambio di permessi).
+6. `docs/` si pubblica da solo con GitHub Pages (ramo `main`, cartella `/docs`).
+
+Note su clasp e Claude Code:
+- Claude pubblica su Apps Script (push e deployment) **solo con l'autorizzazione esplicita** dell'utente, ogni volta.
+- Credenziali di clasp (`~/.clasprc.json`): mai in chat né nel repository. Per le sessioni cloud vanno nella variabile d'ambiente `CLASPRC_JSON` dell'ambiente, da scrivere in `~/.clasprc.json` all'avvio.
+- Le pagine si vedono dentro l'app installabile solo se il server le marca con `setXFrameOptionsMode(ALLOWALL)` (in `conFavicon_` di `WebApp.gs`): altrimenti l'app mostra "script.google.com refused to connect".
+- Ultima pubblicazione: versione **55** del deployment, 24-09-2026 (codice uguale al ramo `main`).
 
 Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPREADSHEET_ID`, `APP_URL`, `ADMIN_TOKEN`, `LINK_BASE_URL`, `FAVICON_URL`, `SHORTENER`, `ACCORCIA_LINK_PERSONALI`, `LOGO_URL`, `GUIDA_SOCI_ID`, `GUIDA_FORNITORI_ID`, `GUIDA_AMMINISTRATORI_ID`.
 
@@ -99,5 +108,6 @@ Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPRE
 - **Messaggi WhatsApp**: nuovi testi proposti (apertura con giorno della settimana e "(a peso)" invece dell'asterisco, promemoria, chiusura, foglio di consegna senza totali, avviso di ritiro), tutti modificabili dalla scheda `TemplateMessaggi`: **in attesa di approvazione**. Oggi `msgStatoProvvisorio`/`msgStatoDefinitivo` mostrano ancora totali complessivi: da togliere.
 - **Import CSV** dei soci: oggi sovrascrive il telefono, anche se il socio l'ha aggiornato dal Profilo. Da decidere se aggiornarlo solo quando è vuoto.
 - **Referenti** del comitato e **regole del GAS** (ordini per altri, ritiri mancati, tempi per le modifiche): da definire, poi da aggiungere alle domande frequenti (scheda `Aiuto`).
+- **`LINK_BASE_URL`**: da impostare a `https://0svald.github.io/isticcadeddu/` perché i nuovi link personali aprano l'app installabile; dopo, eseguire una volta `azzeraLinkBrevi()`.
 - Fornitori del foglio senza tessera: vanno collegati a un socio, altrimenti non entrano nel portale.
 - Guide PDF (`guide/`): rigenerate il 24-09-2026; da aggiornare quando cambiano le funzioni.
