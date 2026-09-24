@@ -28,6 +28,7 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - Per le modifiche all'interfaccia importanti: prima proporre, poi scrivere il codice dopo la conferma.
 - Indicare sempre **quali file** sostituire e ricordare di pubblicare una **nuova versione** del deployment.
 - Verificare il codice prima di consegnarlo (sintassi, e dove possibile una simulazione della logica).
+- Rami git con **nomi sensati** che descrivono il lavoro (es. `importa-progetto`, `messaggi-whatsapp`), non nomi generati a caso.
 
 ## Utenti, ruoli e accesso
 
