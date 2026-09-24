@@ -1,0 +1,18 @@
+# Dati personali: MAI nel repository (è pubblico)
+*.xlsx
+*.xls
+*.csv
+*.ods
+dati/
+backup/
+
+# Configurazione locale di clasp (contiene l'ID del progetto)
+.clasp.json
+.clasprc.json
+
+# Varie
+.DS_Store
+Thumbs.db
+node_modules/
+__pycache__/
+*.html.bak

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+<?!= include('Stile') ?>
+<?!= include('Profilo') ?>
+<?!= include('Aiuto') ?>
+<style>
+  .wrap{ max-width:760px; margin:0 auto; padding:16px 14px 130px; }
+  .pillbtn{ display:inline-flex; align-items:center; cursor:pointer; font-weight:700; font-family:inherit; min-height:42px; padding:0 12px; border-radius:999px; font-size:.88rem; gap:7px; white-space:nowrap; }
+  .pillbtn::before{ content:""; flex:0 0 10px; width:10px; height:10px; border-radius:50%; box-sizing:border-box; }
+  .pillbtn.on{ background:var(--green-t); color:var(--green-d); border:1px solid var(--green-l); }
+  .pillbtn.on::before{ background:var(--green); }
+  .pillbtn.no{ background:var(--sunk); color:var(--muted); border:1px dashed #B9B09A; }
+  .pillbtn.no::before{ border:2px solid #8C8573; box-sizing:border-box; }
+  .pillbtn.on:hover{ background:#DCE8D4; } .pillbtn.no:hover{ background:#E3DDCD; }
+  .pillbtn, .litem{ transition:background .15s, color .15s, border-color .15s, opacity .15s; }
+  .ccard .actions{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:12px; }
+  .ccard .actions button{ width:100%; padding:0 6px; font-size:.95rem; }
+</style>
+</head>
+<body>
+<header class="topbar"><div class="brand"><div class="mark" role="img" aria-label="GAS Isticcadeddu"></div><div class="bt"><b id="tit">GAS Isticcadeddu</b><small>Portale fornitore<span id="sub"></span></small></div></div></header>
+<div class="wrap">
+  <div id="loading" role="status" style="text-align:center"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
+  <div id="app" class="hidden">
+    <section id="sez_listino">
+    <div class="secbar"><h1 style="margin:0">Il mio listino</h1><button onclick="toggleAdd()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nuovo</button></div>
+    <p class="muted" style="margin-top:0">Tocca un prodotto per modificarlo. Il pulsante a destra lo rende disponibile o no.</p>
+    <div id="add_prod" class="addpanel hidden">
+      <div class="frow"><label>Nome</label><input type="text" id="np_nome"></div>
+      <div class="frow"><label>Categoria</label><select id="np_cat"></select></div>
+      <div class="frow"><label>Prezzo €</label><input type="text" id="np_prezzo" style="max-width:130px"><label style="width:auto">Unità</label><input type="text" id="np_unita" placeholder="es. €/kg" style="max-width:140px"></div>
+      <div class="frow"><label>Vendita</label><select id="np_mod"><option value="a_unita">a unità</option><option value="a_peso">a peso (€/kg)</option><option value="a_peso_pezzo">a peso, pezzo indicativo</option></select><label style="width:auto;display:flex;gap:8px;align-items:center"><input type="checkbox" id="np_peso"> si pesa al momento</label></div>
+      <div class="frow"><textarea id="np_note" placeholder="Note (una per riga)"></textarea></div>
+      <div class="edact"><button onclick="aggiungiProd()">Aggiungi</button><button class="ghost" onclick="toggleAdd()">Chiudi</button><span id="np_msg" class="ok"></span></div>
+    </div>
+    <div id="listino" class="list"></div>
+    </section>
+    <section id="sez_raccolte" class="hidden">
+      <h1>Le mie raccolte</h1>
+      <div id="cicli"></div>
+    </section>
+    <section id="sez_profilo" class="hidden"><div id="prof_box"></div></section>
+    <section id="sez_aiuto" class="hidden"><div id="aiuto_box"></div></section>
+  </div>
+</div>
+<nav class="bottomnav" aria-label="Menu">
+  <button class="navbtn active" data-s="listino" onclick="vai('listino')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Listino</button>
+  <button class="navbtn" data-s="raccolte" onclick="vai('raccolte')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Raccolte<span class="cnt" id="cnt_racc"></span></button>
+  <button class="navbtn" data-s="profilo" onclick="vai('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profilo</button>
+  <button class="navbtn" data-s="aiuto" onclick="vai('aiuto')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg>Aiuto</button>
+</nav>
+
+<script>
+  const TOKEN = "<?= token ?>";
+  const SPIN='<span class="spin"></span>caricamento…';
+  let DATI=null, OPEN=null;
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function v(id){ const e=document.getElementById(id); return e?e.value:''; }
+  function run(){ return google.script.run; }
+  function nfmt(n){ return (Math.round((+n||0)*100)/100).toFixed(2).replace('.',','); }
+  function err(e){ avvisa(e.message||String(e),'Qualcosa non è andato'); }
+
+  run().withSuccessHandler(render).withFailureHandler(e=>{ document.getElementById('loading').textContent='Errore: '+e.message; }).fornitoreDati(TOKEN);
+
+  function render(d){ DATI=d; document.getElementById('loading').classList.add('hidden'); document.getElementById('app').classList.remove('hidden');
+    document.getElementById('tit').textContent=d.fornitore.nome;
+    document.getElementById('sub').textContent=d.fornitore.zona?(' · '+d.fornitore.zona):'';
+    const nv=(d.cicli||[]).reduce((a,c)=>a+(+c.nDaVerificare||0),0); document.getElementById('cnt_racc').textContent=nv?String(nv):'';
+    riempiCat(); renderCicli(); renderListino(); }
+
+  function riempiCat(){ const s=document.getElementById('np_cat'); s.innerHTML=''; s.appendChild(new Option('— senza categoria —','')); DATI.categorie.forEach(c=> s.appendChild(new Option((c.emoji?c.emoji+' ':'')+c.nome, c.id))); }
+  function vai(k){ if(k==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'fornitore'); if(k==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'fornitore', pagina:'portale fornitore', sezione:'aiuto' }); ['listino','raccolte','profilo','aiuto'].forEach(x=>document.getElementById('sez_'+x).classList.toggle('hidden',x!==k)); document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.s===k)); window.scrollTo({top:0}); }
+  function chipStato(st){ const m={aperto:['Aperta',''],chiuso:['Chiusa',' grey'],definitivo:['Definitiva',' grey'],consegnato:['Consegnata',' grey'],archiviato:['Archiviata',' grey']}; const x=m[st]||[st,' grey']; return '<span class="badge'+x[1]+'">'+x[0]+'</span>'; }
+  function toggleAdd(){ document.getElementById('add_prod').classList.toggle('hidden'); }
+
+  /* raccolte */
+  function renderCicli(){ const box=document.getElementById('cicli'); box.innerHTML=''; if(!DATI.cicli.length){ box.innerHTML='<div class="muted">Nessuna raccolta.</div>'; return; }
+    DATI.cicli.forEach(c=>{ const card=document.createElement('div'); card.className='card ccard'+(c.nDaVerificare?' mine':''); const badge=chipStato(c.stato)+(c.nDaVerificare?' <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'');
+      let b='';
+      b+='<button class="sec" onclick="ordiniF(\''+c.id+'\')">Ordini</button><button class="sec" onclick="riepilogo(\''+c.id+'\')">Riepilogo</button><button class="sec" onclick="pesi(\''+c.id+'\')">Conferma pesi</button>';
+      const chiudiB = c.stato==='aperto' ? '<button class="warn block" style="margin-top:8px" onclick="chiudi(\''+c.id+'\')">Chiudi gli ordini adesso</button>' : '';
+      card.innerHTML='<div><b style="font-size:1.1rem">Raccolta'+(c.dataConsegna?(' – consegna '+c.dataConsegna):'')+'</b> '+badge+'<div class="muted">'+c.nValidi+' ordini'+(c.chiusura?(' · chiusura '+c.chiusura):'')+(c.dataConsegna?(' · consegna '+c.dataConsegna):'')+'</div></div><div class="actions">'+b+'</div>'+chiudiB+'<div id="det_'+c.id+'" style="margin-top:10px"></div>'; box.appendChild(card); }); }
+  function chiudi(id){ chiedi('I soci non potranno più ordinare per questa raccolta.',{titolo:'Chiudere gli ordini?',ok:'Chiudi gli ordini',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>ricarica()).withFailureHandler(err).fornitoreChiudiCiclo(TOKEN,id); }); }
+  function pesi(id){ const det=document.getElementById('det_'+id); det.innerHTML=SPIN; run().withSuccessHandler(l=>{ if(!l.length){ det.innerHTML='<div class="muted">Nessun prodotto a peso variabile.</div>'; return; } let h='<table><tr><th>Socio</th><th>Prodotto</th><th>Q.tà</th><th>Peso kg</th><th></th></tr>'; l.forEach(r=>{ h+='<tr><td>'+esc(r.nominativo)+'</td><td>'+esc(r.prodotto)+'</td><td>'+nfmt(r.quantita)+'</td><td><input id="pw_'+r.rigaId+'" style="width:80px" value="'+(r.pesoConfermato>0?nfmt(r.pesoConfermato):'')+'"></td><td><button class="mini" onclick="salvaPeso(\''+r.rigaId+'\')">Salva</button></td></tr>'; }); det.innerHTML=h+'</table>'; }).withFailureHandler(err).fornitoreRigheDaConfermare(TOKEN,id); }
+  function salvaPeso(rid){ const val=v('pw_'+rid).replace(',','.'); run().withSuccessHandler(()=>{}).withFailureHandler(err).fornitoreConfermaPeso(TOKEN,rid,val); }
+  function ordiniF(id){ const det=document.getElementById('det_'+id); det.innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ if(!l.length){ det.innerHTML='<div class="muted">Nessun ordine.</div>'; return; }
+      let h='<b>Ordini</b>';
+      l.forEach(o=>{ const badge=o.stato==='valido'?'<span class="badge">valido</span>':'<span class="badge off">da verificare</span>';
+        h+='<div class="card" style="margin-top:6px"><div><b>'+esc(o.tessera)+' — '+esc(o.nominativo)+'</b> '+badge+'</div>'+(o.telefono?'<div class="li2">'+esc(o.telefono)+'</div>':'')+(o.motivo?'<div class="li2">⚠️ '+esc(o.motivo)+'</div>':'')+(o.note?'<div class="li2">✎ nota: '+esc(o.note)+'</div>':'');
+        o.righe.forEach(r=>{ h+='<div class="frow" style="margin:2px 0"><span style="flex:1;min-width:120px">'+esc(r.prodotto)+'</span><input id="rqf_'+r.rigaId+'" value="'+nfmt(r.quantita)+'" style="width:64px;flex:none"><span class="li2">'+esc(r.unita)+'</span><button class="sec mini" onclick="salvaRigaF(\''+r.rigaId+'\',\''+id+'\')">Salva</button></div>'; });
+        h+='<div class="edact">'+(o.stato!=='valido'?'<button class="mini" onclick="confOrdF(\''+o.id+'\',\''+id+'\')">Conferma</button>':'')+'<button class="warn mini" onclick="annOrdF(\''+o.id+'\',\''+id+'\')">Annulla ordine</button></div></div>';
+      }); det.innerHTML=h;
+    }).withFailureHandler(err).fornitoreOrdini(TOKEN,id); }
+  function salvaRigaF(rid,cid){ run().withSuccessHandler(()=>ordiniF(cid)).withFailureHandler(err).fornitoreModificaRiga(TOKEN,rid,document.getElementById('rqf_'+rid).value.replace(',','.')); }
+  function confOrdF(oid,cid){ run().withSuccessHandler(()=>ordiniF(cid)).withFailureHandler(err).fornitoreConfermaOrdine(TOKEN,oid); }
+  function annOrdF(oid,cid){ chiediTesto('Scrivi il motivo, concordato con il socio:','Su richiesta del socio',{titolo:'Annullare l\'ordine?',ok:'Annulla l\'ordine'}).then(m=>{ if(m===null)return; run().withSuccessHandler(()=>ordiniF(cid)).withFailureHandler(err).fornitoreAnnullaOrdine(TOKEN,oid,m); }); }
+  function riepilogo(id){ const det=document.getElementById('det_'+id); det.innerHTML=SPIN;
+    run().withSuccessHandler(d=>{ if(!d.prodotti.length){ det.innerHTML='<div class="muted">Nessun ordine valido.</div>'; return; }
+      let h='<table><tr><th>Prodotto</th><th>Quantità</th><th>Importo</th></tr>';
+      d.prodotti.forEach(p=>{ h+='<tr><td>'+esc(p.nome)+'</td><td>'+nfmt(p.qta)+'</td><td>'+nfmt(p.importo)+' €</td></tr>'; });
+      h+='<tr style="font-weight:700;background:#f1f8e9"><td>Totale ('+d.nOrdini+' ordini)</td><td></td><td>'+nfmt(d.totale)+' €</td></tr></table>';
+      det.innerHTML=h;
+    }).withFailureHandler(err).fornitoreRiepilogoRaccolta(TOKEN,id); }
+
+  /* listino */
+  function renderListino(){ const box=document.getElementById('listino'); box.innerHTML=''; OPEN=null;
+    const cats=DATI.categorie.slice(); const attFirst=(a,b)=>(a.attivo===b.attivo)?0:(a.attivo?-1:1);
+    const senza=DATI.prodotti.filter(p=>!p.categoria_id).sort(attFirst);
+    cats.forEach(c=>{ const lista=DATI.prodotti.filter(p=>p.categoria_id===c.id).sort(attFirst); if(!lista.length) return; box.appendChild(Object.assign(document.createElement('div'),{className:'catlab',textContent:(c.emoji?c.emoji+' ':'')+c.nome})); lista.forEach(p=>box.appendChild(prodRow(p))); });
+    if(senza.length){ box.appendChild(Object.assign(document.createElement('div'),{className:'catlab',textContent:'Senza categoria'})); senza.forEach(p=>box.appendChild(prodRow(p))); }
+    if(!DATI.prodotti.length) box.innerHTML='<div class="muted">Nessun prodotto. Aggiungine con +.</div>'; }
+  function prodRow(p){ const row=document.createElement('div'); row.className='litem rowflex'+(p.attivo?'':' off');
+    const left=document.createElement('div'); left.className='rl';
+    left.innerHTML='<div class="li1">'+esc(p.nome)+'</div><div class="li2">'+nfmt(p.prezzo)+' '+esc(p.unita||'')+(p.nOpzioni?(' · '+p.nOpzioni+' opzioni'):'')+'</div>';
+    left.onclick=()=>openProd(p,row);
+    const btn=document.createElement('button'); btn.type='button'; btn.className='pillbtn '+(p.attivo?'on':'no'); btn.textContent=p.attivo?'Disponibile':'Non disponibile'; btn.setAttribute('aria-pressed', p.attivo?'true':'false');
+    btn.onclick=(e)=>{ e.stopPropagation(); cambiaDisp(p,row,btn); };
+    row.appendChild(left); row.appendChild(btn); return row; }
+  function openProd(p,row){ if(OPEN){ OPEN.remove(); const was=OPEN; OPEN=null; if(was._pid===p.id) return; }
+    let opts='<option value="">— senza categoria —</option>'; DATI.categorie.forEach(c=>opts+='<option value="'+c.id+'"'+(c.id===p.categoria_id?' selected':'')+'>'+esc((c.emoji?c.emoji+' ':'')+c.nome)+'</option>');
+    const modopt=['a_unita','a_peso','a_peso_pezzo'].map(m=>'<option value="'+m+'"'+(m===p.modalita?' selected':'')+'>'+({a_unita:'a unità',a_peso:'a peso (€/kg)',a_peso_pezzo:'a peso, pezzo indicativo'}[m])+'</option>').join('');
+    const d=document.createElement('div'); d.className='ed'; d._pid=p.id; d.innerHTML=
+      '<div class="frow"><label>Nome</label><input type="text" id="ep_nome" value="'+esc(p.nome)+'"></div>'+
+      '<div class="frow"><label>Categoria</label><select id="ep_cat">'+opts+'</select></div>'+
+      '<div class="frow"><label>Prezzo</label><input type="text" id="ep_prezzo" value="'+nfmt(p.prezzo)+'" style="max-width:120px"><label style="width:auto">Unità</label><input type="text" id="ep_unita" value="'+esc(p.unita||'')+'" style="max-width:130px"></div>'+
+      '<div class="frow"><label>Vendita</label><select id="ep_mod">'+modopt+'</select><label style="width:auto"><input type="checkbox" id="ep_peso" '+(p.peso_variabile?'checked':'')+'> peso variabile</label></div>'+
+      '<div class="frow"><textarea id="ep_note">'+esc(p.note||'')+'</textarea></div>'+
+      '<div class="edact"><button class="mini" onclick="salvaProd(\''+p.id+'\')">Salva</button><button class="sec mini" onclick="chiudiEd()">Annulla</button><button class="warn mini" onclick="elimProd(\''+p.id+'\')">Elimina prodotto</button><span id="ep_msg" class="ok"></span></div>'+
+      '<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px"><b>Opzioni</b> <span class="muted">(varianti, formati, supplementi — es. gusti)</span>'+
+      '<div id="ep_opz" style="margin:6px 0">'+SPIN+'</div>'+
+      '<div class="frow"><input type="text" id="oz_nome" placeholder="Nome opzione (es. Fragola)"></div>'+
+      '<div class="frow"><select id="oz_tipo" onchange="ozTipoChg()"><option value="variante">variante (stesso prezzo del prodotto)</option><option value="supplemento">supplemento (si somma, es. tanica)</option></select><input type="text" id="oz_prezzo" placeholder="+ € supplemento" style="max-width:150px"></div>'+
+      '<div class="frow"><label style="width:auto"><input type="checkbox" id="oz_nota"> chiede una nota al socio</label></div>'+
+      '<button class="mini" onclick="salvaOpz(\''+p.id+'\')">Aggiungi opzione</button> <button class="sec mini" onclick="resetOpz()">Pulisci</button> <span id="oz_msg" class="ok"></span></div>';
+    row.after(d); OPEN=d; OPZ_EDIT=null; caricaOpz(p.id); ozTipoChg(); }
+  let OPZ_EDIT=null, OPZ_CUR=[];
+  function toggleProd(id,att){ run().withSuccessHandler(()=>ricarica()).withFailureHandler(err).fornitoreToggleProdotto(TOKEN,id,att); }
+  /* Disponibile / Non disponibile: il colore cambia subito, il salvataggio avviene in sottofondo.
+     Se il salvataggio non riesce, il prodotto torna com'era e compare un avviso.
+     L'ordine dell'elenco (non disponibili in fondo) si aggiorna alla prossima apertura, così la riga non "salta" sotto il dito. */
+  function mostraDisp(p,row,btn){ row.classList.toggle('off',!p.attivo); btn.className='pillbtn '+(p.attivo?'on':'no'); btn.textContent=p.attivo?'Disponibile':'Non disponibile'; btn.setAttribute('aria-pressed', p.attivo?'true':'false'); }
+  function cambiaDisp(p,row,btn){
+    const prima=p.attivo; p.attivo=!p.attivo; mostraDisp(p,row,btn);
+    const valore=p.attivo; p._invio=(p._invio||0)+1; const mio=p._invio;
+    run().withSuccessHandler(()=>{}).withFailureHandler(e=>{
+      if(mio!==p._invio) return; // nel frattempo è stato ritoccato: vale l'ultimo tocco
+      p.attivo=prima; mostraDisp(p,row,btn); avvisa('Non sono riuscito a salvare la disponibilità di "'+p.nome+'". Riprova.','Qualcosa non è andato');
+    }).fornitoreToggleProdotto(TOKEN,p.id,valore);
+  }
+  function ozTipoChg(){ const t=document.getElementById('oz_tipo'); const p=document.getElementById('oz_prezzo'); if(t&&p) p.style.display=(t.value==='supplemento')?'':'none'; }
+  function elimProd(id){ chiedi('Verranno eliminate anche le sue scelte. Non si può tornare indietro: se è solo finito, meglio renderlo non disponibile.',{titolo:'Eliminare il prodotto?',ok:'Elimina',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>ricarica()).withFailureHandler(err).fornitoreEliminaProdotto(TOKEN,id); }); }
+  function caricaOpz(pid){ const box=document.getElementById('ep_opz'); if(!box)return; box.innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ OPZ_CUR=l; if(!l.length){ box.innerHTML='<div class="muted">Nessuna opzione.</div>'; return; }
+      let h=''; l.forEach(o=>{ const det=o.tipo+(o.prezzo?(' '+nfmt(o.prezzo)+' €'+(o.unita?(' '+o.unita):'')):'')+(o.richiede_nota?' · con nota':'');
+        h+='<div class="li"><div class="li1">'+esc(o.nome)+' <span class="li2">('+esc(det)+')</span></div><div class="edact"><button class="sec mini" onclick="editOpz(\''+o.id+'\')">Modifica</button><button class="warn mini" onclick="elimOpz(\''+o.id+'\',\''+pid+'\')">Elimina</button></div></div>'; });
+      box.innerHTML=h;
+    }).withFailureHandler(e=>{box.textContent='Errore: '+e.message;}).fornitoreOpzioni(TOKEN,pid); }
+  function editOpz(id){ const o=OPZ_CUR.find(x=>x.id===id); if(!o)return; OPZ_EDIT=id;
+    document.getElementById('oz_nome').value=o.nome; document.getElementById('oz_tipo').value=(o.tipo==='formato'?'supplemento':o.tipo); document.getElementById('oz_prezzo').value=o.prezzo?nfmt(o.prezzo):''; document.getElementById('oz_nota').checked=o.richiede_nota; ozTipoChg();
+    document.getElementById('oz_msg').textContent='(modifica)'; }
+  function resetOpz(){ OPZ_EDIT=null; ['oz_nome','oz_prezzo'].forEach(i=>document.getElementById(i).value=''); document.getElementById('oz_nota').checked=false; document.getElementById('oz_tipo').value='variante'; ozTipoChg(); document.getElementById('oz_msg').textContent=''; }
+  function salvaOpz(pid){ const tipo=v('oz_tipo'); const d={ id:OPZ_EDIT||'', prodottoId:pid, nome:v('oz_nome'), tipo:tipo, prezzo:(tipo==='supplemento'?v('oz_prezzo'):0), unita:'', richiede_nota:document.getElementById('oz_nota').checked };
+    if(!d.nome.trim()){ avvisa('Inserisci il nome dell\'opzione.'); return; } document.getElementById('oz_msg').textContent='…';
+    run().withSuccessHandler(()=>{ resetOpz(); caricaOpz(pid); }).withFailureHandler(err).fornitoreSalvaOpzione(TOKEN,d); }
+  function elimOpz(id,pid){ chiedi('La scelta verrà tolta dal prodotto.',{titolo:'Eliminare la scelta?',ok:'Elimina',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>caricaOpz(pid)).withFailureHandler(err).fornitoreEliminaOpzione(TOKEN,id); }); }
+  function chiudiEd(){ if(OPEN){ OPEN.remove(); OPEN=null; } }
+  function salvaProd(id){ const p=DATI.prodotti.find(x=>x.id===id); const d={ id:id, categoria_id:v('ep_cat'), nome:v('ep_nome'), prezzo:v('ep_prezzo'), unita:v('ep_unita'), modalita:v('ep_mod'), peso_variabile:document.getElementById('ep_peso').checked, attivo:p.attivo, note:v('ep_note'), passo:p.passo, emoji:'' };
+    document.getElementById('ep_msg').textContent='…'; run().withSuccessHandler(()=>ricarica()).withFailureHandler(err).fornitoreSalvaProdotto(TOKEN,d); }
+  function aggiungiProd(){ const d={ categoria_id:v('np_cat'), nome:v('np_nome'), prezzo:v('np_prezzo'), unita:v('np_unita'), modalita:v('np_mod'), peso_variabile:document.getElementById('np_peso').checked, note:v('np_note'), attivo:true, passo:1, emoji:'' };
+    if(!d.nome.trim()){ avvisa('Inserisci il nome.'); return; } document.getElementById('np_msg').textContent='…';
+    run().withSuccessHandler(()=>{ ['np_nome','np_prezzo','np_unita','np_note'].forEach(i=>document.getElementById(i).value=''); ricarica(); }).withFailureHandler(err).fornitoreSalvaProdotto(TOKEN,d); }
+
+  function ricarica(){ run().withSuccessHandler(render).withFailureHandler(err).fornitoreDati(TOKEN); }
+</script>
+</body>
+</html>

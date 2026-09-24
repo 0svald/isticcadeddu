@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+<?!= include('Stile') ?>
+<?!= include('Profilo') ?>
+<?!= include('Aiuto') ?>
+<style>
+  .layout{ display:flex; min-height:100vh; }
+  .main{ flex:1; min-width:0; }
+  .wrap{ max-width:980px; margin:0 auto; padding:16px 14px 120px; }
+  .sidenav{ display:none; }
+  .sidenav .tab{ width:100%; justify-content:flex-start; gap:12px; min-height:46px; padding:0 12px; border-radius:12px;
+    background:transparent; color:var(--ink); border:none; font-size:.98rem; }
+  .sidenav .tab .ico{ color:var(--muted); }
+  .sidenav .tab:hover{ background:var(--sub); }
+  .sidenav .tab.active{ background:var(--green); color:var(--surface); }
+  .sidenav .tab.active .ico{ color:var(--surface); }
+  .sidenav .tab .cnt{ margin-left:auto; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:var(--amber-bg); color:var(--amber); font-size:.78rem; line-height:22px; }
+  .sidenav .tab .cnt:empty{ display:none; }
+  .sidenav .spacer{ flex:1; }
+  .ptitle{ display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin:4px 0 14px; }
+  .kpis{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:12px 0; }
+  .kpi{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .kpi b{ display:block; font-size:1.35rem; line-height:1.1; } .kpi span{ font-size:.82rem; color:var(--muted); }
+  .kpi.warn{ background:var(--amber-bg); border-color:var(--amber-line); color:var(--amber); } .kpi.warn span{ color:var(--amber); }
+  #p_msg{ width:100%; min-height:200px; font-size:.92rem; }
+  @media (min-width:900px){
+    .sidenav{ display:flex; flex-direction:column; gap:4px; width:260px; flex:0 0 260px; position:sticky; top:0; height:100vh; overflow:auto;
+      padding:20px 14px; background:var(--surface); border-right:1px solid var(--line); }
+    .sidenav .brand{ padding:0 8px 16px; flex:none; }
+    .topbar.m, .bottomnav{ display:none; }
+    .wrap{ padding:28px 32px 48px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidenav" aria-label="Menu">
+  <div class="brand"><div class="mark" role="img" aria-label="GAS Isticcadeddu"></div><div class="bt"><b>GAS Isticcadeddu</b><small>Amministrazione</small></div></div>
+  <button class="tab active" data-sez="dafare" onclick="mostraSez('dafare')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9"/></svg><span>Da fare</span><span class="cnt cnt-dafare"></span></button>
+  <button class="tab" data-sez="racc" onclick="mostraSez('racc')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span>Raccolte</span></button>
+  <button class="tab" data-sez="cons" onclick="mostraSez('cons')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>Consegne</span></button>
+  <button class="tab" data-sez="soci" onclick="mostraSez('soci')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 010 7"/><path d="M21.5 20c0-2.6-1.4-4.6-3.7-5.5"/></svg><span>Soci</span></button>
+  <button class="tab" data-sez="forn" onclick="mostraSez('forn')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-7h6v7"/></svg><span>Fornitori</span></button>
+  <button class="tab" data-sez="cat" onclick="mostraSez('cat')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8z"/><path d="M7.5 7.5h.01"/></svg><span>Categorie</span></button>
+  <button class="tab" data-sez="stat" onclick="mostraSez('stat')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span>Statistiche</span></button>
+  <button class="tab" data-sez="admin" onclick="mostraSez('admin')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/></svg><span>Amministratori</span></button>
+  <div class="spacer"></div>
+  <button class="tab" data-sez="segn" onclick="mostraSez('segn')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h11l-1 4h6v9h-9l1-4H4"/></svg><span>Segnalazioni</span><span class="cnt cnt-segn"></span></button>
+  <button class="tab" data-sez="profilo" onclick="mostraSez('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profilo</span></button>
+  <button class="tab" data-sez="aiuto" onclick="mostraSez('aiuto')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg><span>Aiuto</span></button>
+</aside>
+<div class="main">
+<header class="topbar m"><div class="brand"><div class="mark" role="img" aria-label="GAS Isticcadeddu"></div><div class="bt"><b>GAS Isticcadeddu</b><small>Amministrazione</small></div></div></header>
+<div class="wrap">
+
+  <section id="sez_dafare">
+    <div class="secbar"><h2>Da fare</h2><button class="sec" onclick="caricaDaFare()">Aggiorna</button></div>
+    <div id="df_out" role="status"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
+  </section>
+
+  <section id="sez_soci" style="display:none">
+    <div class="secbar"><h2>Soci</h2><div style="display:flex;gap:8px;align-items:center"><button class="sec" onclick="toggleIE()">Import/Export</button><button class="addbtn" onclick="toggleAdd('soci')">+</button></div></div>
+    <div id="add_soci" class="addpanel hidden">
+      <div class="frow"><label>Tessera</label><input type="text" id="ns_tess"></div>
+      <div class="frow"><label>Nominativo</label><input type="text" id="ns_nome"></div>
+      <div class="frow"><label>Telefono</label><input type="text" id="ns_tel"></div>
+      <div class="edact"><button onclick="aggiungiSocio()">Aggiungi</button><button class="sec" onclick="toggleAdd('soci')">Chiudi</button><span id="ns_msg" class="muted"></span></div>
+    </div>
+    <div id="ie_panel" class="addpanel hidden">
+      <p class="muted">CSV con colonne Tessera, Nominativo, Telefono (UTF-8). Le tessere assenti diventano non attive.</p>
+      <div class="edact"><input type="file" id="csvfile" accept=".csv,text/csv"><button class="mini" onclick="analizzaCsv()">Analizza</button><button class="sec mini" onclick="esportaCsv()">Esporta</button><button class="sec mini" onclick="toggleIE()">Chiudi</button></div>
+      <div id="csv_res"></div><button id="csv_conf" class="hidden mini" onclick="confermaCsv()">Conferma import</button>
+      <div class="grp"><div class="grpt">Link personali<small>Crea il link per tutti i soci che non l'hanno ancora. I link già consegnati restano validi.</small></div>
+        <div class="edact"><button class="sec" onclick="generaLinkMancanti()">Crea i link mancanti</button><span id="tok_msg" class="ok"></span></div></div>
+    </div>
+    <input type="text" class="filtro" id="soci_filtro" placeholder="Filtra…" oninput="renderSoci()">
+    <div id="soci_lista" class="list" style="margin-top:8px"><span class="spin"></span>caricamento…</div>
+  </section>
+
+  <section id="sez_forn" style="display:none">
+    <div class="secbar"><h2>Fornitori</h2><button class="addbtn" onclick="toggleAdd('forn')">+</button></div>
+    <div id="add_forn" class="addpanel hidden">
+      <p class="muted" style="margin-top:0">Ogni fornitore è un socio: indica la sua tessera. Entrerà nel portale con il suo link personale.</p>
+      <div class="frow"><label for="nf_tess">Tessera del socio</label><input type="text" id="nf_tess" inputmode="numeric"></div>
+      <div class="frow"><label>Nome azienda</label><input type="text" id="nf_nome"></div>
+      <div class="frow"><label>Referente</label><input type="text" id="nf_ref"></div>
+      <div class="frow"><label>Telefono</label><input type="text" id="nf_tel"></div>
+      <div class="frow"><label>Email</label><input type="text" id="nf_email"></div>
+      <div class="frow"><label>Zona</label><input type="text" id="nf_zona"></div>
+      <div class="frow"><label>Emoji</label><input type="text" id="nf_emoji" style="max-width:80px"></div>
+      <div class="frow"><label>Descrizione</label><input type="text" id="nf_desc"></div>
+      <div class="edact"><button onclick="aggiungiFornitore()">Crea</button><button class="sec" onclick="toggleAdd('forn')">Chiudi</button><span id="nf_msg" class="muted"></span></div>
+    </div>
+    <div id="forn_lista" class="list"><span class="spin"></span>caricamento…</div>
+  </section>
+
+  <section id="sez_racc" style="display:none">
+  <div id="racc_main">
+    <div class="secbar"><h2>Raccolte</h2><button class="addbtn" onclick="toggleAdd('racc')">+</button></div>
+    <div id="add_racc" class="addpanel hidden">
+      <div class="frow"><label>Fornitore</label><select id="nr_forn" onchange="caricaProd('nr_prod','nr_forn',null)"></select></div>
+      <div id="nr_prod" class="muted" style="margin:6px 0">Scegli prima il fornitore…</div>
+      <div class="frow"><label>Chiusura</label><input type="text" id="nr_chiusura" placeholder="es. 01-07-2026 20:00"></div>
+      <div class="frow"><label>Max ordini</label><input type="text" id="nr_max" placeholder="opzionale"></div>
+      <div class="frow"><label>Avvisi</label><input type="text" id="nr_avvisi" placeholder="separati da ;"></div>
+      <div class="edact"><button onclick="aggiungiRaccolta()">Crea</button><button class="sec" onclick="toggleAdd('racc')">Chiudi</button><span id="nr_msg" class="muted"></span></div>
+    </div>
+    <div id="lista" class="list"><span class="spin"></span>caricamento…</div>
+  </div>
+  <div id="racc_det" class="hidden"></div>
+  </section>
+
+  <section id="sez_cons" style="display:none">
+    <div class="secbar"><h2>Consegne</h2><button class="addbtn" onclick="toggleAdd('cons')">+</button></div>
+    <div id="add_cons" class="addpanel hidden">
+      <div class="frow"><label>Data</label><input type="text" id="nc_data" placeholder="es. 02-07-2026"></div>
+      <div class="frow"><label>Fascia oraria</label><input type="text" id="nc_fascia" placeholder="es. dalle 17:00"></div>
+      <div class="frow"><label>Luogo</label><select id="nc_luogo"></select></div>
+      <div class="frow"><label>Referente</label><input type="text" id="nc_ref"></div>
+      <div class="frow"><label>Telefono</label><input type="text" id="nc_tel"></div>
+      <div class="edact"><button onclick="aggiungiConsegna()">Crea</button><button class="sec" onclick="toggleAdd('cons')">Chiudi</button><span id="nc_msg" class="muted"></span></div>
+    </div>
+    <div id="cons_lista" class="list"><span class="spin"></span>caricamento…</div>
+    <details><summary>Aggiungi luogo di consegna</summary>
+      <div class="frow"><label>Nome</label><input type="text" id="nl_nome"></div>
+      <div class="frow"><label>Indirizzo</label><input type="text" id="nl_ind"></div>
+      <div class="frow"><label>Link mappa</label><input type="text" id="nl_map"></div>
+      <button class="mini" onclick="aggiungiLuogo()">Aggiungi</button><span id="nl_msg" class="muted"></span>
+    </details>
+  </section>
+
+  <section id="sez_cat" style="display:none">
+    <div class="secbar"><h2>Categorie</h2><button class="addbtn" onclick="toggleAdd('cat')">+</button></div>
+    <div id="add_cat" class="addpanel hidden">
+      <div class="frow"><label>Nome</label><input type="text" id="ncat_nome"></div>
+      <div class="frow"><label>Emoji</label><input type="text" id="ncat_emoji" style="max-width:80px"></div>
+      <div class="frow"><label>Ordine</label><input type="text" id="ncat_ord" placeholder="es. 1"></div>
+      <div class="edact"><button onclick="aggiungiCategoria()">Aggiungi</button><button class="sec" onclick="toggleAdd('cat')">Chiudi</button><span id="ncat_msg" class="muted"></span></div>
+    </div>
+    <p class="muted">Le categorie sono condivise da tutti i listini.</p>
+    <div id="cat_lista" class="list"><span class="spin"></span>caricamento…</div>
+  </section>
+
+  <section id="sez_stat" style="display:none">
+    <div class="secbar"><h2>Statistiche</h2></div>
+    <div class="frow"><label>Periodo dal</label><input type="text" id="st_dal" placeholder="GG-MM-AAAA (opz.)"><label style="width:auto">al</label><input type="text" id="st_al" placeholder="GG-MM-AAAA (opz.)"><button class="mini" onclick="caricaStat()">Calcola</button></div>
+    <div id="stat_out" class="muted">Imposta un periodo (facoltativo) e premi Calcola.</div>
+  </section>
+
+  <section id="sez_admin" style="display:none">
+    <div class="secbar"><h2>Amministratori</h2><button class="addbtn" onclick="toggleAdd('adm')">+</button></div>
+    <div id="add_adm" class="addpanel hidden">
+      <p class="muted" style="margin-top:0">Gli amministratori si scelgono tra i soci. Useranno il loro link personale di socio: non serve un link nuovo.</p>
+      <div class="frow"><label for="na_tess">Tessera del socio</label><input type="text" id="na_tess" inputmode="numeric"></div>
+      <div class="edact"><button onclick="aggiungiAdmin()">Aggiungi amministratore</button><button class="ghost" onclick="toggleAdd('adm')">Chiudi</button><span id="na_msg" class="muted"></span></div>
+      <div id="na_link" style="margin-top:8px"></div>
+    </div>
+    <p class="muted">Ogni amministratore entra con il suo link personale di socio: le sue azioni vengono registrate con il suo nome.</p>
+    <div id="adm_lista" class="list"><span class="spin"></span>caricamento…</div>
+    <details style="margin-top:12px"><summary>Registro azioni</summary>
+      <button class="mini" onclick="caricaLog()">Aggiorna</button>
+      <div id="log_out" class="muted" style="margin-top:6px">Premi Aggiorna per vedere le ultime azioni.</div>
+    </details>
+  </section>
+
+  <section id="sez_profilo" style="display:none">
+    <div id="prof_box"></div>
+  </section>
+
+  <section id="sez_segn" style="display:none">
+    <div class="secbar"><h2>Segnalazioni</h2><button class="ghost mini" id="segn_filtro" onclick="filtroSegn()">Mostra anche le risolte</button></div>
+    <p class="muted">Arrivano a tutti gli amministratori. Quelle segnate come <b>tecniche</b> le segue il referente tecnico.</p>
+    <div id="segn_lista" class="list"></div>
+  </section>
+
+  <section id="sez_aiuto" style="display:none"><div id="aiuto_box"></div></section>
+
+</div>
+</div>
+</div>
+<nav class="bottomnav" aria-label="Menu">
+  <button class="navbtn tab active" data-sez="dafare" onclick="mostraSez('dafare')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9"/></svg>Da fare<span class="cnt cnt-dafare"></span></button>
+  <button class="navbtn tab" data-sez="racc" onclick="mostraSez('racc')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Raccolte</button>
+  <button class="navbtn tab" data-sez="cons" onclick="mostraSez('cons')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>Consegne</button>
+  <button class="navbtn tab" data-sez="profilo" onclick="mostraSez('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profilo</button>
+  <button class="navbtn" id="nav_altro" onclick="apriAltro()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Altro</button>
+</nav>
+
+<script>
+  const TOKEN = "<?= token ?>";
+  const SPIN = '<span class="spin"></span>caricamento…';
+  let LUOGHI=[], FORN_SEMPL=[], CONSEGNE_L=[], CAT_L=[], SOCI_DATI=[], APP_URL='';
+  let LOAD={forn:false,soci:false,cons:false,cat:false,admin:false};
+  let OPEN={}; // type -> id aperto
+
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function v(id){ const e=document.getElementById(id); return e?e.value:''; }
+  function run(){ return google.script.run; }
+  function err(e){ avvisa(e.message||String(e),'Qualcosa non è andato'); }
+  function fillSel(id, primo, arr, label){ const s=document.getElementById(id); if(!s) return; const cur=s.value; s.innerHTML=''; s.appendChild(new Option(primo,'')); arr.forEach(x=> s.appendChild(new Option(label(x), x.id))); s.value=cur; }
+  function riempiMenu(){ fillSel('nr_forn','— fornitore —',FORN_SEMPL,f=>f.nome); fillSel('nc_luogo','— luogo —',LUOGHI,l=>l.nome); }
+
+  run().withSuccessHandler(renderRacc).withFailureHandler(e=>document.getElementById('lista').textContent='Errore: '+e.message).adminListaCicli(TOKEN);
+  run().withSuccessHandler(l=>{LUOGHI=l; riempiMenu();}).withFailureHandler(()=>{}).adminLuoghi(TOKEN);
+  run().withSuccessHandler(l=>{FORN_SEMPL=l; riempiMenu();}).withFailureHandler(()=>{}).adminListaFornitori(TOKEN);
+  run().withSuccessHandler(l=>{CONSEGNE_L=l;}).withFailureHandler(()=>{}).adminListaConsegne(TOKEN);
+  run().withSuccessHandler(l=>{CAT_L=l;}).withFailureHandler(()=>{}).adminListaCategorie(TOKEN);
+  run().withSuccessHandler(p=>{ APP_URL=p.url; PROFILO=p; }).withFailureHandler(()=>{}).adminProfilo(TOKEN);
+  let PROFILO={};
+
+  function mostraSez(id){ if(id==='racc'&&document.getElementById('racc_det')) chiudiRacc(); ['dafare','soci','forn','racc','cons','cat','stat','admin','profilo','segn','aiuto'].forEach(k=>{ document.getElementById('sez_'+k).style.display=(k===id)?'block':'none'; });
+    const sec=document.getElementById('sez_'+id); sec.classList.remove('enter'); void sec.offsetWidth; sec.classList.add('enter');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.sez===id));
+    if(id==='forn'&&!LOAD.forn) caricaFornitori(); if(id==='soci'&&!LOAD.soci) caricaSoci(); if(id==='cons'&&!LOAD.cons) caricaConsegne(); if(id==='cat'&&!LOAD.cat) caricaCategorie(); if(id==='admin'&&!LOAD.admin) caricaAdmin(); if(id==='dafare') caricaDaFare(); if(id==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'admin'); if(id==='segn') caricaSegn(); if(id==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'admin', pagina:'pannello', sezione:'aiuto' });
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function toggleAdd(id){ const p=document.getElementById('add_'+id); const show=p.classList.contains('hidden'); p.classList.toggle('hidden'); if(show){ p.classList.remove('enter'); void p.offsetWidth; p.classList.add('enter'); } }
+  function hideAdd(id){ document.getElementById('add_'+id).classList.add('hidden'); }
+  function toggleIE(){ document.getElementById('ie_panel').classList.toggle('hidden'); }
+
+  // editor inline: apre/chiude sotto la riga
+  function closeAllEd(){ document.querySelectorAll('.ed').forEach(e=>e.remove()); OPEN={}; }
+  function openEd(type,id,rowEl,html){ const already=(OPEN[type]===id); closeAllEd(); if(already) return null;
+    const d=document.createElement('div'); d.className='ed'; d.innerHTML=html; rowEl.after(d); OPEN[type]=id; return d; }
+
+  // prodotti checkbox (per raccolte)
+  function renderProdCheck(cid, prods, sel){ const box=document.getElementById(cid); if(!box) return;
+    if(!prods.length){ box.innerHTML='<div class="muted">Nessun prodotto attivo.</div>'; return; }
+    const lnk='style="color:var(--green-d);cursor:pointer;text-decoration:underline"';
+    let h='<div class="muted" style="margin-bottom:4px">Prodotti — <a '+lnk+' onclick="chAll(\''+cid+'\',1)">tutti</a> · <a '+lnk+' onclick="chAll(\''+cid+'\',0)">nessuno</a></div>';
+    const g=[],idx={}; prods.forEach(p=>{ const c=p.categoria||'Altro'; if(idx[c]===undefined){idx[c]=g.length;g.push({cat:c,items:[]});} g[idx[c]].items.push(p); });
+    g.forEach(gr=>{ h+='<div style="font-weight:600;color:var(--green-d);margin:8px 0 2px">'+esc(gr.cat)+'</div>';
+      gr.items.forEach(p=>{ const ck=sel?sel.has(p.id):true; h+='<label style="display:flex;gap:8px;align-items:center;margin:3px 0 3px 8px;font-size:.88rem"><input type="checkbox" class="pchk" value="'+p.id+'" '+(ck?'checked':'')+'> '+esc(p.nome)+'</label>'; }); });
+    box.innerHTML=h; }
+  function chAll(id,v){ document.getElementById(id).querySelectorAll('.pchk').forEach(c=>c.checked=!!v); }
+  function raccProd(id){ return Array.from(document.getElementById(id).querySelectorAll('.pchk:checked')).map(c=>c.value); }
+  function caricaProd(cid, selForn, selArr){ const fid=document.getElementById(selForn).value; if(!fid){ document.getElementById(cid).innerHTML='<div class="muted">Scegli prima il fornitore…</div>'; return; }
+    document.getElementById(cid).innerHTML=SPIN; run().withSuccessHandler(l=>renderProdCheck(cid,l,selArr?new Set(selArr):null)).withFailureHandler(()=>{}).adminProdottiFornitore(TOKEN,fid); }
+
+  /* ---------- RACCOLTE ---------- */
+  function renderRacc(cicli){ RACC_L=cicli; const box=document.getElementById('lista'); box.innerHTML=''; if(!cicli.length){ box.innerHTML='<div class="muted">Nessuna raccolta.</div>'; return; }
+    cicli.forEach(c=>{ const badge=chipStato(c.stato); const dav=c.nDaVerificare?' · <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'';
+      const row=document.createElement('div'); row.className='litem rowflex'; row.dataset.id=c.id; row.dataset.nome=c.fornitore;
+      const left=document.createElement('div'); left.className='rl'; left.innerHTML='<div class="li1">'+esc(c.fornitore)+' '+badge+'</div><div class="li2">'+c.nValidi+' ordini'+dav+' · chiusura '+(c.chiusura||'—')+'</div>';
+      left.onclick=()=>openRacc(c.id, c.fornitore, row);
+      const af=document.createElement('a'); af.className='btnlink'; af.target='_blank'; af.rel='noopener'; af.textContent='Apri form'; af.href=(APP_URL||'')+'?form='+encodeURIComponent(c.id);
+      row.appendChild(left); row.appendChild(af); box.appendChild(row); }); }
+  function openRacc(id, nome, row){
+    const c=RACC_L.find(x=>x.id===id)||{fornitore:nome,stato:'',nValidi:0,nDaVerificare:0,chiusura:''};
+    const html=
+      '<button class="backlink" onclick="chiudiRacc()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Raccolte</button>'+
+      '<div class="ptitle"><div><h1>'+esc(c.fornitore)+'</h1><div>'+chipStato(c.stato)+' <span class="muted">chiusura '+esc(c.chiusura||'—')+'</span></div></div>'+
+      '<a class="btnlink" target="_blank" rel="noopener" href="'+(APP_URL||'')+'?form='+encodeURIComponent(id)+'">Apri form</a></div>'+
+      '<div class="kpis"><div class="kpi"><b>'+c.nValidi+'</b><span>ordini</span></div><div class="kpi'+(c.nDaVerificare?' warn':'')+'"><b>'+c.nDaVerificare+'</b><span>da verificare</span></div><div class="kpi"><b id="kpi_cons">—</b><span>consegna</span></div></div>'+
+      '<div id="verifica"></div>'+
+      '<div class="grp"><div class="grpt">Messaggi per WhatsApp<small>Il testo si apre pronto da copiare.</small></div>'+
+        '<div class="edact"><button class="sec" onclick="genera(\'apertura\')">Apertura</button><button class="sec" onclick="genera(\'chiusura\')">Chiusura</button></div>'+
+        '<div id="msgwrap" class="hidden" style="margin-top:10px"><textarea id="p_msg" readonly></textarea><div class="edact"><button onclick="copiaMsg()">Copia il messaggio</button><span id="copia_msg" class="ok"></span></div></div></div>'+
+      '<div class="grp"><div class="grpt">Foglio per la consegna (PDF)<small>Il definitivo dopo la conferma dei pesi.</small></div>'+
+        '<div class="edact"><button class="sec" onclick="scaricaPdf(\'stato\')">Provvisorio</button><button class="sec" onclick="scaricaPdf(\'definitivo\')">Definitivo</button><span id="pdf_msg" class="muted"></span></div></div>'+
+      '<div class="grp"><div class="grpt">Ordini dei soci</div>'+
+        '<div class="edact"><button class="sec" onclick="ordiniRacc()">Gestisci ordini</button>'+(c.stato==='aperto'?'<button class="warn" onclick="chiudiCiclo()">Chiudi gli ordini adesso</button>':'<button class="ghost" onclick="riapriCiclo()">Riapri gli ordini</button>')+'</div>'+
+        '<div id="ord_out" style="margin-top:8px"></div></div>'+
+      '<details class="grp" style="padding:8px 14px"><summary>Impostazioni: prodotti, chiusura, consegna</summary>'+
+      '<div class="frow"><label>Fornitore</label><select id="er_forn" onchange="caricaProd(\'er_prod\',\'er_forn\',[])"></select></div>'+
+      '<div id="er_prod" class="muted" style="margin:6px 0">'+SPIN+'</div>'+
+      '<div class="frow"><label>Chiusura</label><input type="text" id="er_chiusura"></div>'+
+      '<div class="frow"><label>Max ordini</label><input type="text" id="er_max"></div>'+
+      '<div class="frow"><label>Avvisi</label><input type="text" id="er_avvisi"></div>'+
+      '<div class="frow"><label>Consegna</label><select id="er_cons"></select></div>'+
+      '<div class="edact"><button onclick="salvaRaccolta()">Salva modifiche</button><span id="er_msg" class="ok"></span></div></details>';
+    const det=document.getElementById('racc_det'); det.innerHTML=html; det.classList.remove('hidden'); det.classList.remove('enter'); void det.offsetWidth; det.classList.add('enter');
+    document.getElementById('racc_main').classList.add('hidden'); window.scrollTo({top:0}); CICLO=id;
+    fillSel('er_cons','— nessuna —',CONSEGNE_L,c=>(c.data||'(senza data)')+' · '+c.luogoNome);
+    run().withSuccessHandler(r=>{ const sf=document.getElementById('er_forn'); sf.innerHTML=''; sf.appendChild(new Option('— fornitore —','')); FORN_SEMPL.forEach(f=>sf.appendChild(new Option(f.nome,f.id)));
+      sf.value=r.fornitoreId||''; document.getElementById('er_chiusura').value=r.chiusura||''; document.getElementById('er_max').value=(r.maxOrdini===''||r.maxOrdini==null)?'':r.maxOrdini; document.getElementById('er_avvisi').value=r.avvisi||'';
+      const selP = (r.prodottiIds && r.prodottiIds.length) ? r.prodottiIds : null; // vuoto = tutti inclusi
+      caricaProd('er_prod','er_forn', selP);
+    }).withFailureHandler(()=>{}).adminRaccolta(TOKEN,id);
+    run().withSuccessHandler(d=>{ document.getElementById('er_cons').value=d.consegnaId||''; const co=CONSEGNE_L.find(x=>x.id===d.consegnaId); document.getElementById('kpi_cons').textContent=co&&co.data?co.data.substring(0,5):'—'; }).withFailureHandler(()=>{}).adminConsegnaDiRaccolta(TOKEN,id);
+    run().withSuccessHandler(mostraVerifica).withFailureHandler(()=>{}).adminOrdiniDaVerificare(TOKEN,id);
+  }
+  let CICLO=null, RACC_L=[];
+  function chipStato(st){ const m={aperto:['Aperta',''],chiuso:['Chiusa',' grey'],definitivo:['Definitiva',' grey'],consegnato:['Consegnata',' grey'],archiviato:['Archiviata',' grey'],bozza:['Bozza',' off']}; const x=m[st]||[st,' grey']; return '<span class="badge'+x[1]+'">'+x[0]+'</span>'; }
+  function chiudiRacc(){ document.getElementById('racc_det').classList.add('hidden'); document.getElementById('racc_main').classList.remove('hidden'); CICLO=null; window.scrollTo({top:0}); }
+  function salvaRaccolta(){ const d={ fornitoreId:v('er_forn'), chiusura:v('er_chiusura').trim(), avvisi:v('er_avvisi').trim(), maxOrdini:v('er_max').trim(), prodottiIds:raccProd('er_prod') };
+    document.getElementById('er_msg').textContent='…';
+    run().withSuccessHandler(()=>{ run().withSuccessHandler(()=>{}).adminAssegnaConsegna(TOKEN,CICLO,v('er_cons')); document.getElementById('er_msg').textContent='Salvato'; ricaricaCicli(); }).withFailureHandler(e=>{document.getElementById('er_msg').textContent='Errore: '+e.message;}).adminModificaRaccolta(TOKEN,CICLO,d); }
+  function genera(t){ document.getElementById('msgwrap').classList.remove('hidden'); document.getElementById('p_msg').value='…'; run().withSuccessHandler(x=>document.getElementById('p_msg').value=x).withFailureHandler(err).adminGeneraMessaggio(TOKEN,t,CICLO); }
+  function scaricaPdf(t){ const fn=(t==='definitivo')?'adminPdfDefinitivo':'adminPdfStato'; document.getElementById('pdf_msg').textContent='genero…';
+    run().withSuccessHandler(res=>{ document.getElementById('pdf_msg').textContent=res.filename+' scaricato'; const b=Uint8Array.from(atob(res.base64||''),c=>c.charCodeAt(0)); const url=URL.createObjectURL(new Blob([b],{type:'application/pdf'})); const a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); }).withFailureHandler(err)[fn](TOKEN,CICLO); }
+  function copiaMsg(){ const ta=document.getElementById('p_msg'); ta.select(); navigator.clipboard.writeText(ta.value).then(()=>{ document.getElementById('copia_msg').textContent='Copiato ✓'; }).catch(()=>avvisa('Seleziona il testo e copialo a mano.')); }
+  function chiudiCiclo(){ chiedi('I soci non potranno più ordinare per questa raccolta.',{titolo:'Chiudere gli ordini?',ok:'Chiudi gli ordini',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(aggiornaDettaglio).withFailureHandler(err).adminChiudiCiclo(TOKEN,CICLO); }); }
+  function aggiornaDettaglio(){ const id=CICLO; run().withSuccessHandler(l=>{ renderRacc(l); if(id) openRacc(id,''); }).withFailureHandler(err).adminListaCicli(TOKEN); }
+  function riapriCiclo(){ run().withSuccessHandler(aggiornaDettaglio).withFailureHandler(err).adminRiapriCiclo(TOKEN,CICLO); }
+  function ricaricaCicli(){ run().withSuccessHandler(renderRacc).withFailureHandler(err).adminListaCicli(TOKEN); }
+  function mostraVerifica(l){ const box=document.getElementById('verifica'); if(!box) return; if(!l.length){ box.innerHTML='<p class="muted">Nessun ordine da verificare.</p>'; return; }
+    let h='<b>Da verificare</b>'; l.forEach(o=>{ h+='<div class="litem" style="margin-top:6px"><div class="li1">'+esc(o.nominativo)+' (tess. '+o.tessera+')</div><div class="li2">'+esc(o.motivo)+'</div><div class="edact"><button class="mini" onclick="confOrd(\''+o.id+'\')">Conferma</button> <button class="warn mini" onclick="annOrd(\''+o.id+'\')">Annulla</button></div></div>'; }); box.innerHTML=h; }
+  function confOrd(id){ run().withSuccessHandler(()=>{ run().withSuccessHandler(mostraVerifica).adminOrdiniDaVerificare(TOKEN,CICLO); ricaricaCicli(); }).withFailureHandler(err).adminConfermaOrdine(TOKEN,id); }
+  function annOrd(id){ chiediTesto('Scrivi il motivo:','Tessera non valida',{titolo:'Annullare l\'ordine?',ok:'Annulla l\'ordine'}).then(m=>{ if(m===null)return; run().withSuccessHandler(()=>{ run().withSuccessHandler(mostraVerifica).adminOrdiniDaVerificare(TOKEN,CICLO); ricaricaCicli(); }).withFailureHandler(err).adminAnnullaOrdine(TOKEN,id,m); }); }
+  function aggiungiRaccolta(){ const d={ fornitoreId:v('nr_forn'), chiusura:v('nr_chiusura').trim(), maxOrdini:v('nr_max').trim(), avvisi:v('nr_avvisi').trim(), prodottiIds:raccProd('nr_prod') };
+    if(!d.fornitoreId){ avvisa('Scegli un fornitore.'); return; } if(!d.prodottiIds.length){ avvisa('Seleziona almeno un prodotto.'); return; }
+    document.getElementById('nr_msg').textContent='…';
+    run().withSuccessHandler(()=>{ ['nr_chiusura','nr_avvisi','nr_max'].forEach(i=>document.getElementById(i).value=''); document.getElementById('nr_prod').innerHTML='Scegli prima il fornitore…'; document.getElementById('nr_msg').textContent=''; hideAdd('racc'); ricaricaCicli(); }).withFailureHandler(e=>{document.getElementById('nr_msg').textContent='Errore: '+e.message;}).adminAggiungiRaccolta(TOKEN,d); }
+
+  /* ---------- FORNITORI ---------- */
+  function caricaFornitori(){ LOAD.forn=true; document.getElementById('forn_lista').innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ FORN_SEMPL=l; riempiMenu(); const box=document.getElementById('forn_lista'); box.innerHTML=''; if(!l.length){ box.innerHTML='<div class="muted">Nessun fornitore.</div>'; return; }
+      l.forEach(f=>{ const row=document.createElement('div'); row.className='litem'; row.innerHTML='<div class="li1">'+esc(f.nome)+(f.attivo?'':' <span class="badge off">non attivo</span>')+'</div>'; row.onclick=()=>openForn(f.id,row); box.appendChild(row); });
+    }).withFailureHandler(e=>{document.getElementById('forn_lista').textContent='Errore: '+e.message;}).adminListaFornitori(TOKEN); }
+  function openForn(id,row){ const html='<div id="fe" class="muted">'+SPIN+'</div>'; const ed=openEd('forn',id,row,html); if(!ed) return;
+    run().withSuccessHandler(f=>{ document.getElementById('fe').outerHTML=
+      '<div class="frow"><label>Nome</label><input type="text" id="ef_nome" value="'+esc(f.nome)+'"></div>'+
+      '<div class="frow"><label>Referente</label><input type="text" id="ef_ref" value="'+esc(f.referente)+'"></div>'+
+      '<div class="frow"><label>Telefono</label><input type="text" id="ef_tel" value="'+esc(f.telefono)+'"></div>'+
+      '<div class="frow"><label>Email</label><input type="text" id="ef_email" value="'+esc(f.email)+'"></div>'+
+      '<div class="frow"><label>Zona</label><input type="text" id="ef_zona" value="'+esc(f.zona)+'"></div>'+
+      '<div class="frow"><label>Emoji</label><input type="text" id="ef_emoji" value="'+esc(f.emoji)+'" style="max-width:80px"></div>'+
+      '<div class="frow"><label>Descrizione</label><input type="text" id="ef_desc" value="'+esc(f.descrizione)+'"></div>'+
+      '<div class="frow"><label>N. tessera</label><input type="text" id="ef_tess" value="'+esc(f.tessera)+'"></div>'+
+      '<div class="frow"><label>Attivo</label><input type="checkbox" id="ef_att" '+(f.attivo?'checked':'')+' style="flex:none;width:auto"></div>'+
+      '<div class="edact"><button class="mini" onclick="salvaForn(\''+id+'\')">Salva</button><button class="sec mini" onclick="closeAllEd()">Annulla</button>'+
+      '<a class="btnlink" target="_blank" href="'+f.link+'">Apri portale</a><button class="sec mini" onclick="rigeneraForn(\''+id+'\')">Rigenera link</button><span id="ef_msg" class="muted"></span></div>';
+    }).withFailureHandler(err).adminFornitore(TOKEN,id); }
+  function salvaForn(id){ const d={ nome:v('ef_nome'),referente:v('ef_ref'),telefono:v('ef_tel'),email:v('ef_email'),zona:v('ef_zona'),emoji:v('ef_emoji'),descrizione:v('ef_desc'),tessera:v('ef_tess'),attivo:document.getElementById('ef_att').checked };
+    if(!d.nome.trim()){ avvisa('Il nome è obbligatorio.'); return; } document.getElementById('ef_msg').textContent='…';
+    run().withSuccessHandler(()=>{ LOAD.forn=false; caricaFornitori(); }).withFailureHandler(err).adminModificaFornitore(TOKEN,id,d); }
+  function rigeneraForn(id){ chiedi('Il link vecchio smetterà di funzionare.',{titolo:'Rigenerare il link?',ok:'Rigenera'}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>{ LOAD.forn=false; caricaFornitori(); }).withFailureHandler(err).adminRigeneraTokenFornitore(TOKEN,id); }); }
+  function aggiungiFornitore(){ const d={ nome:v('nf_nome'),referente:v('nf_ref'),telefono:v('nf_tel'),email:v('nf_email'),zona:v('nf_zona'),emoji:v('nf_emoji'),descrizione:v('nf_desc'),tessera:v('nf_tess') };
+    if(!d.tessera.trim()){ avvisa('Inserisci la tessera del socio.'); return; } if(!d.nome.trim()){ avvisa('Inserisci il nome.'); return; } document.getElementById('nf_msg').textContent='…';
+    run().withSuccessHandler(()=>{ ['nf_nome','nf_ref','nf_tel','nf_email','nf_zona','nf_emoji','nf_desc','nf_tess'].forEach(i=>document.getElementById(i).value=''); document.getElementById('nf_msg').textContent=''; hideAdd('forn'); LOAD.forn=false; caricaFornitori(); }).withFailureHandler(e=>{document.getElementById('nf_msg').textContent='Errore: '+e.message;}).adminAggiungiFornitore(TOKEN,d); }
+
+  /* ---------- SOCI ---------- */
+  function caricaSoci(){ LOAD.soci=true; document.getElementById('soci_lista').innerHTML=SPIN; run().withSuccessHandler(l=>{ SOCI_DATI=l; renderSoci(); }).withFailureHandler(e=>{document.getElementById('soci_lista').textContent='Errore: '+e.message;}).adminListaSoci(TOKEN); }
+  function renderSoci(){ const f=(v('soci_filtro')||'').toLowerCase(); const box=document.getElementById('soci_lista'); if(!box) return; box.innerHTML='';
+    const fl=SOCI_DATI.filter(s=>!f||s.tessera.toLowerCase().includes(f)||(s.nominativo||'').toLowerCase().includes(f)); if(!fl.length){ box.innerHTML='<div class="muted">Nessun socio.</div>'; return; }
+    fl.slice(0,400).forEach(s=>{ const badge=s.attiva?'<span class="badge">attiva</span>':'<span class="badge off">non attiva</span>';
+      const row=document.createElement('div'); row.className='litem'; row.innerHTML='<div class="li1">'+esc(s.tessera)+' — '+esc(s.nominativo||'')+' '+badge+'</div>'+(s.telefono?'<div class="li2">'+esc(s.telefono)+'</div>':'');
+      row.onclick=()=>openSocio(s,row); box.appendChild(row); });
+    if(fl.length>400) box.appendChild(Object.assign(document.createElement('div'),{className:'muted',textContent:'…primi 400, usa il filtro.'})); }
+  function openSocio(s,row){ const html=
+      '<div class="frow"><label>Tessera</label><input type="text" id="es_tess" value="'+esc(s.tessera)+'"></div>'+
+      '<div class="frow"><label>Nominativo</label><input type="text" id="es_nome" value="'+esc(s.nominativo||'')+'"></div>'+
+      '<div class="frow"><label>Telefono</label><input type="text" id="es_tel" value="'+esc(s.telefono||'')+'"></div>'+
+      '<div class="frow"><label>Attiva</label><input type="checkbox" id="es_att" '+(s.attiva?'checked':'')+' style="flex:none;width:auto"></div>'+
+      '<div class="edact"><button class="mini" onclick="salvaSocio(\''+esc(s.tessera)+'\')">Salva</button><button class="sec mini" onclick="closeAllEd()">Annulla</button><span id="es_msg" class="muted"></span></div>'+
+      '<div class="edact" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><b style="font-size:.85rem">Link personale</b>'+
+      '<button class="mini" onclick="linkSocio(\''+esc(s.tessera)+'\',false)">Invia link</button><button class="sec mini" onclick="linkSocio(\''+esc(s.tessera)+'\',true)">Rigenera link</button></div>'+
+      '<div id="es_link" class="muted" style="margin-top:6px"></div>';
+    openEd('soci',s.tessera,row,html); }
+  function linkSocio(t, rigenera){
+    if(rigenera){ chiedi('Il link vecchio smetterà di funzionare.',{titolo:'Rigenerare il link?',ok:'Rigenera'}).then(ok=>{ if(ok) linkSocioEsegui(t,true); }); return; }
+    linkSocioEsegui(t,false); }
+  function linkSocioEsegui(t, rigenera, boxId){
+    const box=document.getElementById(boxId||'es_link'); box.innerHTML=SPIN;
+    run().withSuccessHandler(r=>mostraLink(box,r)).withFailureHandler(e=>{ box.textContent='Errore: '+e.message; })[rigenera?'adminRigeneraLinkSocio':'adminLinkSocio'](TOKEN,t);
+  }
+  function mostraLink(box, r){
+      let h='<div style="word-break:break-all;margin-bottom:6px">'+esc(r.link)+'</div>';
+      if(r.waUrl) h+='<a class="btnlink" target="_blank" rel="noopener" href="'+r.waUrl+'">Apri WhatsApp con il messaggio</a> ';
+      else h+='<div>Telefono mancante o non valido: copia il messaggio e invialo a mano.</div>';
+      h+='<button class="sec mini copia">Copia messaggio</button>';
+      box.innerHTML=h;
+      const cp=box.querySelector('.copia'); cp.onclick=()=>{ navigator.clipboard.writeText(r.messaggio).then(()=>{ cp.textContent='Copiato ✓'; }).catch(()=>{ chiediTesto('Copia il messaggio:', r.messaggio, {ok:'Fatto'}); }); };
+  }
+  function salvaSocio(t){ const d={ tessera:v('es_tess'), nominativo:v('es_nome'), telefono:v('es_tel'), attiva:document.getElementById('es_att').checked };
+    document.getElementById('es_msg').textContent='…'; run().withSuccessHandler(r=>{ const s=SOCI_DATI.find(x=>x.tessera===t); if(s){ s.tessera=(r&&r.tessera)?r.tessera:(d.tessera.trim()||t); s.nominativo=d.nominativo.trim(); s.telefono=d.telefono.trim(); s.attiva=d.attiva; } closeAllEd(); renderSoci(); }).withFailureHandler(err).adminModificaSocio(TOKEN,t,d); }
+  function aggiungiSocio(){ const d={ tessera:v('ns_tess').trim(), nominativo:v('ns_nome').trim(), telefono:v('ns_tel').trim() }; if(!d.tessera){ avvisa('Inserisci la tessera.'); return; } document.getElementById('ns_msg').textContent='…';
+    run().withSuccessHandler(()=>{ ['ns_tess','ns_nome','ns_tel'].forEach(i=>document.getElementById(i).value=''); document.getElementById('ns_msg').textContent=''; hideAdd('soci'); LOAD.soci=false; caricaSoci(); }).withFailureHandler(e=>{document.getElementById('ns_msg').textContent='Errore: '+e.message;}).adminAggiungiSocio(TOKEN,d); }
+
+  /* ---------- CONSEGNE ---------- */
+  function caricaConsegne(){ LOAD.cons=true; document.getElementById('cons_lista').innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ CONSEGNE_L=l; const box=document.getElementById('cons_lista'); box.innerHTML=''; if(!l.length){ box.innerHTML='<div class="muted">Nessuna consegna.</div>'; return; }
+      l.forEach(c=>{ const forn=c.raccolte.map(r=>(r.emoji?r.emoji+' ':'')+r.fornitore).join(', ')||'(nessuna raccolta)'; const row=document.createElement('div'); row.className='litem';
+        row.innerHTML='<div class="li1">'+esc(c.data||'(senza data)')+' · '+esc(c.luogoNome)+(c.oraInizio?(' · dalle '+c.oraInizio):'')+'</div><div class="li2">'+esc(forn)+'</div>'; row.onclick=()=>openCons(c.id,row); box.appendChild(row); });
+    }).withFailureHandler(e=>{document.getElementById('cons_lista').textContent='Errore: '+e.message;}).adminListaConsegne(TOKEN); }
+  function openCons(id,row){ const html='<div id="ce" class="muted">'+SPIN+'</div>'; const ed=openEd('cons',id,row,html); if(!ed) return;
+    run().withSuccessHandler(d=>{ let opts='<option value="">— luogo —</option>'; LUOGHI.forEach(l=>opts+='<option value="'+l.id+'"'+(String(l.id)===String(d.luogoId)?' selected':'')+'>'+esc(l.nome)+'</option>');
+      document.getElementById('ce').outerHTML=
+      '<div class="frow"><label>Data</label><input type="text" id="ec_data" value="'+esc(d.data)+'"></div>'+
+      '<div class="frow"><label>Fascia</label><input type="text" id="ec_fascia" value="'+esc(d.fascia)+'"></div>'+
+      '<div class="frow"><label>Luogo</label><select id="ec_luogo">'+opts+'</select></div>'+
+      '<div class="frow"><label>Referente</label><input type="text" id="ec_ref" value="'+esc(d.referente)+'"></div>'+
+      '<div class="frow"><label>Telefono</label><input type="text" id="ec_tel" value="'+esc(d.telefono)+'"></div>'+
+      '<div class="edact"><button class="mini" onclick="salvaCons(\''+id+'\')">Salva</button><button class="sec mini" onclick="closeAllEd()">Annulla</button><button class="mini" onclick="avviso(\''+id+'\')">Genera avviso</button><span id="ec_msg" class="muted"></span></div>'+
+      '<textarea id="ce_out" class="hidden" readonly style="margin-top:6px"></textarea>';
+    }).withFailureHandler(err).adminConsegna(TOKEN,id); }
+  function salvaCons(id){ const d={ data:v('ec_data').trim(), fascia:v('ec_fascia').trim(), luogoId:v('ec_luogo'), referente:v('ec_ref').trim(), telefono:v('ec_tel').trim() }; document.getElementById('ec_msg').textContent='…';
+    run().withSuccessHandler(()=>{ document.getElementById('ec_msg').textContent='Salvato'; LOAD.cons=false; caricaConsegne(); }).withFailureHandler(err).adminModificaConsegna(TOKEN,id,d); }
+  function avviso(id){ const out=document.getElementById('ce_out'); out.classList.remove('hidden'); out.style.height='220px'; out.value='…';
+    run().withSuccessHandler(t=>{ out.value=t; out.onclick=()=>{ out.select(); navigator.clipboard.writeText(out.value).then(()=>avvisa('Copiato.')); }; }).withFailureHandler(err).adminMsgAvvisoRitiro(TOKEN,id); }
+  function aggiungiConsegna(){ const d={ data:v('nc_data').trim(), fascia:v('nc_fascia').trim(), luogoId:v('nc_luogo'), referente:v('nc_ref').trim(), telefono:v('nc_tel').trim() }; document.getElementById('nc_msg').textContent='…';
+    run().withSuccessHandler(()=>{ ['nc_data','nc_fascia','nc_ref','nc_tel'].forEach(i=>document.getElementById(i).value=''); document.getElementById('nc_msg').textContent=''; hideAdd('cons'); LOAD.cons=false; caricaConsegne(); }).withFailureHandler(e=>{document.getElementById('nc_msg').textContent='Errore: '+e.message;}).adminAggiungiConsegna(TOKEN,d); }
+  function aggiungiLuogo(){ const d={ nome:v('nl_nome').trim(), indirizzo:v('nl_ind').trim(), linkMappa:v('nl_map').trim() }; if(!d.nome){ avvisa('Inserisci il nome.'); return; } document.getElementById('nl_msg').textContent='…';
+    run().withSuccessHandler(()=>{ ['nl_nome','nl_ind','nl_map'].forEach(i=>document.getElementById(i).value=''); document.getElementById('nl_msg').textContent='Aggiunto'; run().withSuccessHandler(l=>{LUOGHI=l; riempiMenu();}).adminLuoghi(TOKEN); }).withFailureHandler(e=>{document.getElementById('nl_msg').textContent='Errore: '+e.message;}).adminAggiungiLuogo(TOKEN,d); }
+
+  /* ---------- CATEGORIE ---------- */
+  function caricaCategorie(){ LOAD.cat=true; document.getElementById('cat_lista').innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ CAT_L=l; const box=document.getElementById('cat_lista'); box.innerHTML=''; if(!l.length){ box.innerHTML='<div class="muted">Nessuna categoria.</div>'; return; }
+      l.forEach(c=>{ const row=document.createElement('div'); row.className='litem'; row.innerHTML='<div class="li1">'+esc((c.emoji?c.emoji+' ':'')+c.nome)+'</div>'+(c.ordine?'<div class="li2">ordine '+c.ordine+'</div>':''); row.onclick=()=>openCat(c,row); box.appendChild(row); });
+    }).withFailureHandler(e=>{document.getElementById('cat_lista').textContent='Errore: '+e.message;}).adminListaCategorie(TOKEN); }
+  function openCat(c,row){ const html=
+      '<div class="frow"><label>Nome</label><input type="text" id="ecat_nome" value="'+esc(c.nome)+'"></div>'+
+      '<div class="frow"><label>Emoji</label><input type="text" id="ecat_emoji" value="'+esc(c.emoji)+'" style="max-width:80px"></div>'+
+      '<div class="frow"><label>Ordine</label><input type="text" id="ecat_ord" value="'+(c.ordine||'')+'"></div>'+
+      '<div class="edact"><button class="mini" onclick="salvaCat(\''+c.id+'\')">Salva</button><button class="sec mini" onclick="closeAllEd()">Annulla</button><button class="warn mini" onclick="elimCat(\''+c.id+'\')">Elimina</button><span id="ecat_msg" class="muted"></span></div>';
+    openEd('cat',c.id,row,html); }
+  function salvaCat(id){ const d={ nome:v('ecat_nome').trim(), emoji:v('ecat_emoji').trim(), ordine:v('ecat_ord').trim() }; if(!d.nome){ avvisa('Nome obbligatorio.'); return; } document.getElementById('ecat_msg').textContent='…';
+    run().withSuccessHandler(()=>{ LOAD.cat=false; caricaCategorie(); }).withFailureHandler(err).adminModificaCategoria(TOKEN,id,d); }
+  function elimCat(id){ chiedi('I prodotti che la usavano resteranno senza categoria.',{titolo:'Eliminare la categoria?',ok:'Elimina',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>{ LOAD.cat=false; caricaCategorie(); }).withFailureHandler(err).adminEliminaCategoria(TOKEN,id); }); }
+  function aggiungiCategoria(){ const d={ nome:v('ncat_nome').trim(), emoji:v('ncat_emoji').trim(), ordine:v('ncat_ord').trim() }; if(!d.nome){ avvisa('Inserisci il nome.'); return; } document.getElementById('ncat_msg').textContent='…';
+    run().withSuccessHandler(()=>{ ['ncat_nome','ncat_emoji','ncat_ord'].forEach(i=>document.getElementById(i).value=''); document.getElementById('ncat_msg').textContent=''; hideAdd('cat'); LOAD.cat=false; caricaCategorie(); }).withFailureHandler(e=>{document.getElementById('ncat_msg').textContent='Errore: '+e.message;}).adminAggiungiCategoria(TOKEN,d); }
+
+  /* ---------- CSV ---------- */
+  let CSV_TESTO='';
+  function analizzaCsv(){ const f=document.getElementById('csvfile').files[0]; if(!f){ avvisa('Scegli un CSV.'); return; } const rd=new FileReader(); rd.onload=()=>{ CSV_TESTO=rd.result; document.getElementById('csv_res').innerHTML='…'; document.getElementById('csv_conf').classList.add('hidden'); run().withSuccessHandler(mostraDiff).withFailureHandler(e=>{document.getElementById('csv_res').innerHTML='Errore: '+e.message;}).adminAnalizzaCsvSoci(TOKEN,CSV_TESTO); }; rd.readAsText(f); }
+  function blkDiff(t,o){ let s='<div><b>'+t+':</b> '+o.n; if(o.esempi&&o.esempi.length){ const p=o.esempi.slice(0,10).map(e=>e.tessera+(e.nominativo?(' '+e.nominativo):(e.a?(' → '+e.a):''))); s+=' <span class="muted">('+p.join(', ')+(o.n>10?', …':'')+')</span>'; } return s+'</div>'; }
+  function mostraDiff(d){ if(d.errore){ document.getElementById('csv_res').innerHTML='<div class="muted">'+d.errore+'</div>'; return; } let h='<div class="litem" style="margin-top:8px"><div class="muted">Sep "'+d.separatore+'" · righe '+d.totaleCsv+'</div>'+blkDiff('Nuovi',d.nuovi)+blkDiff('Riattivate',d.riattivate)+blkDiff('Modificate',d.modificate)+blkDiff('Da disattivare',d.disattivate)+'<div class="muted">Invariate: '+d.invariate+'</div></div>'; document.getElementById('csv_res').innerHTML=h; document.getElementById('csv_conf').classList.remove('hidden'); }
+  function confermaCsv(){ if(!CSV_TESTO)return; chiedi('Le modifiche all\'elenco dei soci verranno applicate.',{titolo:'Applicare l\'importazione?',ok:'Applica'}).then(ok=>{ if(!ok)return; document.getElementById('csv_res').innerHTML='Import…'; run().withSuccessHandler(r=>{ if(r.ok){ document.getElementById('csv_res').innerHTML='<div class="litem">Fatto — nuovi '+r.nuovi+', aggiornate '+r.aggiornate+', riattivate '+r.riattivate+', disattivate '+r.disattivate+''+(r.ruoliDecaduti?(' · ruoli decaduti '+r.ruoliDecaduti):'')+(r.tesseraProtetta?(' · la tua tessera '+r.tesseraProtetta+' non è stata disattivata'):'')+'</div>'; document.getElementById('csv_conf').classList.add('hidden'); LOAD.soci=false; caricaSoci(); ricaricaCicli(); } else document.getElementById('csv_res').innerHTML='<div class="muted">'+r.messaggio+'</div>'; }).withFailureHandler(e=>{document.getElementById('csv_res').innerHTML='Errore: '+e.message;}).adminImportaCsvSoci(TOKEN,CSV_TESTO); }); }
+  function esportaCsv(){ run().withSuccessHandler(res=>{ const url=URL.createObjectURL(new Blob([res.csv],{type:'text/csv;charset=utf-8'})); const a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); }).withFailureHandler(err).adminExportCsvSoci(TOKEN); }
+
+  function eu(n){ return (Math.round((+n||0)*100)/100).toFixed(2).replace('.',',')+' €'; }
+  function qn(n){ return (Math.round((+n||0)*100)/100).toString().replace('.',','); }
+  function caricaStat(){ document.getElementById('stat_out').innerHTML=SPIN;
+    run().withSuccessHandler(renderStat).withFailureHandler(e=>{document.getElementById('stat_out').textContent='Errore: '+e.message;}).adminStatistiche(TOKEN, v('st_dal').trim(), v('st_al').trim()); }
+  function tab(titolo, headers, rows){ let h='<h2 style="margin-top:16px">'+titolo+'</h2><table><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr>';
+    rows.forEach(r=>{ h+='<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>'; }); return h+'</table>'; }
+  function renderStat(d){ const g=d.generali;
+    let h='<div class="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
+    const cards=[['Volume scambiato',eu(g.volume)],['Ordini',g.nOrdini],['Soci ordinanti',g.nSoci],['Raccolte',g.nRaccolte],['Fornitori',g.nFornitori],['Prodotti',g.nProdotti]];
+    cards.forEach(c=>{ h+='<div class="litem"><div class="li2">'+c[0]+'</div><div class="li1" style="font-size:1.1rem">'+c[1]+'</div></div>'; });
+    h+='</div>';
+    h+=tab('Per fornitore',['Fornitore','Ordini','Volume'], d.perFornitore.map(x=>[esc(x.nome),x.nOrdini,eu(x.volume)]));
+    h+=tab('Per consegna',['Consegna','Raccolte','Volume'], d.perConsegna.map(x=>[esc(x.etichetta),x.nRaccolte,eu(x.volume)]));
+    h+=tab('Per prodotto (top)',['Prodotto','Quantità','Volume'], d.perProdotto.map(x=>[esc(x.nome),qn(x.qta),eu(x.volume)]));
+    h+=tab('Per socio (top)',['Tessera','Nominativo','Ordini','Volume'], d.perSocio.map(x=>[esc(x.tessera),esc(x.nominativo),x.nOrdini,eu(x.volume)]));
+    document.getElementById('stat_out').innerHTML=h;
+  }
+
+  // ---------- AMMINISTRATORI ----------
+  function caricaAdmin(){ LOAD.admin=true; document.getElementById('adm_lista').innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ const box=document.getElementById('adm_lista'); box.innerHTML=''; if(!l.length){ box.innerHTML='<div class="muted">Nessun amministratore in elenco (si usa il token master).</div>'; }
+      l.forEach(a=>{ const row=document.createElement('div'); row.className='litem'+(a.attivo?'':' off'); row.innerHTML='<div class="li1">'+esc(a.nome||'(senza nome)')+(a.io?' <span class="badge">sei tu</span>':'')+(a.attivo?'':' <span class="badge off">disattivato</span>')+'</div><div class="li2">tessera '+esc(a.tessera||'—')+'</div>'; row.onclick=()=>openAdmin(a,row); box.appendChild(row); });
+    }).withFailureHandler(e=>{document.getElementById('adm_lista').textContent='Errore: '+e.message;}).adminListaAdmin(TOKEN); }
+  function openAdmin(a,row){ const html=
+      '<div class="muted">'+esc(a.nome)+' · tessera '+esc(a.tessera)+'. Entra con il suo link personale di socio.</div>'+
+      '<div class="edact"><button class="sec" onclick="linkSocioEsegui(\''+esc(a.tessera)+'\',false,\'ea_link\')">Invia link</button>'+
+      (a.io?'':(a.attivo?'<button class="ghost" onclick="attivaAdmin(\''+a.id+'\',false)">Disattiva</button>':'<button class="ghost" onclick="attivaAdmin(\''+a.id+'\',true)">Riattiva</button>')+
+      '<button class="warn" onclick="rimuoviAdmin(\''+a.id+'\',\''+esc(a.nome).replace(/'/g,"\\'")+'\')">Rimuovi amministratore</button>')+'</div>'+
+      '<div id="ea_link" style="margin-top:8px"></div>';
+    openEd('admin',a.id,row,html); }
+  function attivaAdmin(id,att){ run().withSuccessHandler(()=>{ LOAD.admin=false; caricaAdmin(); }).withFailureHandler(err).adminModificaAdmin(TOKEN,id,{attivo:att}); }
+  function rimuoviAdmin(id,nome){ chiedi(nome+' resterà socio, con il suo link, ma non potrà più entrare nel pannello.',{titolo:'Rimuovere l\'amministratore?',ok:'Rimuovi',pericolo:true}).then(ok=>{ if(!ok)return;
+    run().withSuccessHandler(()=>{ LOAD.admin=false; caricaAdmin(); }).withFailureHandler(err).adminEliminaAdmin(TOKEN,id); }); }
+  function aggiungiAdmin(){ const t=v('na_tess').trim(); if(!t){ avvisa('Inserisci la tessera del socio.'); return; } document.getElementById('na_msg').innerHTML=SPIN;
+    run().withSuccessHandler(r=>{ document.getElementById('na_tess').value=''; document.getElementById('na_msg').textContent='Aggiunto ✓'; mostraLink(document.getElementById('na_link'), r); LOAD.admin=false; caricaAdmin();
+    }).withFailureHandler(e=>{document.getElementById('na_msg').textContent='Errore: '+e.message;}).adminAggiungiAdmin(TOKEN,{tessera:t}); }
+  function generaLinkMancanti(){ document.getElementById('tok_msg').innerHTML=SPIN;
+    run().withSuccessHandler(m=>{ document.getElementById('tok_msg').textContent=m; }).withFailureHandler(e=>{ document.getElementById('tok_msg').textContent='Errore: '+e.message; }).adminGeneraTokenSoci(TOKEN); }
+  function caricaLog(){ document.getElementById('log_out').innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ if(!l.length){ document.getElementById('log_out').innerHTML='<div class="muted">Nessuna azione registrata.</div>'; return; }
+      let h='<table><tr><th>Quando</th><th>Chi</th><th>Azione</th><th>Dettaglio</th></tr>';
+      l.forEach(r=>{ h+='<tr><td>'+esc(r.quando)+'</td><td>'+esc(r.utente)+'</td><td>'+esc(r.azione)+'</td><td style="text-align:left">'+esc(r.dettaglio)+'</td></tr>'; });
+      document.getElementById('log_out').innerHTML=h+'</table>';
+    }).withFailureHandler(e=>{document.getElementById('log_out').textContent='Errore: '+e.message;}).adminLog(TOKEN,150); }
+
+  // ---------- GESTIONE ORDINI DI UNA RACCOLTA ----------
+  function ordiniRacc(){ const box=document.getElementById('ord_out'); box.innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ if(!l.length){ box.innerHTML='<div class="muted">Nessun ordine.</div>'; return; }
+      let h='<b>Ordini della raccolta</b>';
+      l.forEach(o=>{ const badge=o.stato==='valido'?'<span class="badge">valido</span>':'<span class="badge off">da verificare</span>';
+        h+='<div class="litem" style="margin-top:6px"><div class="li1">'+esc(o.tessera)+' — '+esc(o.nominativo)+' '+badge+'</div>'+(o.telefono?'<div class="li2">'+esc(o.telefono)+'</div>':'')+(o.motivo?'<div class="li2">⚠️ '+esc(o.motivo)+'</div>':'')+(o.note?'<div class="li2">✎ nota: '+esc(o.note)+'</div>':'');
+        o.righe.forEach(r=>{ h+='<div class="frow" style="margin:2px 0"><span style="flex:1;min-width:120px">'+esc(r.prodotto)+'</span><input id="rq_'+r.rigaId+'" value="'+qn(r.quantita)+'" style="width:64px;flex:none"><span class="li2">'+esc(r.unita)+'</span><button class="sec mini" onclick="salvaRiga(\''+r.rigaId+'\')">Salva</button></div>'; });
+        h+='<div class="edact">'+(o.stato!=='valido'?'<button class="mini" onclick="confOrdG(\''+o.id+'\')">Conferma</button>':'')+'<button class="warn mini" onclick="annOrdG(\''+o.id+'\')">Annulla ordine</button></div></div>';
+      }); box.innerHTML=h;
+    }).withFailureHandler(err).adminOrdiniRaccolta(TOKEN,CICLO); }
+  function salvaRiga(rid){ run().withSuccessHandler(()=>ordiniRacc()).withFailureHandler(err).adminModificaRiga(TOKEN,rid,document.getElementById('rq_'+rid).value.replace(',','.')); }
+  function confOrdG(id){ run().withSuccessHandler(()=>{ordiniRacc();ricaricaCicli();}).withFailureHandler(err).adminConfermaOrdine(TOKEN,id); }
+  function annOrdG(id){ chiediTesto('Scrivi il motivo:','Su richiesta del socio',{titolo:'Annullare l\'ordine?',ok:'Annulla l\'ordine'}).then(m=>{ if(m===null)return; run().withSuccessHandler(()=>{ordiniRacc();ricaricaCicli();}).withFailureHandler(err).adminAnnullaOrdine(TOKEN,id,m); }); }
+
+  // ---------- DA FARE ----------
+  function caricaDaFare(){ const box=document.getElementById('df_out'); box.innerHTML=SPIN;
+    run().withSuccessHandler(renderDaFare).withFailureHandler(e=>{box.textContent='Errore: '+e.message;}).adminDaFare(TOKEN); }
+  function dfBlocco(titolo, n, inner){ return '<div class="litem" style="cursor:default;margin-bottom:10px"><div class="li1">'+titolo+' <span class="badge'+(n?' off':'')+'">'+n+'</span></div>'+inner+'</div>'; }
+  function vaiBtn(id){ return '<button class="sec mini" onclick="vaiRacc(\''+id+'\')">Apri raccolta</button>'; }
+  function renderDaFare(d){ let h=''; let tot=0;
+    const ca=d.chiusuraAuto||{trigger:true,nonLeggibili:[]};
+    if(ca.trigger===false){ tot++; h+='<div class="notice warn"><b>La chiusura automatica non è attiva.</b> Le raccolte vengono comunque chiuse quando qualcuno apre il form o il pannello, ma per chiuderle puntuali un amministratore tecnico deve eseguire una volta <b>installaTriggerChiusura</b> dall\'editor di Apps Script.</div>'; }
+    if(ca.nonLeggibili && ca.nonLeggibili.length){ tot+=ca.nonLeggibili.length; h+='<div class="notice warn"><b>Data di chiusura non leggibile</b>: queste raccolte non si chiuderanno da sole finché non correggi la data (esempio: 10-10-2026 20:00).'+ca.nonLeggibili.map(x=>'<div style="margin-top:6px">'+esc(x.chiusura)+' '+vaiBtn(x.id)+'</div>').join('')+'</div>'; }
+    // ordini da verificare
+    let n=0, inner=''; d.daVerificare.forEach(g=>{ inner+='<div style="margin-top:8px"><b>'+esc(g.fornitore)+'</b> '+vaiBtn(g.raccoltaId)+'</div>';
+      g.ordini.forEach(o=>{ n++; inner+='<div class="frow" style="margin:4px 0"><span style="flex:1;min-width:160px">'+esc(o.tessera)+' — '+esc(o.nominativo)+'<br><span class="li2">⚠️ '+esc(o.motivo)+'</span></span><button class="mini" onclick="dfConf(\''+o.id+'\')">Conferma</button><button class="warn mini" onclick="dfAnn(\''+o.id+'\')">Annulla</button></div>'; }); });
+    tot+=n; if(n) h+=dfBlocco('Ordini da verificare', n, inner);
+    // in chiusura
+    inner=''; d.inChiusura.forEach(r=>{ inner+='<div class="frow" style="margin:4px 0"><span style="flex:1">'+esc(r.fornitore)+' · chiude '+esc(r.chiusura)+' · '+r.nOrdini+' ordini</span>'+vaiBtn(r.raccoltaId)+'</div>'; });
+    tot+=d.inChiusura.length; if(d.inChiusura.length) h+=dfBlocco('Raccolte che chiudono entro 24 ore', d.inChiusura.length, inner);
+    // pesi
+    inner=''; d.pesi.forEach(r=>{ inner+='<div class="frow" style="margin:4px 0"><span style="flex:1">'+esc(r.fornitore)+' · '+r.nRighe+' pesi da confermare</span>'+vaiBtn(r.raccoltaId)+'</div>'; });
+    tot+=d.pesi.length; if(d.pesi.length) h+=dfBlocco('Pesi da confermare', d.pesi.length, inner);
+    // senza consegna
+    inner=''; d.senzaConsegna.forEach(r=>{ inner+='<div class="frow" style="margin:4px 0"><span style="flex:1">'+esc(r.fornitore)+'</span>'+vaiBtn(r.raccoltaId)+'</div>'; });
+    tot+=d.senzaConsegna.length; if(d.senzaConsegna.length) h+=dfBlocco('Raccolte chiuse senza consegna', d.senzaConsegna.length, inner);
+    const sg=d.segnalazioni||[]; document.querySelectorAll('.cnt-segn').forEach(x=>x.textContent=sg.length?String(sg.length):'');
+    if(sg.length){ tot+=sg.length; h+=dfBlocco('Segnalazioni nuove', sg.length, sg.map(s=>'<div class="frow" style="margin:4px 0"><span style="flex:1;min-width:160px">'+esc(s.tipo)+(s.tecnico?' <span class="badge warn">tecnica</span>':'')+'<br><span class="li2">'+esc(s.nominativo||'anonimo')+' · '+esc(s.quando)+'</span></span></div>').join('')+'<div class="edact"><button class="sec mini" onclick="mostraSez(\'segn\')">Apri le segnalazioni</button></div>'); }
+    if(!tot) h='<div class="litem" style="cursor:default"><div class="li1">Niente in attesa ✓</div><div class="li2">Non ci sono ordini da verificare, pesi da confermare o raccolte in scadenza.</div></div>'+h;
+    // prossime consegne (informativo)
+    inner=''; d.consegne.forEach(c=>{ inner+='<div style="margin:4px 0">'+esc(c.data)+(c.fascia?(' · '+esc(c.fascia)):'')+(c.luogo?(' · '+esc(c.luogo)):'')+'<br><span class="li2">'+(c.fornitori.length?esc(c.fornitori.join(', ')):'nessuna raccolta assegnata')+'</span></div>'; });
+    h+='<div class="litem" style="cursor:default;margin-top:10px"><div class="li1">Consegne dei prossimi 7 giorni</div>'+(inner||'<div class="li2">Nessuna.</div>')+'</div>';
+    document.getElementById('df_out').innerHTML=h;
+    document.querySelectorAll('.cnt-dafare').forEach(x=>x.textContent=tot?String(tot):'');
+  }
+  function dfConf(id){ run().withSuccessHandler(()=>{caricaDaFare();ricaricaCicli();}).withFailureHandler(err).adminConfermaOrdine(TOKEN,id); }
+  function dfAnn(id){ chiediTesto('Scrivi il motivo:','Ordine doppio',{titolo:'Annullare l\'ordine?',ok:'Annulla l\'ordine'}).then(m=>{ if(m===null)return; run().withSuccessHandler(()=>{caricaDaFare();ricaricaCicli();}).withFailureHandler(err).adminAnnullaOrdine(TOKEN,id,m); }); }
+  function vaiRacc(id){ mostraSez('racc'); const trova=(k)=>{ if(RACC_L.find(x=>x.id===id)) openRacc(id,''); else if(k<25) setTimeout(()=>trova(k+1),200); }; trova(0); }
+  function apriAltro(){ const voci=[['segn','Segnalazioni'],['soci','Soci'],['forn','Fornitori'],['cat','Categorie'],['stat','Statistiche'],['admin','Amministratori'],['aiuto','Aiuto']];
+    const ov=document.createElement('div'); ov.className='ov';
+    let h='<div class="sheet"><div class="grab"></div><h2>Altre sezioni</h2><div class="btns">';
+    voci.forEach(v=>{ h+='<button class="ghost" data-s="'+v[0]+'" style="justify-content:flex-start">'+v[1]+'</button>'; });
+    h+='<button data-s="">Chiudi</button></div></div>'; ov.innerHTML=h; document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b && e.target!==ov) return; ov.remove(); if(b && b.dataset.s) mostraSez(b.dataset.s); }); }
+  // ---------- SEGNALAZIONI ----------
+  let SEGN_TUTTE=false, SEGN_L=[];
+  function filtroSegn(){ SEGN_TUTTE=!SEGN_TUTTE; document.getElementById('segn_filtro').textContent=SEGN_TUTTE?'Solo quelle da gestire':'Mostra anche le risolte'; caricaSegn(); }
+  function caricaSegn(){ const box=document.getElementById('segn_lista'); box.innerHTML=SPIN;
+    run().withSuccessHandler(l=>{ SEGN_L=l; if(!l.length){ box.innerHTML='<div class="muted">Nessuna segnalazione '+(SEGN_TUTTE?'':'da gestire')+'.</div>'; return; }
+      box.innerHTML=l.map(s=>{ const st={nuova:['Nuova','warn'],in_corso:['In corso',''],risolta:['Risolta','grey']}[s.stato]||[s.stato,'grey'];
+        return '<div class="card" style="margin:0"><div class="rowflex"><div><b>'+esc(s.tipo)+'</b> '+(s.tecnico?'<span class="badge warn">tecnica</span> ':'')+'<span class="badge '+st[1]+'">'+st[0]+'</span></div><span class="muted">'+esc(s.quando)+'</span></div>'+
+          '<div class="li2" style="margin-top:4px">'+esc(s.nominativo||'anonimo')+(s.tessera?' · tessera '+esc(s.tessera):'')+(s.recapito?' · '+esc(s.recapito):'')+(s.contatto?' · preferisce '+esc(s.contatto):'')+'</div>'+
+          '<p style="white-space:pre-line;margin:8px 0">'+esc(s.descrizione)+'</p>'+
+          '<details style="padding:4px 10px"><summary>Dati tecnici</summary><div class="li2" style="line-height:1.6;word-break:break-word">'+
+            'Pagina: '+esc(s.pagina||'—')+(s.raccolta?' · raccolta '+esc(s.raccolta):'')+'<br>Ultimo errore: '+esc(s.ultimoErrore||'nessuno')+'<br>Schermo: '+esc(s.schermo||'—')+' · versione '+esc(s.versione||'—')+'<br>Dispositivo: '+esc(s.dispositivo||'—')+'</div></details>'+
+          '<div class="frow" style="margin-top:10px"><label for="sg_st_'+s.id+'">Stato</label><select id="sg_st_'+s.id+'"><option value="nuova"'+(s.stato==='nuova'?' selected':'')+'>Nuova</option><option value="in_corso"'+(s.stato==='in_corso'?' selected':'')+'>In corso</option><option value="risolta"'+(s.stato==='risolta'?' selected':'')+'>Risolta</option></select></div>'+
+          '<div class="frow"><textarea id="sg_nt_'+s.id+'" rows="2" placeholder="Note interne (cosa è stato fatto)">'+esc(s.note)+'</textarea></div>'+
+          '<div class="edact"><button class="mini" onclick="salvaSegn(\''+s.id+'\')">Salva</button>'+(s.wa?'<a class="btnlink" target="_blank" rel="noopener" href="https://wa.me/'+esc(s.wa)+'">Scrivi su WhatsApp</a>':'')+
+          (s.gestitaDa?'<span class="muted">ultima modifica: '+esc(s.gestitaDa)+'</span>':'')+'<span id="sg_msg_'+s.id+'" class="ok"></span></div></div>'; }).join('');
+    }).withFailureHandler(e=>{ box.textContent='Errore: '+e.message; }).adminSegnalazioni(TOKEN, SEGN_TUTTE?'tutte':'aperte'); }
+  function salvaSegn(id){ const m=document.getElementById('sg_msg_'+id); m.textContent='…';
+    run().withSuccessHandler(()=>{ m.textContent='Salvato ✓'; caricaDaFare(); }).withFailureHandler(err).adminAggiornaSegnalazione(TOKEN,id,{ stato:v('sg_st_'+id), note:v('sg_nt_'+id) }); }
+  caricaDaFare();
+</script>
+</body>
+</html>

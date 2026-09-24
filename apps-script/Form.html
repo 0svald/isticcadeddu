@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+<?!= include('Stile') ?>
+<?!= include('Aiuto') ?>
+<style>
+  .wrap{ max-width:640px; margin:0 auto; padding:0 16px 130px; }
+  .topbar .name{ font-family:var(--serif); font-weight:600; color:var(--green-d); font-size:1.05rem; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  header.intro{ padding:18px 0 4px; }
+  header.intro h1{ font-size:1.9rem; margin:0 0 4px; }
+  header.intro .meta{ color:var(--muted); font-size:.95rem; }
+  .infos{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:12px; }
+  .info{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:10px 12px; }
+  .info small{ display:block; color:var(--muted); font-size:.82rem; } .info b{ font-size:1rem; }
+  .avviso{ margin:14px 0 2px; background:var(--amber-bg); border:1px solid var(--amber-line); color:var(--amber-d); border-radius:var(--r-lg); padding:12px 14px; font-size:.98rem; }
+  .avviso b{ display:block; margin-bottom:4px; } .avviso ul{ margin:0; padding-left:20px; } .avviso li{ margin:3px 0; }
+  .block{ margin-top:18px; }
+  .block > .lab{ font-size:.9rem; font-weight:700; color:var(--muted); margin:0 2px 8px; }
+  .idcard{ display:flex; flex-direction:column; gap:12px; }
+  .idrow label{ display:block; font-size:.9rem; font-weight:700; color:var(--muted); margin-bottom:6px; }
+  .idrow input{ width:100%; font-size:1.1rem; }
+  .idcard.socio{ background:var(--green-t); border-radius:var(--r); padding:12px 14px; color:var(--green-d); }
+  .catnav{ position:sticky; top:60px; z-index:30; display:flex; gap:8px; overflow-x:auto; margin:16px -16px 0; padding:10px 16px;
+    background:rgba(244,241,232,.96); border-bottom:1px solid var(--line); scrollbar-width:none; }
+  .catnav::-webkit-scrollbar{ display:none; }
+  .catnav button{ min-height:42px; padding:0 16px; border-radius:999px; background:var(--surface); color:var(--ink); border:1px solid var(--line); font-size:.95rem; white-space:nowrap; flex:0 0 auto; }
+  .catnav button:hover{ background:var(--sub); } .catnav button.on{ background:var(--green); color:var(--surface); border-color:var(--green); }
+  .cat{ margin:24px 2px 8px; scroll-margin-top:130px; }
+  .cat h2{ font-size:1.35rem; }
+  .prod{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:14px; margin:10px 0; transition:border-color .15s, background .15s; }
+  .prod.on{ background:var(--green-bg); border:2px solid var(--green); padding:13px; }
+  .phead{ display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+  .pname{ font-weight:700; font-size:1.1rem; }
+  .pprice{ font-weight:700; white-space:nowrap; font-size:1.02rem; }
+  .pnote{ color:var(--muted); font-size:.92rem; margin-top:4px; white-space:pre-line; }
+  .prod select, .noteinput{ width:100%; margin-top:10px; }
+  .stepper{ display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:12px; }
+  .stepper .unit{ color:var(--muted); font-size:.92rem; margin-right:auto; }
+  .prod.on .stepper .unit{ color:var(--green-d); font-weight:700; }
+  .step{ width:var(--tap); height:var(--tap); min-width:var(--tap); padding:0; border-radius:var(--r); font-size:1.6rem; line-height:1; }
+  .step[data-d="-1"]{ background:var(--surface); color:var(--green-d); border:2px solid var(--green); }
+  .step[data-d="-1"]:hover{ background:var(--green-t); }
+  .qty{ width:78px; min-height:var(--tap); text-align:center; font-size:1.1rem; font-weight:700; padding:6px 4px; }
+  .bar{ position:fixed; left:0; right:0; bottom:0; z-index:45; background:var(--surface); border-top:2px solid var(--green);
+    padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px)); display:flex; align-items:center; gap:14px; box-shadow:0 -6px 18px rgba(31,38,28,.1); }
+  .bar .tot{ flex:1; } .bar .tot small{ display:block; color:var(--muted); font-size:.85rem; } .bar .tot b{ font-size:1.4rem; }
+  .cta{ min-height:54px; padding:0 22px; font-size:1.05rem; }
+  .done{ text-align:center; padding:48px 16px; }
+  .done .mark{ width:76px; height:76px; border-radius:50%; background:var(--green); color:var(--surface); display:flex; align-items:center; justify-content:center; font-size:2.4rem; margin:0 auto 18px; }
+  .done h2{ font-size:1.7rem; margin:0 0 8px; } .done p{ color:var(--muted); margin:6px 0; }
+  .linkbtn{ display:inline-flex; align-items:center; justify-content:center; min-height:var(--tap); padding:0 18px; margin-top:18px; border-radius:var(--r); border:2px solid var(--green); color:var(--green-d); background:var(--surface); font-weight:700; text-decoration:none; cursor:pointer; }
+  .rrow{ display:flex; justify-content:space-between; gap:10px; padding:11px 0; border-bottom:1px solid var(--line-soft); font-size:1.02rem; }
+  .rrow .rq{ color:var(--muted); font-size:.92rem; }
+  .rbox{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:2px 14px; }
+  .rtot{ display:flex; justify-content:space-between; font-weight:700; font-size:1.2rem; padding:12px 0; }
+  .rsub{ color:var(--muted); font-size:.95rem; margin-bottom:10px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="gas-icon" role="img" aria-label="GAS Isticcadeddu" style="width:30px;height:30px;flex-basis:30px"></span>
+  <span id="tb_emoji"></span>
+  <span class="name serif" id="tb_name">GAS</span>
+  <span class="badge" id="tb_stato"></span>
+</div>
+
+<div class="wrap">
+  <div id="loading" role="status" style="text-align:center"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
+  <div id="app" class="hidden"></div>
+  <p style="text-align:center;margin:28px 0 0"><button type="button" class="ghost" onclick="apriAiuto()">Serve aiuto?</button></p>
+</div>
+
+<div class="bar hidden" id="bar">
+  <div class="tot"><small id="tot_n">Nessun prodotto</small><b id="tot">0,00 €</b></div>
+  <button class="cta" id="invia">Controlla e invia</button>
+</div>
+
+<div class="ov hidden" id="riep"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="riep_t">
+  <div class="grab"></div>
+  <h2 id="riep_t">Controlla il tuo ordine</h2>
+  <div id="riep_body"></div>
+  <div class="btns"><button id="riep_go">Conferma e invia</button><button class="sec" id="riep_back">Torna a modificare</button></div>
+</div></div>
+
+<script>
+  const CICLO_ID = "<?= cicloId ?>";
+  const SOCIO_TOKEN = "<?= socioToken ?>";
+  let DATI = null;
+
+  function nfmt(n){ return (Math.round(n*100)/100).toFixed(2).replace('.',','); }
+  function euro(n){ return nfmt(n)+' €'; }
+  function giornoData(t){ const m=String(t||'').match(/^(\d{2})-(\d{2})-(\d{4})(?:\s+(\d{1,2}[:.]\d{2}))?/); if(!m) return String(t||'');
+    const g=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'][new Date(+m[3],+m[2]-1,+m[1]).getDay()];
+    return g+' '+m[1]+'-'+m[2]+(m[4]?(', ore '+m[4].replace('.',':')):''); }
+  function prezzoUnita(prezzo, unita){
+    unita=(unita||'').trim();
+    if(!unita) return euro(prezzo);
+    if(unita.indexOf('€')>=0 || unita.indexOf('/')>=0) return nfmt(prezzo)+' '+unita;
+    return nfmt(prezzo)+' € '+unita;
+  }
+  function unitaMisura(u){ u=(u||'').trim();
+    if(/^€\s*\/\s*/.test(u)) return u.replace(/^€\s*\/\s*/,'');
+    if(/l['’]una/i.test(u)) return 'pz';
+    if(/^a\s+/i.test(u)) return u.replace(/^a\s+/i,'');
+    return u; }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function el(t,c,h){ const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; }
+
+  if(SOCIO_TOKEN) google.script.run.withSuccessHandler(render).withFailureHandler(bootErr).getFormDataSocio(SOCIO_TOKEN, CICLO_ID);
+  else google.script.run.withSuccessHandler(render).withFailureHandler(bootErr).getFormData(CICLO_ID);
+  function bootErr(e){ if(window.segnaErrore) segnaErrore('Caricamento del form: '+((e&&e.message)||e)); document.getElementById('loading').innerHTML = 'Non riesco a caricare l\'ordine. Riprova tra poco.<br><small>'+esc(e.message)+'</small>'; }
+
+  function render(d){
+    DATI = d;
+    document.getElementById('loading').classList.add('hidden');
+    const app = document.getElementById('app'); app.classList.remove('hidden'); app.innerHTML='';
+
+    if(d.errore){ document.getElementById('tb_name').textContent='GAS';
+      app.appendChild(el('div','center', esc(d.errore))); return; }
+
+    // top bar
+    document.getElementById('tb_emoji').textContent = d.fornitore.emoji||'';
+    document.getElementById('tb_name').textContent = d.fornitore.nome||'GAS';
+    const sp = document.getElementById('tb_stato');
+    sp.textContent = d.aperto ? 'Aperta' : 'Chiusa';
+    sp.className = 'badge' + (d.aperto ? '' : ' warn');
+
+    // intro
+    const intro = el('header','intro');
+    intro.appendChild(el('h1','serif', esc(d.fornitore.nome)));
+    const meta = [d.fornitore.zona, d.fornitore.descrizione].filter(Boolean).join(' · ');
+    if(meta) intro.appendChild(el('div','meta', esc(meta)));
+    const co = d.consegna || {}; const dataRit = co.data || d.ciclo.data_consegna; const fasciaRit = co.fascia || d.ciclo.fascia_oraria;
+    intro.appendChild(el('div','infos',
+      '<div class="info"><small>Ordini fino a</small><b>'+esc(giornoData(d.ciclo.chiusura)||'—')+'</b></div>'+
+      '<div class="info"><small>Ritiro</small><b>'+esc(dataRit?(giornoData(dataRit)+(fasciaRit?(' · '+fasciaRit):'')):'da definire')+'</b>'+(co.luogo?('<small>'+esc(co.luogo)+'</small>'):'')+'</div>'));
+    app.appendChild(intro);
+
+    if(!d.aperto){
+      app.appendChild(el('div','esito warn','Gli ordini per questo fornitore sono chiusi. Grazie!'));
+      return;
+    }
+
+    if(d.ciclo.avvisi){
+      const items = d.ciclo.avvisi.split(';').map(s=>s.trim()).filter(Boolean).map(a=>'<li>'+esc(a)+'</li>').join('');
+      app.appendChild(el('div','avviso','<b>Da sapere</b><ul>'+items+'</ul>'));
+    }
+
+    // identity
+    const idb = el('div','block');
+    idb.appendChild(el('div','lab','Chi sei'));
+    const idc = el('div','idcard');
+    if(d.socio){
+      idc.innerHTML =
+        '<div>Ordini come <b>'+esc(d.socio.nominativo)+'</b> · tessera '+esc(d.socio.tessera)+'</div>'+
+        '<input type="hidden" id="tessera" value="'+esc(d.socio.tessera)+'"><input type="hidden" id="nominativo" value="'+esc(d.socio.nominativo)+'">';
+      const back=document.createElement('a'); back.href=d.socio.portaleUrl; back.target='_top'; back.className='linkbtn'; back.style.marginTop='8px'; back.textContent='← La mia pagina';
+      idc.classList.add('socio'); idb.appendChild(idc); idb.appendChild(back); app.appendChild(idb);
+      if(d.esistente) app.appendChild(el('div','esito ok','Hai già un ordine per questa raccolta: lo trovi qui sotto. Puoi modificarlo fino alla chiusura ('+esc(d.ciclo.chiusura)+').'));
+    } else {
+      idc.innerHTML =
+        '<div class="idrow"><label>Numero tessera</label><input id="tessera" inputmode="numeric" placeholder="es. 0123"></div>'+
+        '<div class="idrow"><label>Nome e cognome</label><input id="nominativo" placeholder="es. Rossi Mario"></div>';
+      idb.appendChild(idc); app.appendChild(idb);
+    }
+
+    // products
+    const cats = d.categorie.filter(c=>d.prodotti.some(p=>p.categoria_id===c.id));
+    const fuori = d.prodotti.filter(p=>!p.categoria_id);
+    const gruppi = cats.map(c=>({id:'cat_'+c.id, nome:c.nome, emoji:c.emoji, lista:d.prodotti.filter(p=>p.categoria_id===c.id)}));
+    if(fuori.length) gruppi.push({id:'cat_altro', nome:'Altro', emoji:'', lista:fuori});
+    if(gruppi.length>1){
+      const nav=el('nav','catnav'); nav.setAttribute('aria-label','Categorie');
+      gruppi.forEach((g,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=(g.emoji?g.emoji+' ':'')+g.nome; if(i===0) b.classList.add('on');
+        b.onclick=()=>{ nav.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); const t=document.getElementById(g.id); if(t) t.scrollIntoView({behavior:'smooth',block:'start'}); };
+        nav.appendChild(b); });
+      app.appendChild(nav);
+    }
+    gruppi.forEach(g=>{ const h=catHead(g.nome, g.emoji); h.id=g.id; app.appendChild(h); g.lista.forEach(p=> app.appendChild(prodCard(p))); });
+
+    const noteBlock = el('div','block');
+    noteBlock.innerHTML = '<label class="lab" for="ordnote" style="display:block">Nota per il fornitore (se serve)</label>'+
+      '<textarea id="ordnote" rows="3" style="width:100%" placeholder="Es. taglio piccolo, ritira un\'altra persona…"></textarea>';
+    app.appendChild(noteBlock);
+
+    const esito = el('div',null,''); esito.id='esito'; app.appendChild(esito);
+
+    document.getElementById('bar').classList.remove('hidden');
+    document.getElementById('invia').onclick = invia;
+    document.getElementById('riep_back').onclick = ()=>document.getElementById('riep').classList.add('hidden');
+    document.getElementById('riep_go').onclick = inviaConferma;
+    if(d.esistente) precarica(d.esistente);
+    aggiornaTotale();
+  }
+  function precarica(es){
+    (es.righe||[]).forEach(r=>{ const q=document.querySelector('.qty[data-pid="'+r.prodottoId+'"]'); if(!q) return;
+      const cur=parseFloat((q.value||'0').replace(',','.'))||0; const v=cur+r.quantita;
+      q.value=nfmt(v).replace(',00',''); if(q._sel && r.opzioneId) q._sel.value=r.opzioneId; if(q._nota && r.notaSocio) q._nota.value=r.notaSocio;
+      syncOn(q.closest('.prod'), v); });
+    const n=document.getElementById('ordnote'); if(n && es.note) n.value=es.note;
+    document.getElementById('invia').textContent='Controlla e salva';
+  }
+
+  function catHead(nome, emoji){
+    const c = el('div','cat');
+    c.innerHTML = '<h2>'+esc((emoji?emoji+' ':'')+nome)+'</h2>';
+    return c;
+  }
+
+  function prodCard(p){
+    const box = el('div','prod'); box.dataset.pid=p.id;
+    let h = '<div class="phead"><div class="pname">'+esc(p.nome)+''+'</div>'+
+            '<div class="pprice">'+prezzoUnita(p.prezzo,p.unita)+'</div></div>';
+    if(p.note) h += '<div class="pnote">'+esc(p.note)+'</div>';
+    if(p.min_consigliato) h += '<div class="pnote">minimo consigliato '+p.min_consigliato+' '+esc(unitaMisura(p.unita))+'</div>';
+    if(p.peso_variabile) h += '<div class="pnote">Si pesa al momento: il fornitore conferma l\'importo esatto prima del ritiro.</div>';
+    box.innerHTML = h;
+
+    let selOpz=null;
+    if(p.opzioni && p.opzioni.length){
+      selOpz=document.createElement('select');
+      selOpz.appendChild(new Option('Scegli…',''));
+      p.opzioni.forEach(o=>{
+        let et=o.nome;
+        if(o.tipo==='formato') et+=' ('+prezzoUnita(o.prezzo,o.unita)+')';
+        else if(o.tipo==='supplemento') et+=' (+'+nfmt(o.prezzo)+' €)';
+        else if(o.tipo==='variante' && o.prezzo>0) et+=' ('+prezzoUnita(o.prezzo,o.unita)+')';
+        selOpz.appendChild(new Option(et,o.id));
+      });
+      box.appendChild(selOpz);
+    }
+    let notaInput=null;
+    if((p.opzioni||[]).some(o=>o.richiede_nota)){
+      notaInput=document.createElement('input'); notaInput.className='noteinput'; notaInput.placeholder='Specifica (es. stagionatura)';
+      box.appendChild(notaInput);
+    }
+
+    const st = el('div','stepper');
+    const um = unitaMisura(p.unita);
+    st.dataset.base = um?('quantità in '+um):'quantità';
+    st.innerHTML = '<span class="unit">'+esc(st.dataset.base)+'</span>'+
+      '<button type="button" class="step" data-d="-1">–</button>'+
+      '<input class="qty" inputmode="decimal" value="0">'+
+      '<button type="button" class="step" data-d="1">+</button>';
+    box.appendChild(st);
+
+    const q = st.querySelector('.qty');
+    q.dataset.pid=p.id;
+    q._prod=p; q._sel=selOpz; q._nota=notaInput;
+    const passo = p.passo||1;
+    st.querySelectorAll('.step').forEach(b=> b.onclick=()=>{ let v=parseFloat((q.value||'0').replace(',','.'))||0;
+      v=Math.max(0, Math.round((v + (+b.dataset.d)*passo)*100)/100); q.value=nfmt(v).replace(',00',''); syncOn(box,v); aggiornaTotale(); });
+    q.oninput=()=>{ let v=parseFloat((q.value||'0').replace(',','.'))||0; syncOn(box,v); aggiornaTotale(); };
+    if(selOpz) selOpz.onchange=()=>{ syncOn(box, parseFloat((q.value||'0').replace(',','.'))||0); aggiornaTotale(); };
+    return box;
+  }
+  function syncOn(box, v){ box.classList.toggle('on', v>0);
+    const q=box.querySelector('.qty'), u=box.querySelector('.stepper .unit'), st=box.querySelector('.stepper'); if(!q||!u) return;
+    if(v>0){ const p=q._prod; const um=unitaMisura(p.unita); u.textContent=nfmt(v).replace(',00','')+(um?(' '+um):'')+' · '+euro(prezzoItem(p, q._sel?q._sel.value:'', v)); }
+    else u.textContent=st.dataset.base; }
+
+  function prezzoItem(p, opzId, qty){
+    const base=p.prezzo;
+    if(opzId){ const o=(p.opzioni||[]).find(x=>x.id===opzId);
+      if(o){ if(o.tipo==='variante'&&o.prezzo>0) return qty*o.prezzo;
+        if(o.tipo==='formato') return qty*o.prezzo;
+        if(o.tipo==='supplemento') return qty*base+o.prezzo; } }
+    return qty*base;
+  }
+  function aggiornaTotale(){
+    let tot=0;
+    document.querySelectorAll('.qty').forEach(q=>{ const v=parseFloat((q.value||'0').replace(',','.'))||0;
+      if(v>0) tot+=prezzoItem(q._prod, q._sel?q._sel.value:'', v); });
+    document.getElementById('tot').textContent=euro(tot);
+    const n=[...document.querySelectorAll('.qty')].filter(q=>(parseFloat((q.value||'0').replace(',','.'))||0)>0).length;
+    document.getElementById('tot_n').textContent = n ? (n+(n===1?' prodotto':' prodotti')+' · indicativo') : 'Nessun prodotto scelto';
+  }
+  function raccogliItems(){
+    const items=[];
+    document.querySelectorAll('.qty').forEach(q=>{ const v=parseFloat((q.value||'0').replace(',','.'))||0;
+      if(v>0) items.push({ prodottoId:q.dataset.pid, opzioneId:q._sel?q._sel.value:'', quantita:v, notaSocio:q._nota?q._nota.value:'' }); });
+    return items;
+  }
+
+  function invia(){
+    const tessera=(document.getElementById('tessera').value||'').trim();
+    const nominativo=(document.getElementById('nominativo').value||'').trim();
+    if(!tessera||!nominativo){ mostra('err','Inserisci tessera e nome per continuare.'); return; }
+    const righe=[]; let tot=0;
+    document.querySelectorAll('.qty').forEach(q=>{ const v=parseFloat((q.value||'0').replace(',','.'))||0; if(v<=0) return;
+      const p=q._prod, opz=q._sel?q._sel.value:''; const imp=prezzoItem(p,opz,v); tot+=imp;
+      let nome=p.nome; if(opz&&q._sel){ const t=q._sel.options[q._sel.selectedIndex]; if(t) nome+=' – '+t.text.replace(/\s*\(.*\)\s*$/,''); }
+      const u=String(p.unita||''); const um=u.indexOf('/')>=0?(' '+u.split('/').pop()):'';
+      const nota=q._nota&&q._nota.value.trim()?(' · '+q._nota.value.trim()):'';
+      righe.push({nome:nome, q:nfmt(v).replace(',00','')+um+nota, imp:imp}); });
+    if(!righe.length){ mostra('err','Scegli almeno un prodotto.'); return; }
+    const note=document.getElementById('ordnote')?document.getElementById('ordnote').value.trim():'';
+    let h='<div class="rsub">'+esc(DATI.fornitore.nome)+' · '+esc(nominativo)+', tessera '+esc(tessera)+'</div><div class="rbox">';
+    righe.forEach(r=>{ h+='<div class="rrow"><span>'+esc(r.nome)+'<br><span class="rq">quantità: '+esc(r.q)+'</span></span><span>'+euro(r.imp)+'</span></div>'; });
+    if(note) h+='<div class="rrow"><span><span class="rq">Nota per il fornitore:</span><br>'+esc(note)+'</span></div>';
+    h+='<div class="rtot"><span>Totale indicativo</span><span>'+euro(tot)+'</span></div></div>';
+    if(DATI.prodotti.some(p=>p.peso_variabile && raccogliItems().some(i=>i.prodottoId===p.id))) h+='<p class="muted">Alcuni prodotti si pesano al momento: il fornitore confermerà l\'importo esatto. Si paga in contanti al ritiro.</p>';
+    else h+='<p class="muted">Si paga in contanti al fornitore, al ritiro.</p>';
+    document.getElementById('riep_body').innerHTML=h;
+    document.getElementById('riep').classList.remove('hidden');
+  }
+  function inviaConferma(){
+    const tessera=(document.getElementById('tessera').value||'').trim();
+    const nominativo=(document.getElementById('nominativo').value||'').trim();
+    const items=raccogliItems();
+    const note = document.getElementById('ordnote') ? document.getElementById('ordnote').value : '';
+    const go=document.getElementById('riep_go'), btn=document.getElementById('invia');
+    go.disabled=true; go.textContent='Invio…'; btn.disabled=true;
+    const fine=()=>{ go.disabled=false; go.textContent='Conferma e invia'; btn.disabled=false; document.getElementById('riep').classList.add('hidden'); };
+    google.script.run.withSuccessHandler(r=>{ fine(); if(r.ok) successo(r); else mostra('err', r.messaggio); })
+      .withFailureHandler(e=>{ fine(); mostra('err','Qualcosa è andato storto. Riprova.'); })
+      .submitOrder({ cicloId:CICLO_ID, tessera:tessera, nominativo:nominativo, items:items, note:note, socioToken:SOCIO_TOKEN });
+  }
+  function apriAiuto(){
+    const ov=document.createElement('div'); ov.className='ov';
+    ov.innerHTML='<div class="sheet" role="dialog" aria-modal="true" aria-label="Aiuto"><div class="grab"></div><div style="text-align:right"><button type="button" class="ghost mini" id="aiuto_chiudi">Chiudi</button></div><div id="aiuto_box"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',ev=>{ if(ev.target===ov) ov.remove(); });
+    ov.querySelector('#aiuto_chiudi').onclick=()=>ov.remove();
+    Aiuto.mostra(ov.querySelector('#aiuto_box'), SOCIO_TOKEN, { profilo: SOCIO_TOKEN?'socio':'form', pagina:'form d\'ordine', sezione:'ordine', raccoltaId: CICLO_ID });
+  }
+  function mostra(cls, testo){ if(cls==='err' && window.segnaErrore) segnaErrore('Form: '+testo); const e=document.getElementById('esito'); e.className='esito '+cls; e.textContent=testo; e.scrollIntoView({behavior:'smooth',block:'center'}); }
+
+  function successo(r){
+    document.getElementById('bar').classList.add('hidden');
+    const app=document.getElementById('app');
+    const tot=document.getElementById('tot').textContent;
+    const sotto = r.stato==='valido'
+      ? (DATI.socio ? 'Puoi modificarlo dalla tua pagina fino alla chiusura degli ordini.' : 'Se devi cambiare qualcosa, contatta il fornitore o un amministratore.')
+      : 'L\'ordine è segnalato per una verifica ('+esc(r.messaggio.replace(/^.*\(/,'').replace(/\).*$/,''))+'). Un amministratore lo controllerà.';
+    app.innerHTML =
+      '<div class="done"><div class="mark">✓</div>'+
+      '<h2 class="serif">'+(r.modificato?'Ordine aggiornato':'Ordine inviato')+'</h2>'+
+      '<p>'+esc(DATI.fornitore.nome)+' · totale indicativo '+tot+'</p>'+
+      '<p>'+sotto+'</p>'+
+      (DATI.socio ? '<a class="linkbtn" target="_top" href="'+DATI.socio.portaleUrl+'">Torna alla mia pagina</a>' : '<span class="linkbtn" onclick="location.reload()">Fai un altro ordine</span>')+'</div>';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+</script>
+</body>
+</html>

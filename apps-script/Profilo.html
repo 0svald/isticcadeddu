@@ -1,0 +1,76 @@
+<!-- Profilo.html — schermata "Profilo", uguale nella pagina del socio, nel portale fornitore e nel pannello.
+     Si include dopo lo stile con:  <?!= include('Profilo') ?>
+     Uso: Profilo.mostra(elementoContenitore, token, 'socio' | 'fornitore' | 'admin') -->
+<style>
+  .prof-head{ display:flex; align-items:center; gap:14px; margin:4px 0 14px; }
+  .prof-av{ width:56px; height:56px; flex:0 0 56px; border-radius:50%; background:var(--green-t); color:var(--green-d);
+    display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-weight:600; font-size:1.4rem; }
+  .prof-head h1{ margin:0; font-size:1.6rem; }
+  .prof-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .prof-grid .kv{ background:var(--sub); border-radius:var(--r); padding:10px 12px; }
+  .prof-grid .kv small{ display:block; color:var(--muted); font-size:.82rem; }
+  .prof-grid .kv b{ font-size:1.02rem; }
+  .prof-field{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+  .prof-field label{ font-size:.9rem; font-weight:700; color:var(--muted); }
+  .prof-field input{ width:100%; font-size:1.05rem; }
+  .prof-links{ display:flex; flex-direction:column; gap:8px; }
+  .prof-link{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:56px; padding:0 14px;
+    border-radius:var(--r); border:1px solid var(--line); background:var(--surface); color:var(--ink); text-decoration:none; font-weight:700; }
+  .prof-link:hover{ background:var(--sub); }
+  .prof-link small{ display:block; font-weight:400; color:var(--muted); font-size:.85rem; }
+  .prof-link.qui{ background:var(--green-t); border-color:var(--green-l); cursor:default; }
+</style>
+<script>
+  window.Profilo = (function(){
+    function e(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    const FRECCIA='<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
+    function riga(url, titolo, sotto, qui){
+      if(qui) return '<div class="prof-link qui"><span>'+e(titolo)+'<small>'+e(sotto)+'</small></span><span class="badge">sei qui</span></div>';
+      return '<a class="prof-link" target="_top" href="'+e(url)+'"><span>'+e(titolo)+'<small>'+e(sotto)+'</small></span>'+FRECCIA+'</a>';
+    }
+    function disegna(box, d, token, corrente){
+      if(!d.ok){ box.innerHTML='<h1>Profilo</h1><div class="notice warn">'+e(d.messaggio)+'</div>'; return; }
+      const iniz=(d.nominativo||'?').split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+      let stato, statoCls;
+      if(!d.attiva){ stato='Non attiva'; statoCls='notice warn'; }
+      else if(d.scaduta){ stato='Scaduta'; statoCls='notice warn'; }
+      else { stato='Attiva'; statoCls=''; }
+      let h='<div class="prof-head"><div class="prof-av" aria-hidden="true">'+e(iniz)+'</div><div><h1>'+e(d.nominativo)+'</h1><div class="muted">Tessera '+e(d.tessera)+'</div></div></div>';
+      // tessera
+      h+='<div class="card"><div class="grpt">La tua tessera</div><div class="prof-grid">'+
+         '<div class="kv"><small>Numero</small><b>'+e(d.tessera)+'</b></div>'+
+         '<div class="kv"><small>Stato</small><b>'+e(stato)+'</b></div>'+
+         '<div class="kv" style="grid-column:1/-1"><small>Scadenza</small><b>'+(d.scadenza?e(d.scadenza):'non indicata')+'</b></div></div>';
+      if(statoCls) h+='<div class="'+statoCls+'">'+(d.attiva?'La tessera risulta scaduta.':'La tessera risulta non attiva.')+' Puoi ordinare, ma gli ordini verranno verificati: per rinnovarla rivolgiti al comitato.</div>';
+      h+='</div>';
+      // contatti
+      h+='<div class="card"><div class="grpt">I tuoi contatti<small>Servono a fornitori e amministratori per contattarti su un ordine.</small></div>'+
+         '<div class="prof-field"><label for="pf_tel">Telefono</label><input id="pf_tel" type="tel" inputmode="tel" autocomplete="tel" value="'+e(d.telefono)+'"></div>'+
+         '<div class="prof-field"><label for="pf_mail">Email</label><input id="pf_mail" type="email" inputmode="email" autocomplete="email" value="'+e(d.email)+'" placeholder="facoltativa"></div>'+
+         '<div class="edact"><button id="pf_salva">Salva</button><span id="pf_msg" class="ok" role="status"></span></div></div>';
+      // profili
+      const n=1+(d.isFornitore?1:0)+(d.isAdmin?1:0);
+      if(n>1){
+        h+='<div class="card"><div class="grpt">I tuoi profili<small>Con lo stesso link passi da un profilo all\'altro.</small></div><div class="prof-links">'+
+           riga(d.url.socio,'I miei ordini','Pagina del socio', corrente==='socio')+
+           (d.isFornitore?riga(d.url.fornitore,'Portale fornitore', d.fornitoreNome||'Listino e raccolte', corrente==='fornitore'):'')+
+           (d.isAdmin?riga(d.url.admin,'Pannello amministratori','Gestione del GAS', corrente==='admin'):'')+
+           '</div></div>';
+      }
+      h+='<p class="muted">Il tuo link personale è come una chiave: non inoltrarlo. Se lo perdi, chiedine uno nuovo a un amministratore.</p>';
+      box.innerHTML=h;
+      const btn=box.querySelector('#pf_salva'), msg=box.querySelector('#pf_msg');
+      btn.onclick=()=>{ btn.disabled=true; msg.textContent='';
+        google.script.run.withSuccessHandler(nd=>{ btn.disabled=false; msg.textContent='Salvato ✓'; setTimeout(()=>{ msg.textContent=''; },2500); d.telefono=nd.telefono; d.email=nd.email; })
+          .withFailureHandler(err=>{ btn.disabled=false; avvisa(err.message||String(err),'Non salvato'); })
+          .profiloSalva(token,{ telefono:box.querySelector('#pf_tel').value, email:box.querySelector('#pf_mail').value }); };
+    }
+    return {
+      mostra: function(box, token, corrente){
+        box.innerHTML='<div class="caricamento mini" role="status"><div class="gas-icon gira" aria-hidden="true"></div>Caricamento…</div>';
+        google.script.run.withSuccessHandler(d=>disegna(box,d,token,corrente))
+          .withFailureHandler(err=>{ box.innerHTML='<div class="notice err">'+e(err.message||String(err))+'</div>'; }).profiloDati(token);
+      }
+    };
+  })();
+</script>
