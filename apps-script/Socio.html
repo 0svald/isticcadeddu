@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?!= include('Stile') ?>
+<?!= include('Profilo') ?>
+<?!= include('Aiuto') ?>
+<style>
+  .wrap{ max-width:620px; margin:0 auto; padding:18px 16px 120px; }
+  .hello h1{ font-size:2rem; margin:0; }
+  .hero{ background:var(--green); color:var(--surface); border-radius:18px; padding:18px; margin:18px 0 6px; }
+  .hero small{ display:block; font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#D6E6CF; }
+  .hero .d{ font-family:var(--serif); font-size:1.5rem; font-weight:600; line-height:1.15; margin:6px 0 2px; }
+  .hero .l{ color:#E6EEDF; }
+  .hero .p{ display:flex; justify-content:space-between; align-items:center; border-top:1px solid #5C8A55; margin-top:12px; padding-top:10px; }
+  .hero .p b{ font-size:1.3rem; white-space:nowrap; }
+  h2.sez{ margin:26px 0 8px; font-size:1.35rem; }
+  .ct{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .ct b{ font-size:1.12rem; }
+  .meta{ color:var(--muted); font-size:.95rem; margin-top:4px; }
+  .riga{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); }
+  .riga .q{ color:var(--muted); font-size:.9rem; }
+  .tot{ display:flex; justify-content:space-between; font-weight:700; padding-top:10px; font-size:1.05rem; }
+  .card .btn{ width:100%; margin-top:14px; }
+  .cons{ display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid var(--line-soft); }
+  .cons:last-child{ border-bottom:none; }
+  .cons .body{ flex:1; min-width:0; }
+  .fornit{ font-weight:700; margin-top:10px; }
+  .vuoto{ color:var(--muted); padding:6px 0; }
+</style>
+</head>
+<body>
+<header class="topbar"><div class="brand"><div class="mark" role="img" aria-label="GAS Isticcadeddu"></div><div class="bt"><b>GAS Isticcadeddu</b><small id="tb_sub">La mia pagina</small></div></div></header>
+<div class="wrap">
+  <div id="out" role="status"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
+  <div id="sez_profilo" class="hidden"><div id="prof_box"></div></div>
+  <div id="sez_aiuto" class="hidden"><div id="aiuto_box"></div></div>
+</div>
+<nav class="bottomnav" aria-label="Menu">
+  <button class="navbtn active" data-s="ordini" onclick="vai('ordini')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.5 12h-11z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>I miei ordini</button>
+  <button class="navbtn" data-s="profilo" onclick="vai('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profilo</button>
+  <button class="navbtn" data-s="aiuto" onclick="vai('aiuto')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg>Aiuto</button>
+</nav>
+<script>
+  const TOKEN = "<?= token ?>";
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function euro(n){ return (Math.round((+n||0)*100)/100).toFixed(2).replace('.',',')+' €'; }
+  const MESI=['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+  const GIORNI=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+  function pd(t){ const m=String(t||'').match(/^(\d{2})-(\d{2})-(\d{4})/); return m?new Date(+m[3],+m[2]-1,+m[1]):null; }
+  function giorno(t){ const d=pd(t); if(!d) return t||''; const g=GIORNI[d.getDay()]; return g.charAt(0).toUpperCase()+g.slice(1)+' '+d.getDate()+' '+['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'][d.getMonth()]; }
+  function chiusura(t){ const m=String(t||'').match(/^(\d{2})-(\d{2})-\d{4}(?:\s+(\d{1,2}[:.]\d{2}))?/); return m?(m[1]+'-'+m[2]+(m[3]?(' alle '+m[3].replace('.',':')):'')):(t||''); }
+  function datebox(t,mia){ const d=pd(t); if(!d) return '<div class="datebox grey"><small>DATA</small><b>?</b></div>'; return '<div class="datebox'+(mia?'':' grey')+'"><small>'+MESI[d.getMonth()]+'</small><b>'+d.getDate()+'</b></div>'; }
+
+  function righeHtml(o){
+    let h=''; o.righe.forEach(r=>{ h+='<div class="riga"><span>'+esc(r.nome)+'<br><span class="q">'+esc(r.quantita)+'</span></span><span>'+euro(r.importo)+'</span></div>'; });
+    h+='<div class="tot"><span>'+(o.definitivo?'Da pagare':'Totale indicativo')+'</span><span>'+euro(o.totale)+'</span></div>';
+    if(!o.definitivo) h+='<div class="meta">Alcuni prodotti si pesano: il fornitore confermerà l\'importo esatto.</div>';
+    if(o.note) h+='<div class="meta">Nota: '+esc(o.note)+'</div>';
+    if(o.stato!=='valido') h+='<div class="notice warn">Questo ordine è in verifica: un amministratore o il fornitore potrebbero contattarti.</div>';
+    return h;
+  }
+
+  function vai(k){
+    document.getElementById('out').classList.toggle('hidden', k!=='ordini');
+    document.getElementById('sez_profilo').classList.toggle('hidden', k!=='profilo');
+    document.getElementById('sez_aiuto').classList.toggle('hidden', k!=='aiuto');
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.s===k));
+    if(k==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'socio');
+    if(k==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'socio', pagina:'pagina socio', sezione:'aiuto' });
+    window.scrollTo({top:0});
+  }
+  function render(d){
+    document.getElementById('tb_sub').textContent='La mia pagina · tessera '+d.socio.tessera;
+    let h='<div class="hello"><h1>Ciao '+esc((d.socio.nominativo||'').split(' ')[0])+'</h1><div class="meta">Qui trovi i tuoi ordini e le prossime consegne.</div></div>';
+    if(!d.socio.attiva) h+='<div class="notice warn">La tua tessera risulta non attiva: puoi ordinare, ma gli ordini verranno verificati. Chiedi informazioni al comitato.</div>';
+
+    // prossimo ritiro
+    const prossima=d.consegne.find(c=>c.ritiri.length);
+    if(prossima){ const tot=prossima.ritiri.reduce((a,x)=>a+x.ordine.totale,0); const def=prossima.ritiri.every(x=>x.ordine.definitivo);
+      h+='<section class="hero"><small>Il tuo prossimo ritiro</small><div class="d">'+esc(prossima.data==='data da definire'?'Data da definire':giorno(prossima.data))+(prossima.fascia?(', '+esc(prossima.fascia)):'')+'</div>'+
+         '<div class="l">'+esc([prossima.luogo,prossima.indirizzo].filter(Boolean).join(' · '))+'</div>'+
+         '<div class="p"><span>'+prossima.ritiri.length+(prossima.ritiri.length===1?' fornitore':' fornitori')+' · '+(def?'da pagare':'circa')+' in contanti</span><b>'+euro(tot)+'</b></div></section>'; }
+
+    // ordini aperti
+    h+='<h2 class="sez">Ordini aperti</h2>';
+    if(!d.aperte.length) h+='<div class="vuoto">In questo momento non ci sono raccolte aperte.</div>';
+    d.aperte.forEach(r=>{
+      h+='<article class="card'+(r.ordine?' mine':'')+'"><div class="ct"><b>'+esc((r.emoji?r.emoji+' ':'')+r.fornitore)+'</b>'+(r.ordine?'<span class="badge full">Ordinato</span>':'<span class="badge">Aperta</span>')+'</div>'+
+         '<div class="meta">'+(r.ordine?'Puoi modificarlo fino al ':'Ordini fino al ')+esc(chiusura(r.chiusura))+(r.ordine?'':' · non hai ancora ordinato')+'</div>'+
+         (r.consegna?('<div class="meta">Ritiro: '+esc(r.consegna)+'</div>'):'');
+      if(r.ordine){ h+=righeHtml(r.ordine)+'<a class="btn sec" href="'+r.formUrl+'">Modifica il mio ordine</a>'; }
+      else h+='<a class="btn" href="'+r.formUrl+'">Ordina</a>';
+      h+='</article>';
+    });
+
+    // prossime consegne
+    h+='<h2 class="sez">Prossime consegne</h2>';
+    if(!d.consegne.length) h+='<div class="vuoto">Nessuna consegna in programma.</div>';
+    else { h+='<div class="card" style="padding:4px 16px">';
+      d.consegne.forEach(c=>{ const mia=c.ritiri.length>0;
+        h+='<div class="cons">'+datebox(c.data,mia)+'<div class="body"><div class="ct"><b>'+esc(c.data==='data da definire'?'Data da definire':giorno(c.data))+(c.fascia?(', '+esc(c.fascia)):'')+'</b>'+(mia?'<span class="badge full">Ritiri</span>':'')+'</div>'+
+           '<div class="meta">'+esc([c.luogo,c.indirizzo].filter(Boolean).join(' – '))+'</div><div class="meta">'+esc(c.fornitori.join(', '))+'</div>';
+        c.ritiri.forEach(x=>{ h+='<div class="fornit">'+esc(x.fornitore)+(x.aperta?' <span class="badge warn">ordini ancora aperti</span>':'')+'</div>'+righeHtml(x.ordine); });
+        h+='</div></div>'; });
+      h+='</div>'; }
+
+    // storico
+    h+='<h2 class="sez">I miei ordini passati</h2>';
+    if(!d.storico.length) h+='<div class="vuoto">Nessun ordine passato.</div>';
+    else { h+='<details><summary>Mostra gli ultimi '+d.storico.length+' ordini</summary>';
+      d.storico.forEach(s=>{ h+='<div class="card"><div class="ct"><b>'+esc(s.fornitore)+'</b><span class="meta">'+esc(s.data||'')+'</span></div>'+righeHtml(s.ordine)+'</div>'; });
+      h+='</details>'; }
+
+    h+='<p class="meta" style="margin-top:28px">Questo link è solo tuo: non inoltrarlo. Se lo perdi, chiedine uno nuovo a un amministratore.</p>';
+    const out=document.getElementById('out'); out.className='enter'; out.innerHTML=h;
+  }
+  google.script.run.withSuccessHandler(render)
+    .withFailureHandler(e=>{ const o=document.getElementById('out'); o.className='center'; o.textContent=e.message||'Qualcosa è andato storto. Riprova.'; })
+    .socioDati(TOKEN);
+</script>
+</body>
+</html>

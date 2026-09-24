@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GAS Isticcadeddu</title>
+<meta name="description" content="Ordini del Gruppo di Acquisto Solidale del comitato di quartiere Isticcadeddu">
+<meta name="theme-color" content="#F4F1E8">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GAS">
+<script src="config.js"></script>
+<style>
+  :root{ --paper:#F4F1E8; --ink:#1F261C; --muted:#545B4C; --green:#3A6B35; --green-d:#2A5226; --line:#DDD5C1; }
+  html,body{ margin:0; height:100%; background:var(--paper); color:var(--ink); font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif; }
+  #app{ position:fixed; left:0; right:0; top:env(safe-area-inset-top,0px); bottom:0; width:100%; height:calc(100% - env(safe-area-inset-top,0px)); border:0; background:var(--paper); }
+  .schermo{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:24px; text-align:center; background:var(--paper); z-index:5; }
+  .schermo[hidden]{ display:none; }
+  .ic{ width:84px; height:84px; background:url("icons/icon-192.png") center/contain no-repeat; }
+  .gira{ animation:ribalta 5.2s infinite; }
+  @keyframes ribalta{
+    0%{transform:rotate(0);animation-timing-function:cubic-bezier(.15,.55,.35,1)} 12.5%{transform:rotate(45deg);animation-timing-function:cubic-bezier(.65,0,.85,.45)}
+    25%{transform:rotate(90deg);animation-timing-function:cubic-bezier(.15,.55,.35,1)} 37.5%{transform:rotate(135deg);animation-timing-function:cubic-bezier(.65,0,.85,.45)}
+    50%{transform:rotate(180deg);animation-timing-function:cubic-bezier(.15,.55,.35,1)} 62.5%{transform:rotate(225deg);animation-timing-function:cubic-bezier(.65,0,.85,.45)}
+    75%{transform:rotate(270deg);animation-timing-function:cubic-bezier(.15,.55,.35,1)} 87.5%{transform:rotate(315deg);animation-timing-function:cubic-bezier(.65,0,.85,.45)} 100%{transform:rotate(360deg)}
+  }
+  @media (prefers-reduced-motion: reduce){ .gira{ animation:none; } }
+  h1{ font-family:Georgia,serif; color:var(--green-d); font-size:1.6rem; margin:6px 0 0; }
+  p{ max-width:420px; line-height:1.5; margin:4px 0; font-size:1.05rem; } .muted{ color:var(--muted); font-weight:700; }
+  #installa{ position:fixed; left:12px; right:12px; top:calc(10px + env(safe-area-inset-top,0px)); z-index:6; display:flex; align-items:center; gap:10px;
+    background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px 12px; box-shadow:0 6px 20px rgba(0,0,0,.15); }
+  #installa[hidden]{ display:none; }
+  #installa .t{ flex:1; font-size:.98rem; } #installa b{ display:block; }
+  button{ font:inherit; font-weight:700; min-height:44px; padding:0 16px; border-radius:12px; border:none; background:var(--green); color:#fff; cursor:pointer; }
+  button.x{ background:transparent; color:var(--muted); padding:0 10px; }
+</style>
+</head>
+<body>
+<div id="attesa" class="schermo" role="status"><div class="ic gira" aria-hidden="true"></div><p class="muted">Caricamento…</p></div>
+
+<div id="benvenuto" class="schermo" hidden>
+  <div class="ic" aria-hidden="true"></div>
+  <h1>GAS Isticcadeddu</h1>
+  <p>Per entrare apri il tuo <b>link personale</b>, quello che ti ha mandato un amministratore su WhatsApp. Da quel momento l'app si ricorderà di te.</p>
+  <p class="muted">Non hai un link personale? Chiedilo a un amministratore del comitato.</p>
+</div>
+
+<div id="offline" class="schermo" hidden>
+  <div class="ic" aria-hidden="true"></div>
+  <h1>Sei offline</h1>
+  <p>Per usare l'app serve la connessione a internet. Controlla la rete e riprova.</p>
+  <button onclick="location.reload()">Riprova</button>
+</div>
+
+<div id="installa" hidden role="dialog" aria-label="Installa l'app">
+  <div class="ic" style="width:40px;height:40px" aria-hidden="true"></div>
+  <div class="t"><b>Installa l'app GAS</b>La trovi sulla schermata Home, come le altre app.</div>
+  <button id="installa_si">Installa</button><button class="x" id="installa_no" aria-label="Non ora">✕</button>
+</div>
+
+<iframe id="app" title="GAS Isticcadeddu" allow="clipboard-write" hidden></iframe>
+
+<script>
+(function(){
+  const CHIAVE = 'gas_link_personale';
+  const APP = String(window.GAS_APP_URL || '').trim();
+  const qs = new URLSearchParams(location.search);
+  const $ = id => document.getElementById(id);
+  const salva = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+  const leggi = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+  // ?esci: dimentica il link personale su questo telefono
+  if (qs.has('esci')) { salva(CHIAVE, null); history.replaceState(null, '', location.pathname); }
+
+  // il link personale (?u=) viene ricordato e tolto dalla barra degli indirizzi
+  let token = qs.get('u');
+  if (token) salva(CHIAVE, token); else token = leggi(CHIAVE);
+
+  // parametri da passare alla web app
+  const p = new URLSearchParams();
+  if (qs.get('form')) { p.set('form', qs.get('form')); if (token) p.set('socio', token); }  // link di una raccolta
+  else if (token) p.set('u', token);
+  if (qs.has('u') || qs.has('form')) history.replaceState(null, '', location.pathname);
+
+  const frame = $('app');
+  function apri(url){
+    const u = new URL(url); u.searchParams.set('pwa', '1');
+    $('attesa').hidden = false; frame.hidden = false; frame.src = u.toString();
+  }
+  frame.addEventListener('load', () => { $('attesa').hidden = true; });
+
+  if (!navigator.onLine) { $('attesa').hidden = true; $('offline').hidden = false; }
+  else if (!APP || APP.indexOf('INSERISCI') >= 0) { $('attesa').hidden = true; $('benvenuto').hidden = false; $('benvenuto').querySelector('p').textContent = 'App non ancora configurata: manca l\'indirizzo della web app in config.js.'; }
+  else if (!p.toString()) { $('attesa').hidden = true; $('benvenuto').hidden = false; }
+  else apri(APP + '?' + p.toString());
+
+  // le pagine dell'app chiedono di cambiare pagina restando dentro l'app
+  window.addEventListener('message', ev => {
+    const d = ev.data;
+    if (!d || d.tipo !== 'gas-vai' || typeof d.url !== 'string') return;
+    if (!/^https:\/\/script\.google\.com\//.test(d.url)) return;
+    const nuovo = new URL(d.url).searchParams.get('u');
+    if (nuovo) salva(CHIAVE, nuovo);
+    apri(d.url);
+  });
+
+  // invito a installare l'app (Chrome e browser compatibili)
+  let richiesta = null;
+  window.addEventListener('beforeinstallprompt', ev => {
+    ev.preventDefault(); richiesta = ev;
+    if (leggi('gas_installa_no') !== '1' && p.toString()) $('installa').hidden = false;
+  });
+  $('installa_si').onclick = async () => { $('installa').hidden = true; if (richiesta) { richiesta.prompt(); await richiesta.userChoice; richiesta = null; } };
+  $('installa_no').onclick = () => { $('installa').hidden = true; salva('gas_installa_no', '1'); };
+  window.addEventListener('appinstalled', () => { $('installa').hidden = true; });
+})();
+</script>
+</body>
+</html>
