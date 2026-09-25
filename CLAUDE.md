@@ -65,7 +65,11 @@ A4 **verticale**, una riga per tessera, una colonna per prodotto (nomi ruotati, 
 - Stile unico in `Stile.html` (incluso con `<?!= include('Stile') ?>`): colori carta e oliva, **Atkinson Hyperlegible** per il testo (17 px), **Fraunces** per i titoli, pulsanti alti almeno 48 px, etichette di stato sempre con colore **e** parola.
 - Niente `alert/confirm/prompt` del browser: usare `chiedi()`, `chiediTesto()`, `avvisa()` di `Stile.html`.
 - Icona del GAS: le **quattro mani** del logo del comitato (`design/mani.svg`), incorporata in `Stile.html`. Durante i caricamenti ruota con il movimento "a ribaltamento" (giro completo in 4 quarti) e la scritta "Caricamento…".
-- Menu: su telefono barra in basso, su computer menu laterale nel pannello.
+- **Home** (tutti i profili): saluto, voce **Notifiche** in cima, poi le sezioni in un **elenco diviso per gruppi** (solo icona e nome, niente riassunti). Socio: *Ordini* (Attivi, Storico) · *La mia tessera* (Profilo, Aiuto). Fornitore: *Vendite* (Raccolte, Listino) · *La mia tessera*. Amministratore: *Ordini* (Raccolte, Consegne) · *Persone* (Soci, Fornitori, Amministratori) · *Gestione* (Categorie, Statistiche, Segnalazioni) · *La mia tessera*.
+- Ogni pagina aperta ha in alto il gruppo (piccolo), il titolo e un **riquadro di riepilogo** (`GasUI.riep`, arancione se c'è qualcosa da fare).
+- In basso c'è **solo il tasto Home** (`GasUI.barra`), senza numeri. Su computer il pannello ha il menu laterale con gli stessi gruppi (e il tasto Home è nascosto).
+- **Notifiche** (prima "Da fare"), per tutti i profili: divise in *Da fare* e *Per sapere*, con colore e parola (Importante, Da fare, Novità, Promemoria) e un pulsante che porta dove serve. Si **calcolano dai dati** a ogni apertura: restano finché l'evento che le ha generate non cambia stato, non si chiudono a mano. Socio e fornitore le calcolano nella pagina dai dati già caricati; il pannello usa `adminDaFare`.
+- Componenti comuni in `Stile.html`: `GasUI.home`, `GasUI.riep`, `GasUI.notifiche`, `GasUI.barra`, `GasUI.icona`, `GasUI.data`.
 - Selettore a due voci (es. In corso | Storico): classe `.seg` di `Stile.html`, pulsanti con `aria-pressed`.
 - `Profilo.html` e `Aiuto.html` sono condivisi da pagina socio, portale fornitore e pannello.
 - Nessuna emoji sui singoli prodotti: resta solo quella della categoria.

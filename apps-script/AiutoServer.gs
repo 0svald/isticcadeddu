@@ -183,7 +183,7 @@ function adminAggiornaSegnalazione(token, id, d) {
   return { ok: true };
 }
 
-/** Numero di segnalazioni nuove (per la scheda "Da fare"). */
+/** Segnalazioni nuove (per le Notifiche del pannello). */
 function segnalazioniNuove_() {
   return leggiTabellaSafe_(SCHEDA_SEGNALAZIONI_).filter(s => String(s.stato || 'nuova') === 'nuova')
     .map(s => ({ id: String(s.id), quando: testoData_(s.timestamp), nominativo: String(s.nominativo || ''), tipo: String(s.tipo || ''), tecnico: isSi(s.tecnico) }));
@@ -195,7 +195,7 @@ function segnalazioniNuove_() {
 function faqIniziali_() {
   const q = [
     ['socio', 'Come faccio un ordine?', 'Quando un fornitore apre gli ordini, nella Community WhatsApp arriva un messaggio con un link. Toccalo, scegli i prodotti con i tasti + e –, controlla il riepilogo e premi "Conferma e invia". Se hai il tuo link personale, puoi ordinare anche dalla tua pagina, in "I miei ordini".'],
-    ['socio', 'Come modifico un ordine già inviato?', 'Apri la tua pagina con il link personale: in "I miei ordini" trovi il pulsante "Modifica il mio ordine", attivo fino alla chiusura della raccolta. Se non hai il link personale, scrivi al fornitore o a un amministratore.'],
+    ['socio', 'Come modifico un ordine già inviato?', 'Apri la tua pagina con il link personale e tocca "Attivi": trovi il pulsante "Modifica il mio ordine", attivo fino alla chiusura della raccolta. Se non hai il link personale, scrivi al fornitore o a un amministratore.'],
     ['socio', 'Ho perso il mio link personale: cosa faccio?', 'Chiedine uno nuovo a un amministratore. Il vecchio link smetterà di funzionare.'],
     ['socio', 'Perché il mio ordine è "da verificare"?', 'Succede quando la tessera non risulta attiva o quando lo stesso socio ha inviato due ordini per la stessa raccolta. L\'ordine è registrato: un amministratore o il fornitore potrebbero contattarti per chiarire.'],
     ['socio', 'Perché il prezzo è "indicativo"?', 'Alcuni prodotti, come formaggi o angurie, si pesano al momento. Il fornitore conferma il peso prima della consegna e l\'importo diventa quello esatto.'],
@@ -210,8 +210,8 @@ function faqIniziali_() {
     ['fornitore', 'Dove vedo quanto preparare?', 'In "Raccolte" tocca "Riepilogo": trovi il totale di ogni prodotto e l\'incasso previsto.'],
     ['admin', 'Come apro una raccolta?', 'In "Raccolte" tocca +, scegli il fornitore, spunta i prodotti e scrivi la data di chiusura (per esempio 10-10-2026 20:00). Poi apri la raccolta e prepara il messaggio di apertura da incollare su WhatsApp.'],
     ['admin', 'Come invio il link personale a un socio?', 'In "Soci" tocca il socio e poi "Invia link": si apre WhatsApp con il messaggio già scritto.'],
-    ['admin', 'Una raccolta non si è chiusa da sola', 'Controlla in "Da fare" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.'],
-    ['admin', 'Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Da fare" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.']
+    ['admin', 'Una raccolta non si è chiusa da sola', 'Controlla in "Notifiche" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.'],
+    ['admin', 'Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Notifiche" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.']
   ];
   return q.map((r, i) => ['F' + String(i + 1).padStart(2, '0'), r[0], r[1], r[2], (i + 1) * 10, 'SI']);
 }

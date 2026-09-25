@@ -155,7 +155,7 @@ function rimuoviTriggerChiusura() {
   return 'OK';
 }
 
-/** Stato della chiusura automatica, per la scheda "Da fare". */
+/** Stato della chiusura automatica, per le Notifiche del pannello. */
 function statoChiusuraAutomatica_() {
   let trigger = false;
   try { trigger = ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === 'chiusuraAutomatica'); } catch (e) { trigger = null; }
