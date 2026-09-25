@@ -55,6 +55,7 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - Prodotti "a peso": prezzo indicativo finché il fornitore non **conferma il peso**.
 - Opzioni di un prodotto: solo **variante** (stesso prezzo, es. gusti) e **supplemento** (costo in più, es. tanica). Niente "formato".
 - **Pagamento** in contanti al fornitore, al ritiro: l'app calcola gli importi ma non registra pagamenti.
+- **Statistiche** (pannello, `adminStatistiche(token, {mesi, fornitoreId, categoria})`): filtri Periodo (3, 6, 12 mesi, da inizio anno), Fornitore, Categoria; numeri principali (volume, ordini, **prezzo medio di un ordine** = volume / ordini, soci che hanno ordinato, fornitori attivi) con ▲▼ sul periodo prima della stessa durata; quattro grafici mese per mese; volume per categoria a colonne (4 categorie + "Altro"); "Mostra i numeri" sotto ogni grafico. Il mese di una raccolta è quello della consegna (o della chiusura). Grafici SVG in `Grafici.html` (incluso solo nel pannello), colori validati per chi distingue male i colori.
 
 ## PDF di consegna (`Pdf.gs`)
 
