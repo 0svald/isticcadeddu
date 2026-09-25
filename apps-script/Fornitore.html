@@ -114,7 +114,7 @@
     const note=notificheFornitore();
     GasUI.notifiche(document.getElementById('notif_box'), note);
     const nv=inCorso().reduce((a,c)=>a+(+c.nDaVerificare||0),0);
-    GasUI.home(document.getElementById('home_box'), { nome:DATI.fornitore.nome, notifiche:note.length, vai:vai,
+    GasUI.home(document.getElementById('home_box'), { nome:(String(DATI.fornitore.referente||'').trim().split(/\s+/)[0]||DATI.fornitore.nome), sotto:DATI.fornitore.nome, notifiche:note.length, vai:vai,
       gruppi:[ { titolo:'Vendite', voci:[{k:'raccolte',nome:'Raccolte',icona:'racc',n:nv},{k:'listino',nome:'Listino'}] },
                { titolo:'La mia tessera', voci:[{k:'profilo',nome:'Profilo'},{k:'aiuto',nome:'Aiuto'}] } ] });
   }

@@ -72,6 +72,8 @@ A4 **verticale**, una riga per tessera, una colonna per prodotto (nomi ruotati, 
 - Componenti comuni in `Stile.html`: `GasUI.home`, `GasUI.riep`, `GasUI.notifiche`, `GasUI.barra`, `GasUI.icona`, `GasUI.data`.
 - Selettore a due voci (es. In corso | Storico): classe `.seg` di `Stile.html`, pulsanti con `aria-pressed`.
 - `Profilo.html` e `Aiuto.html` sono condivisi da pagina socio, portale fornitore e pannello.
+- **Domande frequenti** (scheda `Aiuto`): i testi predefiniti sono in `faqDefault_()` di `AiutoServer.gs`. Quando cambiano, aumentare `FAQ_VERSIONE_` e aggiungere le risposte superate in `FAQ_PRECEDENTI_`: alla prima apertura di Aiuto `aggiornaDomandeAiuto()` aggiorna solo le risposte mai modificate a mano e aggiunge le domande nuove (quelle tolte a mano restano tolte). La versione applicata è nella proprietà `AIUTO_FAQ_VERSIONE` (la scrive il codice).
+- **Guide PDF**: gli script `guide/g_soci.py`, `g_forn.py`, `g_adm.py` (con `build_guide.py`) scrivono l'HTML; il PDF si stampa con Chromium (A4, sfondi attivi). Schemi disegnati a mano con dati inventati, non schermate vere.
 - Nessuna emoji sui singoli prodotti: resta solo quella della categoria.
 
 ## File e convenzioni del codice
@@ -119,4 +121,4 @@ Le idee di nuove funzioni dell'utente sono in **`RICHIESTE.md`** (una sezione pe
 - **Referenti** del comitato e **regole del GAS** (ordini per altri, ritiri mancati, tempi per le modifiche): da definire, poi da aggiungere alle domande frequenti (scheda `Aiuto`).
 - **`LINK_BASE_URL`**: da impostare a `https://0svald.github.io/isticcadeddu/` perché i nuovi link personali aprano l'app installabile; dopo, eseguire una volta `azzeraLinkBrevi()`.
 - Fornitori del foglio senza tessera: vanno collegati a un socio, altrimenti non entrano nel portale.
-- Guide PDF (`guide/`): rigenerate il 24-09-2026; da aggiornare con lo **Storico** (soci, amministratori) e le **raccolte concluse** (fornitori).
+- Guide PDF (`guide/`): rigenerate il 25-09-2026 con Home, Notifiche, Storico e raccolte concluse. Da caricare su Drive al posto delle vecchie (stesso file, "Gestisci versioni", così l'ID in `GUIDA_*_ID` non cambia).

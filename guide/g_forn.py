@@ -1,13 +1,13 @@
 from build_guide import *
 listino = top('Caseificio La Collina','Portale fornitore · zona Esempio')+'''<div class="body">
-<div class="row"><div class="h">Il mio listino</div><span class="btn" style="margin:0">+ Nuovo</span></div>
+<div class="sopra">VENDITE</div><div class="row"><div class="h">Listino</div><span class="btn" style="margin:0">+ Nuovo</span></div>'''+riep('24 prodotti · 3 non disponibili','Tocca "Disponibile" per togliere un prodotto finito.')+'''
 <div class="sub" style="font-weight:700;letter-spacing:.06em">FORMAGGI</div>
 <div class="card row"><div><b>Formaggio fresco</b><br><span class="sub">15,00 €/kg</span></div><span class="pill">● Disponibile</span></div>
 <div class="card row"><div><b>Formaggio stagionato</b><br><span class="sub">20,00 €/kg</span></div><span class="pill">● Disponibile</span></div>
 <div class="card row off"><div><b>Crema di formaggio</b><br><span class="sub">5,00 € a barattolo</span></div><span class="pill no">○ Non disponibile</span></div>
 <div class="sub" style="font-weight:700;letter-spacing:.06em;margin-top:6px">YOGURT</div>
 <div class="card row"><div><b>Yogurt alla frutta</b><br><span class="sub">1,50 € l'uno · 3 opzioni</span></div><span class="pill">● Disponibile</span></div>
-</div>'''+nav(NAV_FORN,'Listino')
+</div>'''+barra()
 prodotto = top('Caseificio La Collina','Portale fornitore · zona Esempio')+'''<div class="body">
 <div class="card mine"><div class="lab">Nome</div><div class="in">Yogurt alla frutta</div>
 <div class="btns2"><div><div class="lab">Prezzo €</div><div class="in">1,50</div></div><div><div class="lab">Unità</div><div class="in">l'uno</div></div></div>
@@ -16,26 +16,34 @@ prodotto = top('Caseificio La Collina','Portale fornitore · zona Esempio')+'''<
 <div class="li"><span>Fragola <span class="sub">(variante)</span></span><span class="sub">Modifica · Elimina</span></div>
 <div class="li"><span>Pesca <span class="sub">(variante)</span></span><span class="sub">Modifica · Elimina</span></div>
 <div class="in" style="margin-top:6px;color:#999">Nome opzione (es. Frutti di bosco)</div><div class="btn">Aggiungi opzione</div></div>
-</div>'''+nav(NAV_FORN,'Listino')
+</div>'''+barra()
 raccolte = top('Caseificio La Collina','Portale fornitore · zona Esempio')+'''<div class="body">
-<div class="h">Le mie raccolte</div>
+'''+testa('VENDITE','Raccolte')+riep('1 raccolta aperta · 1 chiusa','Aperta fino al 17-10-2026 20:00 · 5 ordini · 1 ordine da verificare',True)+'''
 <div class="card mine"><b>Raccolta – consegna 12-10-2026</b> <span class="badge grey">Chiusa</span> <span class="badge warn">1 da verificare</span><div class="sub">8 ordini · chiusura 10-10-2026 20:00</div>
 <div class="btns" style="margin-top:6px"><span class="btn sec" style="margin:0">Ordini</span><span class="btn sec" style="margin:0">Riepilogo</span><span class="btn sec" style="margin:0">Conferma pesi</span></div>
 <table style="margin-top:8px"><tr><th>Prodotto</th><th>Quantità</th><th>Importo</th></tr><tr><td>Formaggio fresco</td><td>6</td><td>90,00 €</td></tr><tr><td>Yogurt alla frutta</td><td>24</td><td>36,00 €</td></tr><tr><td><b>Totale (8 ordini)</b></td><td></td><td><b>126,00 €</b></td></tr></table></div>
-</div>'''+nav(NAV_FORN,'Raccolte')
+<div class="det">Raccolte concluse (12) ▸</div>
+</div>'''+barra()
 ordini = top('Caseificio La Collina','Portale fornitore · zona Esempio')+'''<div class="body">
 <div class="card warn"><b>0147 — Paolo Bianchi</b> <span class="badge warn">da verificare</span><div class="sub">333 000 0000 · ⚠ ordine multiplo</div><div class="sub">✎ nota: ho dimenticato lo yogurt</div>
 <div class="row" style="margin-top:5px"><span>Yogurt alla frutta</span><span class="q" style="width:34px;height:24px">2</span><span class="badge">Salva</span></div>
 <div class="btns2"><span class="btn">Conferma</span><span class="btn red">Annulla ordine</span></div></div>
 <div class="card"><b>0123 — Anna Rossi</b> <span class="badge">valido</span><div class="row" style="margin-top:5px"><span>Formaggio fresco</span><span class="q" style="width:34px;height:24px">1</span><span class="badge">Salva</span></div><div class="btn red">Annulla ordine</div></div>
-</div>'''+nav(NAV_FORN,'Raccolte')
+</div>'''+barra()
+home_forn = top('Caseificio La Collina','Portale fornitore · zona Esempio')+home('Mario',GRUPPI_FORN,2,{'Raccolte':1}).replace('Cosa vuoi fare?','Caseificio La Collina')
+notif_forn = top('Caseificio La Collina','Portale fornitore · zona Esempio')+'''<div class="body"><div class="h">Notifiche</div><div class="ng">Da fare</div>'''+nota('fare','DA FARE','1 ordine da verificare','Raccolta del 12-10-2026: controlla e conferma o annulla.','Vedi gli ordini')+nota('fare','DA FARE','Conferma i pesi','Raccolta del 12-10-2026: 6 prodotti a peso da confermare.','Conferma pesi')+'''<div class="ng">Per sapere</div>'''+nota('','PROMEMORIA','Consegna del 12-10-2026','8 ordini.','Riepilogo')+'</div>'+barra()
 body=f'''
 <p class="lead">Dal portale del fornitore tieni aggiornato il tuo listino e segui gli ordini dei soci. Si usa dal telefono o dal computer.</p>
 
 <h2>Come si entra</h2>
-<p>Ogni fornitore è anche socio: entri con il tuo <b>link personale di socio</b>, lo stesso che usi per i tuoi ordini. Si apre direttamente sul portale del fornitore; dal <b>Profilo</b> passi a "I miei ordini" e viceversa.</p>
+<p>Ogni fornitore è anche socio: entri con il tuo <b>link personale di socio</b>, lo stesso che usi per i tuoi ordini. Si apre direttamente sul portale del fornitore; dal <b>Profilo</b> passi alla tua pagina di socio e viceversa.</p>
 <div class="box warn">Il link è una chiave: non inoltrarlo. Se lo perdi, chiedine uno nuovo a un amministratore.</div>
-<p>In basso ci sono quattro voci: <b>Listino</b>, <b>Raccolte</b>, <b>Profilo</b> e <b>Aiuto</b>. I dati della tua azienda (nome, telefono, zona, descrizione) li aggiorna un amministratore: se cambiano, avvisalo.</p>
+<p>Il portale si apre sulla <b>Home</b>: in cima le <b>Notifiche</b>, poi i gruppi <b>Vendite</b> (Raccolte, Listino) e <b>La mia tessera</b> (Profilo, Aiuto). Un numero accanto a una voce indica che lì c'è qualcosa da fare. Per tornare alla Home tocca il pulsante verde <span class="k">Home</span> in basso. In cima a ogni pagina c'è un riquadro di riepilogo, arancione se c'è qualcosa da fare.</p>
+{phones([(home_forn,'La Home del portale'),(notif_forn,'le Notifiche')])}
+<p>I dati della tua azienda (nome, telefono, zona, descrizione) li aggiorna un amministratore: se cambiano, avvisalo.</p>
+
+<h2>Notifiche</h2>
+<p>Le notifiche ti avvisano quando c'è qualcosa per te: <b>ordini da verificare</b>, <b>pesi da confermare</b>, una raccolta che <b>chiude entro 24 ore</b>, le <b>consegne</b> dei prossimi giorni. Ognuna ha un pulsante che ti porta dove serve. Non vanno cancellate: <b>spariscono da sole</b> quando la cosa è fatta o passata.</p>
 
 <h2>Il listino</h2>
 <p>I prodotti sono divisi per categoria. Per ognuno vedi il prezzo e, a destra, il pulsante della disponibilità.</p>
@@ -50,7 +58,7 @@ body=f'''
 {phones([(listino,'Il listino'),(prodotto,'la scheda di un prodotto con le opzioni')])}
 
 <h2>Le raccolte</h2>
-<p>Ogni giro di ordini aperto per te è una <b>raccolta</b>. Le trovi tutte, anche quelle passate. Per ognuna ci sono tre pulsanti:</p>
+<p>Ogni giro di ordini aperto per te è una <b>raccolta</b>. In alto trovi quelle <b>in corso</b>; quelle già consegnate sono in fondo, nel riquadro <b>Raccolte concluse</b>: toccalo per aprirlo. Una raccolta ci passa da sola il giorno dopo la consegna. Per ognuna ci sono tre pulsanti:</p>
 <ul><li><span class="k">Ordini</span>: l'ordine di ogni socio con tessera, telefono ed eventuale nota. Puoi <b>correggere le quantità</b> o <b>annullare un ordine</b>, per esempio se il socio ti chiama per cambiare.</li>
 <li><span class="k">Riepilogo</span>: il totale di ogni prodotto da preparare e l'incasso previsto.</li>
 <li><span class="k">Conferma pesi</span>: per i prodotti che si pesano, scrivi il peso reale di ogni pezzo. Gli importi dei soci si aggiornano da soli.</li></ul>
@@ -61,7 +69,7 @@ body=f'''
 <div class="box">Conferma i pesi <b>prima della consegna</b>: così nel foglio ogni socio vede l'importo esatto da pagare.</div>
 
 <h2>Profilo e Aiuto</h2>
-<p>Nel <b>Profilo</b> vedi la tua tessera e la scadenza, cambi telefono ed email e passi a "I miei ordini" (o al pannello, se sei anche amministratore).</p>
+<p>Nel <b>Profilo</b> vedi la tua tessera e la scadenza, cambi telefono ed email e passi alla tua pagina di socio (o al pannello, se sei anche amministratore).</p>
 <p>In <b>Aiuto</b> trovi le domande frequenti, i contatti del comitato, questa guida da scaricare e <span class="k">Segnala</span> per un problema dell'app: la segnalazione arriva agli amministratori.</p>
 '''
 open('guida-fornitori.html','w',encoding='utf-8').write(page('Il portale del fornitore','Guida per i fornitori',body))

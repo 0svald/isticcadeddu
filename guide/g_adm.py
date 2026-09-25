@@ -1,11 +1,14 @@
 from build_guide import *
-SIDE=['Da fare','Raccolte','Consegne','Soci','Fornitori','Categorie','Statistiche','Amministratori','Segnalazioni','Profilo','Aiuto']
-def side(on,main): return '<div class="side"><div class="sn"><div style="display:flex;align-items:center;gap:6px;padding:4px 6px 10px"><span class="mk"></span><b style="font-family:Georgia,serif;color:var(--green-d);font-size:12px">GAS Isticcadeddu</b></div>'+''.join(f'<div class="{"on" if s==on else ""}">{s}</div>' for s in SIDE)+'</div><div class="mn">'+main+'</div></div>'
-dafare=side('Da fare','''<div class="h">Da fare</div>
-<div class="card warn"><b>Data di chiusura non leggibile</b><div class="sub" style="color:#5E3908">"quando finisce il formaggio" · correggi la data (es. 10-10-2026 20:00)</div></div>
-<div class="card"><div class="row"><b>Ordini da verificare</b><span class="badge warn">1</span></div><div class="row" style="margin-top:4px"><span>0147 · Paolo Bianchi<br><span class="sub">Caseificio La Collina · secondo ordine</span></span><span><span class="badge full">Conferma</span> <span class="badge warn">Annulla</span></span></div></div>
-<div class="card"><div class="row"><b>Segnalazioni nuove</b><span class="badge warn">1</span></div><div class="sub">La pagina non si carica o si blocca <span class="badge warn">tecnica</span> · Lucia Neri</div></div>
-<div class="card"><b>Consegne dei prossimi 7 giorni</b><div class="sub">12-10-2026 · dalle 18:00 · Piazza del mercato — La Collina, Orto del Sole</div></div>''')
+def side(on,main):
+    voci=''.join(f'<div class="{"on" if s==on else ""}">{s}</div>' for s in ['Home','Notifiche'])
+    for g,vv in GRUPPI_ADM: voci+=f'<div class="sg">{g}</div>'+''.join(f'<div class="{"on" if s==on else ""}">{s}</div>' for s in vv)
+    return '<div class="side"><div class="sn"><div style="display:flex;align-items:center;gap:6px;padding:4px 6px 10px"><span class="mk"></span><b style="font-family:Georgia,serif;color:var(--green-d);font-size:12px">GAS Isticcadeddu</b></div>'+voci+'</div><div class="mn">'+main+'</div></div>'
+notifiche=side('Notifiche','''<div class="h">Notifiche</div><div class="ng">Da fare</div>'''+nota('urg','IMPORTANTE','Data di chiusura non leggibile','"quando finisce il formaggio": correggi la data (es. 10-10-2026 20:00).','Apri raccolta')+nota('fare','DA FARE','1 ordine da verificare · Caseificio La Collina','0147 — Paolo Bianchi · secondo ordine','Apri raccolta')+nota('fare','DA FARE','1 segnalazione nuova','La pagina non si carica o si blocca (tecnica) · Lucia Neri','Apri le segnalazioni')+'''<div class="ng">Per sapere</div>'''+nota('','PROMEMORIA','Consegna del 12-10-2026 · dalle 18:00','Piazza del mercato · Caseificio La Collina, Orto del Sole','Vedi le consegne'))
+home_adm=top('GAS Isticcadeddu','Amministrazione')+home('Paolo',GRUPPI_ADM,4,{'Segnalazioni':1})
+storico=side('Raccolte','''<div class="sopra">ORDINI</div><div class="h">Raccolte</div>'''+riep('14 raccolte concluse','Le raccolte già consegnate, dalla più recente.')+'''<div class="seg"><span>In corso</span><span class="on">Storico</span></div>
+<div class="row"><span class="lab">Fornitore</span><span class="in" style="margin:0;flex:1;margin-left:8px">— tutti i fornitori — ▾</span></div>
+<div class="hg">SETTEMBRE 2026</div><div class="card"><b>Caseificio La Collina</b> <span class="badge grey">Consegnata</span><div class="sub">consegna 28-09-2026 · 8 ordini</div></div>
+<div class="card"><b>Frantoio Monte Verde</b> <span class="badge off">non attivo</span> <span class="badge grey">Consegnata</span><div class="sub">consegna 21-09-2026 · 11 ordini</div></div>''')
 racc=top('GAS Isticcadeddu','Amministrazione')+'''<div class="body">
 <div class="sub" style="font-weight:700;color:var(--green-d)">‹ Raccolte</div>
 <div class="row"><div><div class="h" style="margin:0">Caseificio La Collina</div><span class="badge">Aperta</span> <span class="sub">chiusura 10-10-2026 20:00</span></div><span class="badge">Apri form</span></div>
@@ -14,14 +17,14 @@ racc=top('GAS Isticcadeddu','Amministrazione')+'''<div class="body">
 <div class="card"><div class="grpt">Foglio per la consegna (PDF)</div><div class="btns2"><span class="btn sec">Provvisorio</span><span class="btn sec">Definitivo</span></div></div>
 <div class="card"><div class="grpt">Ordini dei soci</div><div class="btns2"><span class="btn sec">Gestisci ordini</span><span class="btn red">Chiudi gli ordini adesso</span></div></div>
 <div class="det">Impostazioni: prodotti, chiusura, consegna ▸</div>
-</div>'''+nav(NAV_ADM,'Raccolte')
+</div>'''+barra()
 socio=top('GAS Isticcadeddu','Amministrazione')+'''<div class="body">
-<div class="h">Soci</div><div class="card"><b>Anna Rossi</b><div class="sub">tessera 0123 · 333 000 0000</div></div>
+'''+testa('PERSONE','Soci')+riep('142 soci · 131 attivi','Tocca un socio per modificarlo o mandargli il suo link.')+'''<div class="card"><b>Anna Rossi</b><div class="sub">tessera 0123 · 333 000 0000</div></div>
 <div class="card mine"><div class="lab">Nominativo</div><div class="in">Anna Rossi</div><div class="lab">Telefono</div><div class="in">333 000 0000</div>
 <div class="btns2"><span class="btn">Salva</span><span class="btn ghost">Annulla</span></div>
 <div class="grpt" style="margin-top:8px">Link personale</div><div class="btns2"><span class="btn">Invia link</span><span class="btn sec">Rigenera link</span></div>
 <div class="sub" style="margin-top:5px">https://is.gd/Ab3xYz</div><div class="btns2"><span class="btn sec">Apri WhatsApp</span><span class="btn sec">Copia messaggio</span></div></div>
-</div>'''+nav(NAV_ADM,'Altro')
+</div>'''+barra()
 segn=side('Segnalazioni','''<div class="h">Segnalazioni</div>
 <div class="card"><div class="row"><span><b>La pagina non si carica o si blocca</b> <span class="badge warn">tecnica</span> <span class="badge warn">Nuova</span></span><span class="sub">08-10-2026 18:40</span></div>
 <div class="sub">Lucia Neri · tessera 0210 · 333 000 0000 · preferisce WhatsApp</div><p style="margin:5px 0">Dopo aver toccato "Ordina" la pagina resta bianca.</p>
@@ -42,17 +45,20 @@ body=f'''
 
 <h2>Come si entra</h2>
 <p>Ogni persona ha <b>un solo link personale</b>, legato alla sua tessera. Per un amministratore il link apre il pannello; dal <b>Profilo</b> passa alla sua pagina di socio e, se è anche fornitore, al portale del fornitore. Ogni azione nel pannello viene registrata con il suo nome.</p>
-<p>Sul computer il menu è a sinistra; sul telefono c'è una barra in basso con <b>Da fare</b>, <b>Raccolte</b>, <b>Consegne</b>, <b>Profilo</b> e <b>Altro</b> (dove trovi le altre sezioni).</p>
+<p>Il pannello si apre sulla <b>Home</b>: in cima le <b>Notifiche</b>, poi le sezioni divise in gruppi: <b>Ordini</b> (Raccolte, Consegne), <b>Persone</b> (Soci, Fornitori, Amministratori), <b>Gestione</b> (Categorie, Statistiche, Segnalazioni) e <b>La mia tessera</b> (Profilo, Aiuto). Sul telefono si torna alla Home con il pulsante verde <span class="k">Home</span> in basso; sul computer lo stesso elenco è nel menu a sinistra.</p>
+<p>In cima a ogni sezione c'è un <b>riquadro di riepilogo</b>: per esempio quante raccolte sono aperte, la prossima consegna, quanti soci sono attivi. Diventa arancione se c'è qualcosa da fare.</p>
+{phone(home_adm,'La Home del pannello sul telefono.')}
 <div class="box"><b>Regola valida ovunque:</b> tocca una riga per aprirla e modificarla, poi <span class="k">Salva</span>. Il pulsante <b>+</b> aggiunge qualcosa di nuovo. Prima di un'azione importante compare una finestra di conferma.</div>
 
-<h2>Da fare</h2>
-<p>È la prima pagina: raccoglie tutto ciò che aspetta qualcuno.</p>
+<h2>Notifiche</h2>
+<p>Raccolgono tutto ciò che aspetta qualcuno (prima si chiamavano "Da fare"). Sono divise in <b>Da fare</b> e <b>Per sapere</b>:</p>
 <ul><li><b>Ordini da verificare</b>, con <span class="k">Conferma</span> e <span class="k">Annulla</span> direttamente lì;</li>
 <li><b>Segnalazioni nuove</b> arrivate dai soci;</li>
-<li><b>Raccolte che chiudono entro 24 ore</b>, <b>pesi da confermare</b>, <b>raccolte chiuse senza consegna</b>;</li>
+<li><b>Pesi da confermare</b> e <b>raccolte chiuse senza consegna</b>;</li>
 <li><b>Avvisi sulla chiusura automatica</b>: se non è attiva o se una data di chiusura non si riesce a leggere;</li>
-<li>le <b>consegne dei prossimi 7 giorni</b>.</li></ul>
-{browser(dafare,'La pagina "Da fare" sul computer (dati inventati).')}
+<li>per sapere: le <b>raccolte che chiudono entro 24 ore</b> e le <b>consegne dei prossimi 7 giorni</b>.</li></ul>
+<p>Ogni notifica ha un pulsante che porta dove serve. Non vanno cancellate: <b>restano finché la cosa non cambia</b> (l'ordine verificato, il peso confermato, la segnalazione presa in carico) e poi spariscono da sole. Anche soci e fornitori hanno le loro notifiche.</p>
+{browser(notifiche,'Le Notifiche sul computer (dati inventati).')}
 
 <h2>Raccolte</h2>
 <h3>Aprire una raccolta</h3>
@@ -67,12 +73,16 @@ body=f'''
 <li><b>Ordini dei soci:</b> <span class="k">Gestisci ordini</span> per correggere quantità o annullare, e <span class="k">Chiudi gli ordini adesso</span> (o "Riapri").</li>
 <li><b>Impostazioni:</b> prodotti, data di chiusura, massimo ordini, avvisi e consegna.</li></ul>
 {phone(racc,'Il dettaglio di una raccolta sul telefono.')}
-<div class="box">Le raccolte <b>si chiudono da sole</b> alla data di chiusura o al numero massimo di ordini: ogni 15 minuti e comunque appena qualcuno apre il form o il pannello. Se in "Da fare" compare un avviso sulla chiusura, avvisa chi cura la parte tecnica.</div>
+<div class="box">Le raccolte <b>si chiudono da sole</b> alla data di chiusura o al numero massimo di ordini: ogni 15 minuti e comunque appena qualcuno apre il form o il pannello. Se nelle Notifiche compare un avviso sulla chiusura, avvisa chi cura la parte tecnica.</div>
+<h3>Raccolte concluse e storico</h3>
+<p>Il giorno dopo la data di consegna le raccolte chiuse diventano <b>Consegnata</b> da sole ed escono da quelle in corso, anche per soci e fornitori. Se una raccolta non ha la data di consegna, aprila e tocca <span class="k">Segna come consegnata</span>; se l'hai toccato per sbaglio, c'è <span class="k">Riporta tra le raccolte in corso</span>.</p>
+<p>In <b>Raccolte</b> e in <b>Consegne</b> il selettore <b>In corso | Storico</b> mostra quelle passate, divise per mese, con un filtro per <b>fornitore</b> (anche quelli non più attivi). Da una raccolta conclusa puoi ancora vedere e correggere gli ordini e scaricare il foglio della consegna.</p>
+{browser(storico,'Lo storico delle raccolte (dati inventati).')}
 <h3>Ordini da verificare</h3>
 <p>Un ordine va in verifica quando la tessera non è attiva o scaduta, oppure quando lo stesso socio ha mandato due ordini senza il link personale (con il link personale, invece, il nuovo ordine sostituisce il vecchio). Telefona al socio, poi <span class="k">Conferma</span> l'ordine giusto e <span class="k">Annulla</span> l'altro. Lo può fare anche il fornitore dal suo portale.</p>
 
 <h2>Consegne</h2>
-<p>Con <b>+</b> crei una consegna: data, orario, luogo e chi la segue. Poi, nelle impostazioni di ogni raccolta, scegli la consegna. <span class="k">Genera avviso</span> prepara il messaggio di ritiro con l'elenco dei fornitori.</p>
+<p>Con <b>+</b> crei una consegna: data, orario, luogo e chi la segue. Poi, nelle impostazioni di ogni raccolta, scegli la consegna. <span class="k">Genera avviso</span> prepara il messaggio di ritiro con l'elenco dei fornitori. Le consegne in corso sono in ordine di data; quelle passate sono in <b>Storico</b>.</p>
 
 <h2>Soci</h2>
 <ul><li>Tocca un socio per cambiare tessera, nome, telefono o per segnarlo come <b>non attivo</b>.</li>
@@ -94,7 +104,7 @@ body=f'''
 <li>Il <b>Registro azioni</b> mostra chi ha fatto cosa e quando.</li></ul>
 
 <h2>Segnalazioni</h2>
-<p>Le segnalazioni dei soci arrivano a <b>tutti gli amministratori</b>: le nuove compaiono in "Da fare" e nella sezione <b>Segnalazioni</b>. Quelle segnate come <b>tecniche</b> le segue il referente tecnico; per le altre contatta il socio. Ogni segnalazione ha i <b>dati tecnici</b> raccolti dall'app (pagina, telefono usato, ultimo errore), uno <b>stato</b> (nuova, in corso, risolta) e le <b>note interne</b>. "Mostra anche le risolte" fa vedere lo storico.</p>
+<p>Le segnalazioni dei soci arrivano a <b>tutti gli amministratori</b>: le nuove compaiono nelle <b>Notifiche</b> e nella sezione <b>Segnalazioni</b>. Quelle segnate come <b>tecniche</b> le segue il referente tecnico; per le altre contatta il socio. Ogni segnalazione ha i <b>dati tecnici</b> raccolti dall'app (pagina, telefono usato, ultimo errore), uno <b>stato</b> (nuova, in corso, risolta) e le <b>note interne</b>. "Mostra anche le risolte" fa vedere lo storico.</p>
 {browser(segn,'Una segnalazione da gestire.')}
 
 <h2>Profilo e Aiuto</h2>
@@ -104,6 +114,7 @@ body=f'''
 <ul><li>I dati sono in un <b>foglio Google</b>, il programma in <b>Apps Script</b> (proprietà <code>SPREADSHEET_ID</code>). Le domande frequenti stanno nella scheda <b>Aiuto</b>, i referenti nella scheda <b>Referenti</b>, le segnalazioni nella scheda <b>Segnalazioni</b>.</li>
 <li>Per pubblicare una modifica: <b>Gestisci deployment › matita › Nuova versione</b>. Mai "Nuovo deployment", altrimenti cambiano tutti i link.</li>
 <li>Da eseguire una volta dall'editor, e di nuovo <b>dopo ogni cambio di autorizzazioni</b>: <code>installaTriggerChiusura</code> e <code>installaTriggerBackup</code>. Se una raccolta non si chiude, esegui <code>diagnosiChiusura</code> e leggi il log di esecuzione.</li>
+<li>Le <b>domande frequenti</b> della scheda Aiuto si aggiornano da sole dopo una nuova versione dell'app (una volta sola, segnata nella proprietà <code>AIUTO_FAQ_VERSIONE</code>): cambiano solo le risposte mai modificate a mano e si aggiungono le domande nuove. Si può anche eseguire <code>aggiornaDomandeAiuto</code> dall'editor.</li>
 <li>Backup automatici ogni 6 ore nella cartella Drive "GAS Backup" (resta l'ultima settimana).</li>
 <li>Guide PDF: caricale su Drive e metti l'ID di ciascun file nelle proprietà <code>GUIDA_SOCI_ID</code>, <code>GUIDA_FORNITORI_ID</code>, <code>GUIDA_AMMINISTRATORI_ID</code>. Ognuno scarica solo le guide dei propri profili.</li>
 <li><code>ADMIN_TOKEN</code> è l'accesso di emergenza. <code>ACCORCIA_LINK_PERSONALI</code> = NO lascia lunghi i link personali. <code>FAVICON_URL</code> è l'icona della scheda del browser.</li></ul>
