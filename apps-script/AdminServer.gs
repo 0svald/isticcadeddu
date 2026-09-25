@@ -240,32 +240,63 @@ function adminModificaRaccolta(token, id, d) {
 /** (Admin) Elenco categorie globali (condivise tra i listini). */
 function adminListaCategorie(token) {
   checkToken_(token);
-  return leggiTabella(SHEETS.CATEGORIE)
-    .map(c => ({ id: String(c.id), nome: c.nome || '', emoji: c.emoji || '', ordine: num(c.ordine) }))
-    .sort((a, b) => a.ordine - b.ordine || a.nome.localeCompare(b.nome));
+  return categorieOrdinate_().map(c => ({ id: String(c.id), nome: c.nome || '', emoji: c.emoji || '', ordine: num(c.ordine) }));
 }
 
-/** (Admin) Crea una categoria globale. */
+/** Categorie nell'ordine della lista (colonna "ordine"; a pari ordine, per nome). */
+function categorieOrdinate_() {
+  return leggiTabella(SHEETS.CATEGORIE)
+    .sort((a, b) => (num(a.ordine) || 1e9) - (num(b.ordine) || 1e9) || String(a.nome || '').localeCompare(String(b.nome || '')));
+}
+
+/** Rinumera 1, 2, 3… nell'ordine dato: tutte le pagine (form, portale, messaggi) vedono lo stesso ordine. */
+function rinumeraCategorie_(lista) {
+  lista.forEach((c, i) => { if (num(c.ordine) !== i + 1) aggiornaCella(SHEETS.CATEGORIE, c._riga, 'ordine', i + 1); });
+}
+
+/** (Admin) Crea una categoria globale: va in fondo alla lista. */
 function adminAggiungiCategoria(token, d) {
   checkToken_(token);
   const nome = String(d.nome || '').trim();
   if (!nome) throw new Error('Il nome della categoria è obbligatorio.');
-  const id = nuovoId(SHEETS.CATEGORIE, 'C');
-  aggiungiRiga(SHEETS.CATEGORIE, { id: id, fornitore_id: '', nome: nome, emoji: String(d.emoji || '').trim(), ordine: num(d.ordine) || '' });
-  logAdmin_('categoria_creata', id + ' ' + nome);
-  return { ok: true, id: id };
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const lista = categorieOrdinate_();
+    rinumeraCategorie_(lista);
+    const id = nuovoId(SHEETS.CATEGORIE, 'C');
+    aggiungiRiga(SHEETS.CATEGORIE, { id: id, fornitore_id: '', nome: nome, emoji: String(d.emoji || '').trim(), ordine: lista.length + 1 });
+    logAdmin_('categoria_creata', id + ' ' + nome);
+    return { ok: true, id: id };
+  } finally { lock.releaseLock(); }
 }
 
-/** (Admin) Modifica una categoria. */
+/** (Admin) Modifica nome ed emoji di una categoria (la posizione si cambia con le frecce). */
 function adminModificaCategoria(token, id, d) {
   checkToken_(token);
   const c = leggiTabella(SHEETS.CATEGORIE).find(x => String(x.id) === String(id));
   if (!c) throw new Error('Categoria non trovata.');
   if (d.nome !== undefined) aggiornaCella(SHEETS.CATEGORIE, c._riga, 'nome', String(d.nome).trim());
   if (d.emoji !== undefined) aggiornaCella(SHEETS.CATEGORIE, c._riga, 'emoji', String(d.emoji).trim());
-  if (d.ordine !== undefined) aggiornaCella(SHEETS.CATEGORIE, c._riga, 'ordine', num(d.ordine) || '');
   logAdmin_('categoria_modificata', String(id));
   return { ok: true };
+}
+
+/** (Admin) Sposta una categoria di un posto: direzione -1 = su, +1 = giù. Ritorna la lista aggiornata. */
+function adminSpostaCategoria(token, id, direzione) {
+  checkToken_(token);
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const lista = categorieOrdinate_();
+    const i = lista.findIndex(x => String(x.id) === String(id));
+    if (i < 0) throw new Error('Categoria non trovata.');
+    const j = i + (num(direzione) < 0 ? -1 : 1);
+    if (j >= 0 && j < lista.length) {
+      const t = lista[i]; lista[i] = lista[j]; lista[j] = t;
+      logAdmin_('categoria_spostata', String(id) + (j < i ? ' su' : ' giù'));
+    }
+    rinumeraCategorie_(lista);
+  } finally { lock.releaseLock(); }
+  return adminListaCategorie(token);
 }
 
 /** (Admin) Elimina una categoria (i prodotti che la usavano restano senza categoria). */
