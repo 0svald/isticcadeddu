@@ -8,6 +8,7 @@
 <?!= include('Stile') ?>
 <?!= include('Profilo') ?>
 <?!= include('Aiuto') ?>
+<?!= include('Grafici') ?>
 <style>
   .layout{ display:flex; min-height:100vh; }
   .main{ flex:1; min-width:0; }
@@ -28,6 +29,10 @@
   .kpi b{ display:block; font-size:1.35rem; line-height:1.1; } .kpi span{ font-size:.82rem; color:var(--muted); }
   .kpi.warn{ background:var(--amber-bg); border-color:var(--amber-line); color:var(--amber); } .kpi.warn span{ color:var(--amber); }
   #p_msg{ width:100%; min-height:200px; font-size:.92rem; }
+  .stfiltri{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin:0 0 14px; }
+  .stfiltri label{ display:flex; flex-direction:column; gap:4px; font-size:.82rem; font-weight:700; color:var(--muted); min-width:0; max-width:100%; }
+  .stfiltri select{ min-height:48px; font:inherit; font-size:1rem; padding:0 10px; border-radius:12px; border:1px solid var(--line); background:var(--surface); color:var(--ink); max-width:100%; }
+  #stat_out.carico{ opacity:.55; transition:opacity .15s; }
   @media (min-width:900px){
     .sidenav{ display:flex; flex-direction:column; gap:4px; width:260px; flex:0 0 260px; position:sticky; top:0; height:100vh; overflow:auto;
       padding:20px 14px; background:var(--surface); border-right:1px solid var(--line); }
@@ -156,8 +161,12 @@
     <div class="sopra">Gestione</div>
     <div class="secbar"><h2>Statistiche</h2></div>
     <div id="riep_stat" class="riep"></div>
-    <div class="frow"><label>Periodo dal</label><input type="text" id="st_dal" placeholder="GG-MM-AAAA (opz.)"><label style="width:auto">al</label><input type="text" id="st_al" placeholder="GG-MM-AAAA (opz.)"><button class="mini" onclick="caricaStat()">Calcola</button></div>
-    <div id="stat_out" class="muted">Imposta un periodo (facoltativo) e premi Calcola.</div>
+    <div class="stfiltri">
+      <label>Periodo<select id="st_per" onchange="caricaStat()"><option value="3">Ultimi 3 mesi</option><option value="6">Ultimi 6 mesi</option><option value="12" selected>Ultimi 12 mesi</option><option value="anno">Da inizio anno</option></select></label>
+      <label>Fornitore<select id="st_forn" onchange="caricaStat()"><option value="">Tutti i fornitori</option></select></label>
+      <label>Categoria<select id="st_cat" onchange="caricaStat()"><option value="">Tutte le categorie</option></select></label>
+    </div>
+    <div id="stat_out" class="viz"></div>
   </section>
 
   <section id="sez_admin" style="display:none">
@@ -239,7 +248,7 @@
     const sec=document.getElementById('sez_'+id); sec.classList.remove('enter'); void sec.offsetWidth; sec.classList.add('enter');
     renderSidebar(); GasUI.barra(document.getElementById('barra'), id==='home', ()=>mostraSez('home'));
     if(id==='forn'&&!LOAD.forn) caricaFornitori(); if(id==='soci'&&!LOAD.soci) caricaSoci(); if(id==='cons'&&!LOAD.cons) caricaConsegne(); if(id==='cat'&&!LOAD.cat) caricaCategorie(); if(id==='admin'&&!LOAD.admin) caricaAdmin(); if(id==='notif'||id==='home') caricaDaFare(); if(id==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'admin'); if(id==='segn') caricaSegn(); if(id==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'admin', pagina:'pannello', sezione:'aiuto' });
-    if(id==='stat' && !document.getElementById('riep_stat').innerHTML) GasUI.riep(document.getElementById('riep_stat'),'Ordini e importi per periodo','Scegli un periodo (facoltativo) e tocca Calcola.',{icona:'stat'});
+    if(id==='stat'){ if(!STAT) caricaStat(); else setTimeout(()=>renderStat(STAT),0); }
     window.scrollTo({top:0,behavior:'smooth'});
   }
   function toggleAdd(id){ const p=document.getElementById('add_'+id); const show=p.classList.contains('hidden'); p.classList.toggle('hidden'); if(show){ p.classList.remove('enter'); void p.offsetWidth; p.classList.add('enter'); } }
@@ -521,22 +530,49 @@
 
   function eu(n){ return (Math.round((+n||0)*100)/100).toFixed(2).replace('.',',')+' €'; }
   function qn(n){ return (Math.round((+n||0)*100)/100).toString().replace('.',','); }
-  function caricaStat(){ document.getElementById('stat_out').innerHTML=SPIN;
-    run().withSuccessHandler(renderStat).withFailureHandler(e=>{document.getElementById('stat_out').textContent='Errore: '+e.message;}).adminStatistiche(TOKEN, v('st_dal').trim(), v('st_al').trim()); }
-  function tab(titolo, headers, rows){ let h='<h2 style="margin-top:16px">'+titolo+'</h2><table><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr>';
-    rows.forEach(r=>{ h+='<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>'; }); return h+'</table>'; }
-  function renderStat(d){ const g=d.generali;
-    GasUI.riep(document.getElementById('riep_stat'), (g.nOrdini===1?'1 ordine':g.nOrdini+' ordini')+' · '+eu(g.volume), (v('st_dal')||v('st_al'))?('Periodo '+(v('st_dal')||'…')+' – '+(v('st_al')||'oggi')+'.'):'Tutto il periodo.', {icona:'stat'});
-    let h='<div class="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
-    const cards=[['Volume scambiato',eu(g.volume)],['Ordini',g.nOrdini],['Soci ordinanti',g.nSoci],['Raccolte',g.nRaccolte],['Fornitori',g.nFornitori],['Prodotti',g.nProdotti]];
-    cards.forEach(c=>{ h+='<div class="litem"><div class="li2">'+c[0]+'</div><div class="li1" style="font-size:1.1rem">'+c[1]+'</div></div>'; });
-    h+='</div>';
-    h+=tab('Per fornitore',['Fornitore','Ordini','Volume'], d.perFornitore.map(x=>[esc(x.nome),x.nOrdini,eu(x.volume)]));
-    h+=tab('Per consegna',['Consegna','Raccolte','Volume'], d.perConsegna.map(x=>[esc(x.etichetta),x.nRaccolte,eu(x.volume)]));
-    h+=tab('Per prodotto (top)',['Prodotto','Quantità','Volume'], d.perProdotto.map(x=>[esc(x.nome),qn(x.qta),eu(x.volume)]));
-    h+=tab('Per socio (top)',['Tessera','Nominativo','Ordini','Volume'], d.perSocio.map(x=>[esc(x.tessera),esc(x.nominativo),x.nOrdini,eu(x.volume)]));
-    document.getElementById('stat_out').innerHTML=h;
+  // statistiche: filtri in alto, numeri principali, quattro grafici nel tempo, volume per categoria, tabelle
+  let STAT=null, STAT_FILTRI=false;
+  function eu0(n){ return Math.round(+n||0).toLocaleString('it-IT')+' €'; }
+  function nf(n){ return Math.round(+n||0).toLocaleString('it-IT'); }
+  function caricaStat(){ const out=document.getElementById('stat_out'); if(!STAT) out.innerHTML=SPIN; else out.classList.add('carico');
+    const f={ mesi:v('st_per'), fornitoreId:v('st_forn'), categoria:v('st_cat') };
+    run().withSuccessHandler(d=>{ STAT=d; out.classList.remove('carico'); renderStat(d); }).withFailureHandler(e=>{ out.classList.remove('carico'); out.textContent='Errore: '+e.message; }).adminStatistiche(TOKEN, f); }
+  function tab(titolo, headers, rows){ let h='<h2 style="margin-top:16px">'+titolo+'</h2><div class="gtab"><table><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr>';
+    rows.forEach(r=>{ h+='<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>'; }); return h+'</table></div>'; }
+  function diff(att, prima){ if(!prima) return '<span class="d">nessun dato nel periodo prima</span>'; const p=Math.round((att-prima)/prima*100);
+    return '<span class="d '+(p>=0?'su':'giu')+'">'+(p>=0?'▲ +':'▼ ')+p+'% sul periodo prima</span>'; }
+  function gcarta(box, titolo, sottot){ const c=document.createElement('section'); c.className='gcarta'; const h=document.createElement('h3'); h.textContent=titolo; c.appendChild(h);
+    if(sottot){ const d=document.createElement('div'); d.className='sottot'; d.textContent=sottot; c.appendChild(d); } box.appendChild(c); return c; }
+  function renderStat(d){ const g=d.generali, p=d.prima, out=document.getElementById('stat_out');
+    if(!STAT_FILTRI){ STAT_FILTRI=true; fillSel('st_forn','Tutti i fornitori',d.filtri.fornitori,f=>f.nome+(f.attivo?'':' (non attivo)')); fillSel('st_cat','Tutte le categorie',d.filtri.categorie.map(c=>({id:c,nome:c})),c=>c.nome); }
+    GasUI.riep(document.getElementById('riep_stat'), nf(g.nOrdini)+' ordini · '+eu0(g.volume), 'Prezzo medio di un ordine '+eu(g.prezzoMedio)+' · '+d.periodo.dal+(d.periodo.mesi>1?' – '+d.periodo.al:'')+'.', {icona:'stat'});
+    out.innerHTML='';
+    const m=d.mesi, col=k=>m.map(x=>x[k]);
+    const k=document.createElement('div'); k.className='gkpis';
+    k.innerHTML=[['Volume scambiato',eu0(g.volume),diff(g.volume,p.volume),col('volume')],['Ordini',nf(g.nOrdini),diff(g.nOrdini,p.nOrdini),col('ordini')],
+      ['Prezzo medio di un ordine',eu(g.prezzoMedio),diff(g.prezzoMedio,p.prezzoMedio),col('prezzoMedio')],['Soci che hanno ordinato',nf(g.nSoci),diff(g.nSoci,p.nSoci),col('soci')],
+      ['Fornitori attivi',nf(g.nFornitori),diff(g.nFornitori,p.nFornitori),col('fornitori')]]
+      .map(x=>'<div class="gkpi"><small>'+x[0]+'</small><b>'+x[1]+'</b>'+x[2]+Grafici.mini(x[3])+'</div>').join('');
+    out.appendChild(k);
+    if(!g.nOrdini){ const n=document.createElement('p'); n.className='muted'; n.textContent='Nessun ordine valido nel periodo e con i filtri scelti.'; out.appendChild(n); return; }
+    // quattro grafici nel tempo: prima tutte le schede, poi i disegni (così la larghezza è quella vera)
+    const gr=document.createElement('div'); gr.className='ggriglia'; out.appendChild(gr);
+    const q=[['Ordini','ordini',nf,'ordini','Ordini'],['Soci che hanno ordinato','soci',nf,'soci','Soci'],['Fornitori attivi','fornitori',nf,'fornitori','Fornitori'],['Prezzo medio di un ordine','prezzoMedio',eu,'a ordine','Prezzo medio']]
+      .map(x=>[x,gcarta(gr,x[0],'')]);
+    q.forEach(([x,c])=>{ Grafici.linea(c,m,col(x[1]),x[2],{h:190,nome:x[3],assi:x[1]==='prezzoMedio'?eu0:nf,aria:x[0]+' mese per mese'}); Grafici.numeri(c,m,[[x[4],col(x[1]),x[2]]]); });
+    const c=gcarta(out,'Volume per categoria, mese per mese','Le 4 categorie più vendute; le altre sono in "Altro".');
+    const S=Grafici.colonne(c,m,d.perCategoria,eu0,{aria:'Volume per categoria e mese'});
+    Grafici.numeri(c,m,S.map(s=>[s.nome,s.serie,eu0]).concat([['Totale',col('volume'),eu0]]));
+    const det=document.createElement('details'); det.className='grp'; det.style.padding='8px 14px';
+    det.innerHTML='<summary>Dettaglio per fornitore, consegna, prodotto e socio</summary>'+
+      tab('Per fornitore',['Fornitore','Ordini','Volume'], d.perFornitore.map(x=>[esc(x.nome),x.nOrdini,eu(x.volume)]))+
+      tab('Per consegna',['Consegna','Raccolte','Volume'], d.perConsegna.map(x=>[esc(x.etichetta),x.nRaccolte,eu(x.volume)]))+
+      tab('Per prodotto (i più venduti)',['Prodotto','Quantità','Volume'], d.perProdotto.map(x=>[esc(x.nome),qn(x.qta),eu(x.volume)]))+
+      tab('Per socio (chi ordina di più)',['Tessera','Nominativo','Ordini','Volume'], d.perSocio.map(x=>[esc(x.tessera),esc(x.nominativo),x.nOrdini,eu(x.volume)]));
+    out.appendChild(det);
   }
+  // ridisegna solo se cambia la larghezza (sul telefono la barra del browser che si nasconde cambia solo l'altezza)
+  let STAT_RT=null, STAT_W=window.innerWidth; window.addEventListener('resize',()=>{ if(!STAT || SEZ!=='stat' || window.innerWidth===STAT_W) return; STAT_W=window.innerWidth; clearTimeout(STAT_RT); STAT_RT=setTimeout(()=>renderStat(STAT),200); });
 
   // ---------- AMMINISTRATORI ----------
   function caricaAdmin(){ LOAD.admin=true; document.getElementById('adm_lista').innerHTML=SPIN;

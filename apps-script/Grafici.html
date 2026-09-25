@@ -1,0 +1,117 @@
+<!-- Grafici.html — piccoli grafici SVG per le Statistiche del pannello (linea, colonne impilate, mini-andamento).
+     Si include dopo lo stile con:  <?!= include('Grafici') ?>
+     Colori controllati per chi distingue male i colori (validati sul fondo #FFFDF8): le serie hanno sempre
+     anche il nome in legenda, e ogni grafico ha "Mostra i numeri" con la tabella. -->
+<style>
+  .viz{ --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --altro:#b9b5a8; --linea:#3A6B35; --griglia:#ECE7DA; --asse:#DDD5C1; --muto:#6b6e62; }
+  .gcarta{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px 14px 10px; margin:0 0 14px; position:relative; min-width:0; }
+  .gcarta h3{ margin:0 0 2px; font-family:var(--serif); color:var(--green-d); font-size:1.12rem; }
+  .gcarta .sottot{ color:var(--muted); font-size:.88rem; margin-bottom:6px; }
+  .ggriglia{ display:grid; grid-template-columns:repeat(auto-fit,minmax(max(260px,40%),1fr)); gap:14px; margin:0 0 14px; } /* due per riga su computer, uno su telefono */
+  .ggriglia .gcarta{ margin:0; }
+  svg.g{ width:100%; height:auto; display:block; overflow:visible; }
+  svg.g text{ font-family:var(--font); fill:var(--muto); font-size:12px; }
+  svg.g text.v{ fill:var(--ink); font-weight:700; }
+  .glegenda{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:.9rem; margin:2px 0 6px; }
+  .glegenda span{ display:inline-flex; align-items:center; gap:6px; }
+  .glegenda i{ width:12px; height:12px; border-radius:3px; display:inline-block; }
+  .gtip{ position:absolute; pointer-events:none; background:var(--ink); color:#fff; border-radius:10px; padding:7px 10px; font-size:.85rem; line-height:1.35; opacity:0; transition:opacity .1s; z-index:5; white-space:nowrap; }
+  .gtip b{ font-size:.95rem; } .gtip .r{ display:flex; align-items:center; gap:6px; } .gtip .k{ width:12px; height:3px; border-radius:2px; display:inline-block; }
+  .gkpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:0 0 14px; }
+  .gkpi{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:10px 12px; min-width:0; }
+  .gkpi small{ display:block; color:var(--muted); font-size:.82rem; font-weight:700; }
+  .gkpi b{ display:block; font-size:1.45rem; line-height:1.2; }
+  .gkpi .d{ display:block; font-size:.82rem; color:var(--muted); } .gkpi .d.su{ color:var(--green-d); } .gkpi .d.giu{ color:var(--red); }
+  .gkpi svg{ display:block; width:100%; height:28px; margin-top:4px; }
+  details.gnumeri{ margin-top:6px; } details.gnumeri summary{ min-height:44px; font-size:.95rem; }
+  /* la tabella scorre dentro il suo riquadro: la pagina non si allarga (telefono) */
+  .gtab{ overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
+  .gtab table{ border-collapse:collapse; font-size:.88rem; font-variant-numeric:tabular-nums; min-width:100%; }
+  .gtab td, .gtab th{ border-bottom:1px solid var(--line-soft); padding:6px 8px; text-align:right; white-space:nowrap; }
+  .gtab td:first-child, .gtab th:first-child{ text-align:left; position:sticky; left:0; background:var(--surface); }
+  .gtab th{ color:var(--green-d); font-size:.82rem; white-space:normal; vertical-align:bottom; }
+</style>
+<script>
+  window.Grafici = (function(){
+    const NS='http://www.w3.org/2000/svg';
+    function el(tag,a){ const e=document.createElementNS(NS,tag); for(const k in a) e.setAttribute(k,a[k]); return e; }
+    function passo(m){ if(m<=0) return 1; const p=Math.pow(10,Math.floor(Math.log10(m))), f=m/p; return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p; }
+    function massimo(m){ return passo(m/4)*4; } // 4 tacche tonde
+    function larghezza(c){ return Math.max(240, Math.round(c.clientWidth-30)); }
+    function tip(c){ let t=c.querySelector('.gtip'); if(!t){ t=document.createElement('div'); t.className='gtip'; c.appendChild(t); } return t; }
+    function mostra(c, x, y, titolo, righe){ const t=tip(c); t.textContent='';
+      const h=document.createElement('div'); h.style.opacity='.8'; h.textContent=titolo; t.appendChild(h);
+      righe.forEach(r=>{ const d=document.createElement('div'); d.className='r';
+        if(r.c){ const k=document.createElement('span'); k.className='k'; k.style.background=r.c; d.appendChild(k); }
+        const b=document.createElement('b'); b.textContent=r.v; d.appendChild(b);
+        if(r.n){ const s=document.createElement('span'); s.textContent=' '+r.n; s.style.opacity='.85'; d.appendChild(s); } t.appendChild(d); });
+      const cw=c.clientWidth; let lx=x+12; if(lx+t.offsetWidth>cw-6) lx=x-t.offsetWidth-12; t.style.left=Math.max(4,lx)+'px'; t.style.top=Math.max(4,y-10)+'px'; t.style.opacity=1; }
+    function nascondi(c){ const t=c.querySelector('.gtip'); if(t) t.style.opacity=0; }
+    function etichetteMesi(svg, mesi, x, W, L, R, H){ const p=Math.ceil(mesi.length*38/Math.max(1,W-L-R)), ult=mesi.length-1;
+      mesi.forEach((m,k)=>{ if(k!==ult && (k%p || ult-k<p)) return; const t=el('text',{x:x(k),y:H-6,'text-anchor':'middle'}); t.textContent=m.etichetta; svg.appendChild(t); }); }
+    function griglia(svg, mx, y, L, W, R, fmt){ for(let i=0;i<=4;i++){ const v=mx*i/4; svg.appendChild(el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:i?'var(--griglia)':'var(--asse)','stroke-width':1}));
+      const t=el('text',{x:L-8,y:y(v)+4,'text-anchor':'end'}); t.textContent=fmt(v); svg.appendChild(t); } }
+
+    /** Una serie nel tempo (un punto per mese), con il puntatore che segue il mese. */
+    function linea(c, mesi, valori, fmt, o){ o=o||{}; const W=larghezza(c), H=o.h||200, L=58, R=66, T=14, B=26;
+      const svg=el('svg',{viewBox:'0 0 '+W+' '+H,class:'g',role:'img','aria-label':o.aria||''});
+      const mx=massimo(Math.max.apply(null,valori.concat([0]))*1.1||1);
+      const x=k=>L+(valori.length<2?0.5:k/(valori.length-1))*(W-L-R), y=v=>T+(1-v/mx)*(H-T-B);
+      griglia(svg,mx,y,L,W,R,o.assi||fmt); etichetteMesi(svg,mesi,x,W,L,R,H);
+      const col='var(--linea)', path=valori.map((v,k)=>(k?'L':'M')+x(k)+' '+y(v)).join(' ');
+      svg.appendChild(el('path',{d:path+' L'+x(valori.length-1)+' '+y(0)+' L'+x(0)+' '+y(0)+' Z',fill:col,opacity:.1}));
+      svg.appendChild(el('path',{d:path,fill:'none',stroke:col,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+      const u=valori.length-1; svg.appendChild(el('circle',{cx:x(u),cy:y(valori[u]),r:5,fill:col,stroke:'#FFFDF8','stroke-width':2}));
+      const lab=el('text',{x:x(u)+9,y:y(valori[u])+4,class:'v'}); lab.textContent=fmt(valori[u]); svg.appendChild(lab);
+      const cr=el('line',{x1:0,x2:0,y1:T,y2:H-B,stroke:'var(--muto)','stroke-width':1,opacity:0}); svg.appendChild(cr);
+      const dot=el('circle',{r:5,fill:col,stroke:'#FFFDF8','stroke-width':2,opacity:0}); svg.appendChild(dot);
+      const hit=el('rect',{x:L,y:T,width:W-L-R,height:H-T-B,fill:'transparent'}); svg.appendChild(hit);
+      function muovi(ev){ const r=svg.getBoundingClientRect(); const px=(ev.clientX-r.left)*W/r.width;
+        let k=Math.round((px-L)/((W-L-R)/Math.max(1,valori.length-1))); k=Math.max(0,Math.min(u,k));
+        cr.setAttribute('x1',x(k)); cr.setAttribute('x2',x(k)); cr.setAttribute('opacity',.6); dot.setAttribute('cx',x(k)); dot.setAttribute('cy',y(valori[k])); dot.setAttribute('opacity',1);
+        const cb=c.getBoundingClientRect(); mostra(c, x(k)*r.width/W+(r.left-cb.left), y(valori[k])*r.height/H+(r.top-cb.top), mesi[k].lungo, [{v:fmt(valori[k]), n:o.nome||''}]); }
+      hit.addEventListener('pointermove',muovi); hit.addEventListener('pointerdown',muovi);
+      hit.addEventListener('pointerleave',()=>{ cr.setAttribute('opacity',0); dot.setAttribute('opacity',0); nascondi(c); });
+      c.appendChild(svg); }
+
+    /** Colonne impilate per mese: le 4 serie più grandi a colori, le altre in "Altro". Ritorna le serie disegnate. */
+    function colonne(c, mesi, serie, fmt, o){ o=o||{}; const W=larghezza(c), H=240, L=66, R=10, T=10, B=26, COL=['var(--s1)','var(--s2)','var(--s3)','var(--s4)'];
+      const somma=a=>a.reduce((x,y)=>x+y,0); const ord=serie.slice().sort((a,b)=>somma(b.serie)-somma(a.serie));
+      const S=ord.slice(0,4).map((s,i)=>({nome:s.nome,serie:s.serie,c:COL[i]}));
+      if(ord.length>4) S.push({nome:'Altro', dettaglio:ord.slice(4).map(x=>x.nome).join(', '), serie:mesi.map((_,k)=>ord.slice(4).reduce((a,x)=>a+x.serie[k],0)), c:'var(--altro)'});
+      const leg=document.createElement('div'); leg.className='glegenda';
+      S.forEach(s=>{ const sp=document.createElement('span'); const i=document.createElement('i'); i.style.background=s.c; sp.appendChild(i); sp.appendChild(document.createTextNode(s.nome)); if(s.dettaglio) sp.title=s.dettaglio; leg.appendChild(sp); });
+      c.appendChild(leg);
+      const tot=mesi.map((_,k)=>S.reduce((a,s)=>a+s.serie[k],0)); const mx=massimo(Math.max.apply(null,tot.concat([0]))*1.08||1);
+      const svg=el('svg',{viewBox:'0 0 '+W+' '+H,class:'g',role:'img','aria-label':o.aria||''}); const y=v=>T+(1-v/mx)*(H-T-B);
+      const band=(W-L-R)/Math.max(1,mesi.length), bw=Math.min(24,band*.6), xc=k=>L+band*(k+.5);
+      griglia(svg,mx,y,L,W,R,fmt); etichetteMesi(svg,mesi,xc,W,L,R,H);
+      mesi.forEach((m,k)=>{ const g=el('g',{class:'col'}); let acc=0; const vis=S.filter(s=>s.serie[k]>0);
+        vis.forEach((s,j)=>{ const v=s.serie[k], y0=y(acc), h=Math.max(0,y0-y(acc+v)-2), x0=xc(k)-bw/2, top=y0-2-h, r=Math.min(4,h);
+          const d=j===vis.length-1 ? 'M'+x0+' '+(y0-2)+' V'+(top+r)+' Q'+x0+' '+top+' '+(x0+r)+' '+top+' H'+(x0+bw-r)+' Q'+(x0+bw)+' '+top+' '+(x0+bw)+' '+(top+r)+' V'+(y0-2)+' Z'
+                                   : 'M'+x0+' '+(y0-2)+' V'+top+' H'+(x0+bw)+' V'+(y0-2)+' Z';
+          g.appendChild(el('path',{d:d,fill:s.c})); acc+=v; });
+        const hit=el('rect',{x:L+band*k,y:T,width:band,height:H-T-B,fill:'transparent'}); g.appendChild(hit);
+        const vedi=()=>{ const r=svg.getBoundingClientRect(), cb=c.getBoundingClientRect(); svg.querySelectorAll('g.col').forEach(z=>z.style.opacity=z===g?1:.55);
+          mostra(c, xc(k)*r.width/W+(r.left-cb.left), y(tot[k])*r.height/H+(r.top-cb.top), m.lungo, [{v:fmt(tot[k]),n:'in tutto'}].concat(vis.slice().reverse().map(s=>({c:s.c,v:fmt(s.serie[k]),n:s.nome})))); };
+        hit.addEventListener('pointermove',vedi); hit.addEventListener('pointerdown',vedi);
+        hit.addEventListener('pointerleave',()=>{ svg.querySelectorAll('g.col').forEach(z=>z.style.opacity=1); nascondi(c); });
+        svg.appendChild(g); });
+      c.appendChild(svg); return S; }
+
+    /** Mini-andamento per i riquadri dei numeri principali. */
+    function mini(valori){ const W=160,H=28, v=valori.length?valori:[0], mx=Math.max.apply(null,v), mn=Math.min.apply(null,v);
+      const x=k=>2+(v.length<2?.5:k/(v.length-1))*(W-8), y=z=>H-3-(mx===mn?.5:(z-mn)/(mx-mn))*(H-6);
+      return '<svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><path d="'+v.map((z,k)=>(k?'L':'M')+x(k)+' '+y(z)).join(' ')+'" fill="none" stroke="#b9b5a8" stroke-width="2" stroke-linejoin="round"/><circle cx="'+x(v.length-1)+'" cy="'+y(v[v.length-1])+'" r="4" fill="#3A6B35" stroke="#FFFDF8" stroke-width="2"/></svg>'; }
+
+    /** Tabella "Mostra i numeri" sotto un grafico: colonne = [[titolo, valori, formato]] */
+    function numeri(c, mesi, colonne){ const det=document.createElement('details'); det.className='gnumeri';
+      const sm=document.createElement('summary'); sm.textContent='Mostra i numeri'; det.appendChild(sm);
+      const w=document.createElement('div'); w.className='gtab'; const t=document.createElement('table'); const hr=t.insertRow();
+      ['Mese'].concat(colonne.map(x=>x[0])).forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+      mesi.forEach((m,k)=>{ const r=t.insertRow(); const p=m.lungo.split(' '); r.insertCell().textContent=p[0].substring(0,3)+' '+(p[1]||''); colonne.forEach(x=>{ r.insertCell().textContent=x[2](x[1][k]); }); });
+      w.appendChild(t); det.appendChild(w); c.appendChild(det); }
+
+    return { linea:linea, colonne:colonne, mini:mini, numeri:numeri };
+  })();
+</script>
