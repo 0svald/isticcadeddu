@@ -76,6 +76,7 @@ A4 **verticale**, una riga per tessera, una colonna per prodotto (nomi ruotati, 
 - **Domande frequenti** (scheda `Aiuto`): i testi predefiniti sono in `faqDefault_()` di `AiutoServer.gs`. Quando cambiano, aumentare `FAQ_VERSIONE_` e aggiungere le risposte superate in `FAQ_PRECEDENTI_`: alla prima apertura di Aiuto `aggiornaDomandeAiuto()` aggiorna solo le risposte mai modificate a mano e aggiunge le domande nuove (quelle tolte a mano restano tolte). La versione applicata è nella proprietà `AIUTO_FAQ_VERSIONE` (la scrive il codice).
 - **Guide PDF**: gli script `guide/g_soci.py`, `g_forn.py`, `g_adm.py` (con `build_guide.py`) scrivono l'HTML; il PDF si stampa con Chromium (A4, sfondi attivi). Schemi disegnati a mano con dati inventati, non schermate vere.
 - Nessuna emoji sui singoli prodotti: resta solo quella della categoria.
+- **Categorie**: l'ordine si cambia solo con le frecce ▲▼ nel pannello (`adminSpostaCategoria`); una categoria nuova va in fondo; la colonna `ordine` viene rinumerata 1, 2, 3… così form, portale e messaggi vedono lo stesso ordine.
 
 ## File e convenzioni del codice
 

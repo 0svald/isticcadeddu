@@ -33,6 +33,9 @@
   .stfiltri label{ display:flex; flex-direction:column; gap:4px; font-size:.82rem; font-weight:700; color:var(--muted); min-width:0; max-width:100%; }
   .stfiltri select{ min-height:48px; font:inherit; font-size:1rem; padding:0 10px; border-radius:12px; border:1px solid var(--line); background:var(--surface); color:var(--ink); max-width:100%; }
   #stat_out.carico{ opacity:.55; transition:opacity .15s; }
+  .frecce{ display:flex; gap:6px; flex:none; }
+  .frecce button{ width:48px; min-width:48px; min-height:48px; padding:0; font-size:1.2rem; line-height:1; }
+  .frecce button:disabled{ visibility:hidden; }
   @media (min-width:900px){
     .sidenav{ display:flex; flex-direction:column; gap:4px; width:260px; flex:0 0 260px; position:sticky; top:0; height:100vh; overflow:auto;
       padding:20px 14px; background:var(--surface); border-right:1px solid var(--line); }
@@ -150,10 +153,9 @@
     <div id="add_cat" class="addpanel hidden">
       <div class="frow"><label>Nome</label><input type="text" id="ncat_nome"></div>
       <div class="frow"><label>Emoji</label><input type="text" id="ncat_emoji" style="max-width:80px"></div>
-      <div class="frow"><label>Ordine</label><input type="text" id="ncat_ord" placeholder="es. 1"></div>
       <div class="edact"><button onclick="aggiungiCategoria()">Aggiungi</button><button class="sec" onclick="toggleAdd('cat')">Chiudi</button><span id="ncat_msg" class="muted"></span></div>
     </div>
-    <p class="muted">Le categorie sono condivise da tutti i listini.</p>
+    <p class="muted">Le categorie sono condivise da tutti i listini. L'ordine qui è quello che vedono i soci nel modulo d'ordine: usa le frecce per spostarle. Una categoria nuova va in fondo.</p>
     <div id="cat_lista" class="list"><span class="spin"></span>caricamento…</div>
   </section>
 
@@ -504,21 +506,35 @@
 
   /* ---------- CATEGORIE ---------- */
   function caricaCategorie(){ LOAD.cat=true; document.getElementById('cat_lista').innerHTML=SPIN;
-    run().withSuccessHandler(l=>{ CAT_L=l; const box=document.getElementById('cat_lista'); box.innerHTML='';
-      GasUI.riep(document.getElementById('riep_cat'), l.length===1?'1 categoria':l.length+' categorie', 'Valgono per tutti i listini.', {icona:'cat'}); if(!l.length){ box.innerHTML='<div class="muted">Nessuna categoria.</div>'; return; }
-      l.forEach(c=>{ const row=document.createElement('div'); row.className='litem'; row.innerHTML='<div class="li1">'+esc((c.emoji?c.emoji+' ':'')+c.nome)+'</div>'+(c.ordine?'<div class="li2">ordine '+c.ordine+'</div>':''); row.onclick=()=>openCat(c,row); box.appendChild(row); });
-    }).withFailureHandler(e=>{document.getElementById('cat_lista').textContent='Errore: '+e.message;}).adminListaCategorie(TOKEN); }
+    run().withSuccessHandler(renderCategorie).withFailureHandler(e=>{document.getElementById('cat_lista').textContent='Errore: '+e.message;}).adminListaCategorie(TOKEN); }
+  // ogni categoria ha due frecce per spostarla di un posto; tocca il nome per modificarla
+  function renderCategorie(l){ CAT_L=l; const box=document.getElementById('cat_lista'); box.innerHTML='';
+    GasUI.riep(document.getElementById('riep_cat'), l.length===1?'1 categoria':l.length+' categorie', 'Valgono per tutti i listini, in quest\'ordine.', {icona:'cat'});
+    if(!l.length){ box.innerHTML='<div class="muted">Nessuna categoria.</div>'; return; }
+    l.forEach((c,i)=>{ const row=document.createElement('div'); row.className='litem rowflex'; row.dataset.id=c.id;
+      const left=document.createElement('div'); left.className='rl'; left.innerHTML='<div class="li1">'+esc((c.emoji?c.emoji+' ':'')+c.nome)+'</div>'; left.onclick=()=>openCat(c,row);
+      const fr=document.createElement('div'); fr.className='frecce';
+      fr.innerHTML='<button type="button" class="sec" aria-label="Sposta su: '+esc(c.nome)+'"'+(i===0?' disabled':'')+'>▲</button><button type="button" class="sec" aria-label="Sposta giù: '+esc(c.nome)+'"'+(i===l.length-1?' disabled':'')+'>▼</button>';
+      const [su,giu]=fr.querySelectorAll('button'); su.onclick=ev=>{ ev.stopPropagation(); spostaCat(c.id,-1); }; giu.onclick=ev=>{ ev.stopPropagation(); spostaCat(c.id,1); };
+      row.appendChild(left); row.appendChild(fr); box.appendChild(row); }); }
+  // la lista si aggiorna subito; se il salvataggio non riesce torna com'era
+  function spostaCat(id,dir){ const l=CAT_L.slice(), i=l.findIndex(x=>x.id===id), j=i+dir; if(i<0||j<0||j>=l.length) return;
+    const prima=CAT_L; const t=l[i]; l[i]=l[j]; l[j]=t; closeAllEd(); renderCategorie(l);
+    const b=document.querySelector('#cat_lista [data-id="'+id+'"] .frecce button:'+(dir<0?'first-child':'last-child')); if(b && !b.disabled) b.focus();
+    CAT_IN_VOLO++;
+    run().withSuccessHandler(n=>{ CAT_IN_VOLO--; if(!CAT_IN_VOLO && n.map(x=>x.id).join()!==CAT_L.map(x=>x.id).join()) renderCategorie(n); })
+      .withFailureHandler(e=>{ CAT_IN_VOLO--; renderCategorie(prima); err(e); }).adminSpostaCategoria(TOKEN,id,dir); }
+  let CAT_IN_VOLO=0;
   function openCat(c,row){ const html=
       '<div class="frow"><label>Nome</label><input type="text" id="ecat_nome" value="'+esc(c.nome)+'"></div>'+
       '<div class="frow"><label>Emoji</label><input type="text" id="ecat_emoji" value="'+esc(c.emoji)+'" style="max-width:80px"></div>'+
-      '<div class="frow"><label>Ordine</label><input type="text" id="ecat_ord" value="'+(c.ordine||'')+'"></div>'+
       '<div class="edact"><button class="mini" onclick="salvaCat(\''+c.id+'\')">Salva</button><button class="sec mini" onclick="closeAllEd()">Annulla</button><button class="warn mini" onclick="elimCat(\''+c.id+'\')">Elimina</button><span id="ecat_msg" class="muted"></span></div>';
     openEd('cat',c.id,row,html); }
-  function salvaCat(id){ const d={ nome:v('ecat_nome').trim(), emoji:v('ecat_emoji').trim(), ordine:v('ecat_ord').trim() }; if(!d.nome){ avvisa('Nome obbligatorio.'); return; } document.getElementById('ecat_msg').textContent='…';
+  function salvaCat(id){ const d={ nome:v('ecat_nome').trim(), emoji:v('ecat_emoji').trim() }; if(!d.nome){ avvisa('Nome obbligatorio.'); return; } document.getElementById('ecat_msg').textContent='…';
     run().withSuccessHandler(()=>{ LOAD.cat=false; caricaCategorie(); }).withFailureHandler(err).adminModificaCategoria(TOKEN,id,d); }
   function elimCat(id){ chiedi('I prodotti che la usavano resteranno senza categoria.',{titolo:'Eliminare la categoria?',ok:'Elimina',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>{ LOAD.cat=false; caricaCategorie(); }).withFailureHandler(err).adminEliminaCategoria(TOKEN,id); }); }
-  function aggiungiCategoria(){ const d={ nome:v('ncat_nome').trim(), emoji:v('ncat_emoji').trim(), ordine:v('ncat_ord').trim() }; if(!d.nome){ avvisa('Inserisci il nome.'); return; } document.getElementById('ncat_msg').textContent='…';
-    run().withSuccessHandler(()=>{ ['ncat_nome','ncat_emoji','ncat_ord'].forEach(i=>document.getElementById(i).value=''); document.getElementById('ncat_msg').textContent=''; hideAdd('cat'); LOAD.cat=false; caricaCategorie(); }).withFailureHandler(e=>{document.getElementById('ncat_msg').textContent='Errore: '+e.message;}).adminAggiungiCategoria(TOKEN,d); }
+  function aggiungiCategoria(){ const d={ nome:v('ncat_nome').trim(), emoji:v('ncat_emoji').trim() }; if(!d.nome){ avvisa('Inserisci il nome.'); return; } document.getElementById('ncat_msg').textContent='…';
+    run().withSuccessHandler(()=>{ ['ncat_nome','ncat_emoji'].forEach(i=>document.getElementById(i).value=''); document.getElementById('ncat_msg').textContent=''; hideAdd('cat'); LOAD.cat=false; caricaCategorie(); }).withFailureHandler(e=>{document.getElementById('ncat_msg').textContent='Errore: '+e.message;}).adminAggiungiCategoria(TOKEN,d); }
 
   /* ---------- CSV ---------- */
   let CSV_TESTO='';

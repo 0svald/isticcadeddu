@@ -95,7 +95,7 @@ body=f'''
 <div class="box warn">Quando un socio viene <b>disattivato</b>, decadono in automatico i suoi ruoli di fornitore e amministratore. Se viene riattivato, i ruoli vanno riassegnati. Non puoi disattivare la tua tessera né l'ultimo amministratore.</div>
 
 <h2>Fornitori e categorie</h2>
-<p>Ogni fornitore è un socio: per aggiungerlo tocca <b>+</b> e indica per prima cosa la <b>tessera del socio</b>, poi i dati dell'azienda. Il fornitore entra nel portale con il suo link personale di socio. Toccando un fornitore aggiorni i suoi dati, lo attivi o disattivi, e gestisci il listino per suo conto. Le <b>categorie</b> sono comuni a tutti i fornitori: qui le aggiungi e le rinomini.</p>
+<p>Ogni fornitore è un socio: per aggiungerlo tocca <b>+</b> e indica per prima cosa la <b>tessera del socio</b>, poi i dati dell'azienda. Il fornitore entra nel portale con il suo link personale di socio. Toccando un fornitore aggiorni i suoi dati, lo attivi o disattivi, e gestisci il listino per suo conto. Le <b>categorie</b> sono comuni a tutti i fornitori: qui le aggiungi e le rinomini. L'ordine della lista è quello che vedono i soci nel modulo d'ordine: sposta una categoria con le frecce <span class="k">▲</span> e <span class="k">▼</span>. Una categoria nuova va in fondo.</p>
 
 <h2>Statistiche</h2>
 <p>In alto scegli il <b>periodo</b> (ultimi 3, 6 o 12 mesi, oppure da inizio anno) e, se vuoi, un <b>fornitore</b> o una <b>categoria</b>: tutta la pagina si aggiorna da sola.</p>
