@@ -11,7 +11,7 @@
  * Ognuno scarica solo le guide dei propri profili: il file passa dal server, non c'è un link pubblico.
  */
 
-var VERSIONE_APP = '2026.09.24';
+var VERSIONE_APP = '2026.09.25';
 
 var SCHEDA_AIUTO_ = 'Aiuto';
 var SCHEDA_SEGNALAZIONI_ = 'Segnalazioni';
@@ -66,6 +66,7 @@ function profiliAiuto_(token) {
 function aiutoDati(token, contesto) {
   contesto = contesto || {};
   assicuraScheda_(SCHEDA_AIUTO_, COLONNE_AIUTO_, faqIniziali_());
+  try { aggiornaDomandeAiuto(); } catch (e) { /* le domande restano quelle di prima */ }
   assicuraScheda_(SCHEDA_REFERENTI_, COLONNE_REFERENTI_);
   const pr = profiliAiuto_(token);
   const ammessi = { socio: pr.socio, fornitore: pr.fornitore, admin: pr.admin };
@@ -183,7 +184,7 @@ function adminAggiornaSegnalazione(token, id, d) {
   return { ok: true };
 }
 
-/** Numero di segnalazioni nuove (per la scheda "Da fare"). */
+/** Segnalazioni nuove (per le Notifiche del pannello). */
 function segnalazioniNuove_() {
   return leggiTabellaSafe_(SCHEDA_SEGNALAZIONI_).filter(s => String(s.stato || 'nuova') === 'nuova')
     .map(s => ({ id: String(s.id), quando: testoData_(s.timestamp), nominativo: String(s.nominativo || ''), tipo: String(s.tipo || ''), tecnico: isSi(s.tecnico) }));
@@ -191,27 +192,99 @@ function segnalazioniNuove_() {
 
 /* ===================== Domande frequenti iniziali (generiche) ===================== */
 /* Le risposte si modificano nella scheda "Aiuto" del foglio. Le regole del GAS (ordini per altri,
-   ritiri mancati, tempi per le modifiche) vanno aggiunte quando il comitato le avrà decise. */
-function faqIniziali_() {
-  const q = [
-    ['socio', 'Come faccio un ordine?', 'Quando un fornitore apre gli ordini, nella Community WhatsApp arriva un messaggio con un link. Toccalo, scegli i prodotti con i tasti + e –, controlla il riepilogo e premi "Conferma e invia". Se hai il tuo link personale, puoi ordinare anche dalla tua pagina, in "I miei ordini".'],
-    ['socio', 'Come modifico un ordine già inviato?', 'Apri la tua pagina con il link personale: in "I miei ordini" trovi il pulsante "Modifica il mio ordine", attivo fino alla chiusura della raccolta. Se non hai il link personale, scrivi al fornitore o a un amministratore.'],
-    ['socio', 'Ho perso il mio link personale: cosa faccio?', 'Chiedine uno nuovo a un amministratore. Il vecchio link smetterà di funzionare.'],
-    ['socio', 'Perché il mio ordine è "da verificare"?', 'Succede quando la tessera non risulta attiva o quando lo stesso socio ha inviato due ordini per la stessa raccolta. L\'ordine è registrato: un amministratore o il fornitore potrebbero contattarti per chiarire.'],
-    ['socio', 'Perché il prezzo è "indicativo"?', 'Alcuni prodotti, come formaggi o angurie, si pesano al momento. Il fornitore conferma il peso prima della consegna e l\'importo diventa quello esatto.'],
-    ['socio', 'Quando e dove ritiro? Come pago?', 'Giorno, orario e luogo sono nel messaggio della raccolta e nella tua pagina, in "Prossime consegne". Si paga in contanti direttamente al fornitore, al ritiro.'],
-    ['socio', 'La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura il modulo non accetta più ordini. Per casi particolari puoi scrivere al fornitore.'],
-    ['socio', 'Come cambio il mio numero di telefono o la mia email?', 'Nella tua pagina apri "Profilo": trovi i campi Telefono ed Email e il pulsante Salva.'],
-    ['socio', 'Come metto l\'app sulla schermata Home del telefono?', 'Apri il tuo link personale. Su Android: tocca i tre puntini in alto a destra e poi "Aggiungi a schermata Home". Su iPhone: tocca il pulsante di condivisione (il quadrato con la freccia) e poi "Aggiungi alla schermata Home".'],
-    ['fornitore', 'Come aggiungo o nascondo un prodotto?', 'In "Listino" tocca "Nuovo" per aggiungerlo. Per nasconderlo per un po\', tocca "Disponibile": diventa "Non disponibile" e i soci non lo vedono più nel modulo.'],
-    ['fornitore', 'Come imposto i gusti o un supplemento?', 'Apri il prodotto: in fondo trovi le opzioni. "Variante" è una scelta allo stesso prezzo (per esempio i gusti); "Supplemento" aggiunge un costo (per esempio la tanica).'],
-    ['fornitore', 'Come confermo i pesi?', 'In "Raccolte" tocca "Conferma pesi" e scrivi il peso reale di ogni pezzo. Gli importi dei soci si aggiornano da soli.'],
-    ['fornitore', 'Un socio mi chiede di cambiare il suo ordine', 'In "Raccolte" tocca "Ordini": puoi correggere le quantità o annullare l\'ordine. Accordati prima con il socio.'],
-    ['fornitore', 'Dove vedo quanto preparare?', 'In "Raccolte" tocca "Riepilogo": trovi il totale di ogni prodotto e l\'incasso previsto.'],
-    ['admin', 'Come apro una raccolta?', 'In "Raccolte" tocca +, scegli il fornitore, spunta i prodotti e scrivi la data di chiusura (per esempio 10-10-2026 20:00). Poi apri la raccolta e prepara il messaggio di apertura da incollare su WhatsApp.'],
-    ['admin', 'Come invio il link personale a un socio?', 'In "Soci" tocca il socio e poi "Invia link": si apre WhatsApp con il messaggio già scritto.'],
-    ['admin', 'Una raccolta non si è chiusa da sola', 'Controlla in "Da fare" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.'],
-    ['admin', 'Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Da fare" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.']
+   ritiri mancati, tempi per le modifiche) vanno aggiunte quando il comitato le avrà decise.
+   Ogni domanda: [ruolo, domanda, risposta, ordine]. */
+var FAQ_VERSIONE_ = '2026.09.25'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
+function faqDefault_() {
+  return [
+    ['socio', 'Come faccio un ordine?', 'Quando un fornitore apre gli ordini, nella Community WhatsApp arriva un messaggio con un link. Toccalo, scegli i prodotti con i tasti + e –, controlla il riepilogo e premi "Conferma e invia". Se hai il tuo link personale, puoi ordinare anche dalla tua pagina: nella Home tocca "Attivi".', 10],
+    ['socio', 'Come modifico un ordine già inviato?', 'Apri la tua pagina con il link personale e, nella Home, tocca "Attivi": trovi il pulsante "Modifica il mio ordine", attivo fino alla chiusura della raccolta. Se non hai il link personale, scrivi al fornitore o a un amministratore.', 20],
+    ['socio', 'Ho perso il mio link personale: cosa faccio?', 'Chiedine uno nuovo a un amministratore. Il vecchio link smetterà di funzionare.', 30],
+    ['socio', 'Perché il mio ordine è "da verificare"?', 'Succede quando la tessera non risulta attiva o quando lo stesso socio ha inviato due ordini per la stessa raccolta. L\'ordine è registrato: un amministratore o il fornitore potrebbero contattarti per chiarire.', 40],
+    ['socio', 'Perché il prezzo è "indicativo"?', 'Alcuni prodotti, come formaggi o angurie, si pesano al momento. Il fornitore conferma il peso prima della consegna e l\'importo diventa quello esatto.', 50],
+    ['socio', 'Quando e dove ritiro? Come pago?', 'Giorno, orario e luogo sono nel messaggio della raccolta e nella tua pagina: nella Home tocca "Attivi" e guarda "Prossime consegne". Nei giorni prima del ritiro trovi anche un promemoria in "Notifiche". Si paga in contanti direttamente al fornitore, al ritiro.', 60],
+    ['socio', 'La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura il modulo non accetta più ordini. Per casi particolari puoi scrivere al fornitore.', 70],
+    ['socio', 'Come cambio il mio numero di telefono o la mia email?', 'Nella Home della tua pagina tocca "Profilo": trovi i campi Telefono ed Email e il pulsante Salva.', 80],
+    ['socio', 'Come metto l\'app sulla schermata Home del telefono?', 'Apri il tuo link personale. Su Android: tocca i tre puntini in alto a destra e poi "Aggiungi a schermata Home". Su iPhone: tocca il pulsante di condivisione (il quadrato con la freccia) e poi "Aggiungi alla schermata Home".', 90],
+    ['socio', 'Dove trovo i miei ordini passati?', 'Nella Home tocca "Storico": trovi gli ordini delle consegne già fatte, dal più recente. Tocca un ordine per vedere i prodotti.', 92],
+    ['socio', 'Cosa sono le notifiche?', 'In cima alla Home c\'è "Notifiche": ti avvisa di una raccolta che sta per chiudere, di un ordine da verificare, dell\'importo confermato dopo la pesatura e del prossimo ritiro. Ogni avviso sparisce da solo quando la cosa è fatta o passata.', 94],
+    ['socio', 'Come torno alla pagina iniziale?', 'Tocca il pulsante verde "Home" in basso: da lì raggiungi tutte le sezioni.', 96],
+    ['fornitore', 'Come aggiungo o nascondo un prodotto?', 'Nella Home tocca "Listino", poi "Nuovo" per aggiungerlo. Per nasconderlo per un po\', tocca "Disponibile": diventa "Non disponibile" e i soci non lo vedono più nel modulo.', 100],
+    ['fornitore', 'Come imposto i gusti o un supplemento?', 'Apri il prodotto: in fondo trovi le opzioni. "Variante" è una scelta allo stesso prezzo (per esempio i gusti); "Supplemento" aggiunge un costo (per esempio la tanica).', 110],
+    ['fornitore', 'Come confermo i pesi?', 'Nella Home tocca "Raccolte", poi "Conferma pesi" e scrivi il peso reale di ogni pezzo. Gli importi dei soci si aggiornano da soli. Le raccolte con pesi da confermare compaiono anche in "Notifiche".', 120],
+    ['fornitore', 'Un socio mi chiede di cambiare il suo ordine', 'Nella Home tocca "Raccolte" e poi "Ordini": puoi correggere le quantità o annullare l\'ordine. Accordati prima con il socio.', 130],
+    ['fornitore', 'Dove vedo quanto preparare?', 'Nella Home tocca "Raccolte" e poi "Riepilogo": trovi il totale di ogni prodotto e l\'incasso previsto.', 140],
+    ['fornitore', 'Dove trovo le raccolte già consegnate?', 'Nella pagina "Raccolte", in fondo, c\'è il riquadro "Raccolte concluse": toccalo per aprirlo. Il giorno dopo la consegna le raccolte ci passano da sole.', 142],
+    ['fornitore', 'Cosa trovo nelle notifiche?', 'Ordini da verificare, pesi da confermare, raccolte che chiudono entro 24 ore e consegne dei prossimi giorni. Ogni avviso sparisce da solo quando la cosa è fatta o passata.', 144],
+    ['admin', 'Come apro una raccolta?', 'Nella Home tocca "Raccolte", poi +. Scegli il fornitore, spunta i prodotti e scrivi la data di chiusura (per esempio 10-10-2026 20:00). Poi apri la raccolta e prepara il messaggio di apertura da incollare su WhatsApp.', 150],
+    ['admin', 'Come invio il link personale a un socio?', 'Nella Home tocca "Soci", poi il socio e "Invia link": si apre WhatsApp con il messaggio già scritto.', 160],
+    ['admin', 'Una raccolta non si è chiusa da sola', 'Controlla in "Notifiche" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.', 170],
+    ['admin', 'Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Notifiche" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.', 180],
+    ['admin', 'Quando una raccolta passa nello storico?', 'Il giorno dopo la data di consegna le raccolte chiuse diventano "Consegnata" da sole e passano nella scheda "Storico" di Raccolte e Consegne. Se una raccolta non ha la data di consegna, aprila e tocca "Segna come consegnata".', 182],
+    ['admin', 'Dove trovo raccolte e consegne passate?', 'In "Raccolte" e in "Consegne" tocca "Storico": sono divise per mese e puoi filtrarle per fornitore, anche se non è più attivo.', 184]
   ];
-  return q.map((r, i) => ['F' + String(i + 1).padStart(2, '0'), r[0], r[1], r[2], (i + 1) * 10, 'SI']);
+}
+
+/** Righe per una scheda Aiuto nuova. */
+function faqIniziali_() {
+  return faqDefault_().map((r, i) => ['F' + String(i + 1).padStart(2, '0'), r[0], r[1], r[2], r[3], 'SI']);
+}
+
+/* Risposte pubblicate nelle versioni precedenti: servono a riconoscere quelle mai modificate a mano. */
+var FAQ_PRECEDENTI_ = [
+    ['Come faccio un ordine?', 'Quando un fornitore apre gli ordini, nella Community WhatsApp arriva un messaggio con un link. Toccalo, scegli i prodotti con i tasti + e –, controlla il riepilogo e premi "Conferma e invia". Se hai il tuo link personale, puoi ordinare anche dalla tua pagina, in "I miei ordini".'],
+    ['Come modifico un ordine già inviato?', 'Apri la tua pagina con il link personale: in "I miei ordini" trovi il pulsante "Modifica il mio ordine", attivo fino alla chiusura della raccolta. Se non hai il link personale, scrivi al fornitore o a un amministratore.'],
+    ['Ho perso il mio link personale: cosa faccio?', 'Chiedine uno nuovo a un amministratore. Il vecchio link smetterà di funzionare.'],
+    ['Perché il mio ordine è "da verificare"?', 'Succede quando la tessera non risulta attiva o quando lo stesso socio ha inviato due ordini per la stessa raccolta. L\'ordine è registrato: un amministratore o il fornitore potrebbero contattarti per chiarire.'],
+    ['Perché il prezzo è "indicativo"?', 'Alcuni prodotti, come formaggi o angurie, si pesano al momento. Il fornitore conferma il peso prima della consegna e l\'importo diventa quello esatto.'],
+    ['Quando e dove ritiro? Come pago?', 'Giorno, orario e luogo sono nel messaggio della raccolta e nella tua pagina, in "Prossime consegne". Si paga in contanti direttamente al fornitore, al ritiro.'],
+    ['La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura il modulo non accetta più ordini. Per casi particolari puoi scrivere al fornitore.'],
+    ['Come cambio il mio numero di telefono o la mia email?', 'Nella tua pagina apri "Profilo": trovi i campi Telefono ed Email e il pulsante Salva.'],
+    ['Come metto l\'app sulla schermata Home del telefono?', 'Apri il tuo link personale. Su Android: tocca i tre puntini in alto a destra e poi "Aggiungi a schermata Home". Su iPhone: tocca il pulsante di condivisione (il quadrato con la freccia) e poi "Aggiungi alla schermata Home".'],
+    ['Come aggiungo o nascondo un prodotto?', 'In "Listino" tocca "Nuovo" per aggiungerlo. Per nasconderlo per un po\', tocca "Disponibile": diventa "Non disponibile" e i soci non lo vedono più nel modulo.'],
+    ['Come imposto i gusti o un supplemento?', 'Apri il prodotto: in fondo trovi le opzioni. "Variante" è una scelta allo stesso prezzo (per esempio i gusti); "Supplemento" aggiunge un costo (per esempio la tanica).'],
+    ['Come confermo i pesi?', 'In "Raccolte" tocca "Conferma pesi" e scrivi il peso reale di ogni pezzo. Gli importi dei soci si aggiornano da soli.'],
+    ['Un socio mi chiede di cambiare il suo ordine', 'In "Raccolte" tocca "Ordini": puoi correggere le quantità o annullare l\'ordine. Accordati prima con il socio.'],
+    ['Dove vedo quanto preparare?', 'In "Raccolte" tocca "Riepilogo": trovi il totale di ogni prodotto e l\'incasso previsto.'],
+    ['Come apro una raccolta?', 'In "Raccolte" tocca +, scegli il fornitore, spunta i prodotti e scrivi la data di chiusura (per esempio 10-10-2026 20:00). Poi apri la raccolta e prepara il messaggio di apertura da incollare su WhatsApp.'],
+    ['Come invio il link personale a un socio?', 'In "Soci" tocca il socio e poi "Invia link": si apre WhatsApp con il messaggio già scritto.'],
+    ['Una raccolta non si è chiusa da sola', 'Controlla in "Da fare" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.'],
+    ['Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Da fare" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.']
+];
+
+/**
+ * Aggiorna le domande frequenti della scheda Aiuto dopo una nuova versione dell'app (una volta sola per versione).
+ * - una risposta uguale a quella vecchia viene sostituita con quella nuova;
+ * - una risposta cambiata a mano dagli amministratori resta com'è;
+ * - le domande nuove vengono aggiunte (quelle tolte a mano dagli amministratori restano tolte).
+ * Parte da sola alla prima apertura di "Aiuto"; si può anche eseguire dall'editor.
+ */
+function aggiornaDomandeAiuto() {
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty('AIUTO_FAQ_VERSIONE') === FAQ_VERSIONE_) return 'Già aggiornate';
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return 'Occupato, riprova';
+  try {
+    assicuraScheda_(SCHEDA_AIUTO_, COLONNE_AIUTO_, faqIniziali_());
+    const chiave = t => String(t || '').trim().toLowerCase();
+    const vecchie = {}; FAQ_PRECEDENTI_.forEach(r => { vecchie[chiave(r[0])] = String(r[1]).trim(); });
+    const righe = leggiTabellaSafe_(SCHEDA_AIUTO_);
+    let cambiate = 0, aggiunte = 0;
+    faqDefault_().forEach(d => {
+      const r = righe.find(x => chiave(x.domanda) === chiave(d[1]));
+      if (!r) {
+        if (vecchie[chiave(d[1])] !== undefined) return; // c'era già e un amministratore l'ha tolta: resta tolta
+        aggiungiRiga(SCHEDA_AIUTO_, { id: nuovoId(SCHEDA_AIUTO_, 'F'), ruolo: d[0], domanda: d[1], risposta: d[2], ordine: d[3], attivo: 'SI' });
+        aggiunte++;
+      } else if (String(r.risposta || '').trim() !== d[2] && String(r.risposta || '').trim() === vecchie[chiave(d[1])]) {
+        aggiornaCella(SCHEDA_AIUTO_, r._riga, 'risposta', d[2]);
+        cambiate++;
+      }
+    });
+    props.setProperty('AIUTO_FAQ_VERSIONE', FAQ_VERSIONE_);
+    log_('sistema', 'aiuto_aggiornato', 'versione ' + FAQ_VERSIONE_ + ': ' + cambiate + ' risposte aggiornate, ' + aggiunte + ' domande aggiunte');
+    return cambiate + ' risposte aggiornate, ' + aggiunte + ' domande aggiunte';
+  } finally {
+    lock.releaseLock();
+  }
 }

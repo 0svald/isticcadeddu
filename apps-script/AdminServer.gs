@@ -409,10 +409,12 @@ function adminEliminaAdmin(token, id) {
 function adminProfilo(token) {
   checkToken_(token);
   const base = urlApp();
-  if (!_ADMIN_TESSERA) return { url: base, socioUrl: '', fornitoreUrl: '' };
+  // nome: per il saluto della Home (solo il nome di battesimo)
+  const nome = _ADMIN_TESSERA ? String(_ADMIN_CORRENTE).trim().split(/\s+/)[0] : '';
+  if (!_ADMIN_TESSERA) return { url: base, socioUrl: '', fornitoreUrl: '', nome: nome };
   const r = ruoliTessera_(_ADMIN_TESSERA);
   const t = encodeURIComponent(String(token).trim());
-  return { url: base, socioUrl: base + '?socio=' + t, fornitoreUrl: r.fornitore ? (base + '?fornitore=' + t) : '' };
+  return { url: base, socioUrl: base + '?socio=' + t, fornitoreUrl: r.fornitore ? (base + '?fornitore=' + t) : '', nome: nome };
 }
 
 /** (Admin) Registro delle ultime azioni (dal Log). */

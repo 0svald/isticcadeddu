@@ -182,6 +182,45 @@
   @keyframes entra{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
   @keyframes sale{ from{ transform:translateY(30px); opacity:.6; } to{ transform:none; opacity:1; } }
   @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+  /* ---------- Home, riepilogo, notifiche, tasto Home (comuni a socio, fornitore, pannello) ---------- */
+  .home-saluto{ display:flex; align-items:center; gap:14px; margin:4px 0 16px; }
+  .home-saluto .gas-icon{ width:52px; height:52px; flex-basis:52px; }
+  .home-saluto h1{ font-size:1.55rem; margin:0; }
+  .hgrp{ font-size:.78rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:18px 2px 6px; }
+  .hlista{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); overflow:hidden; }
+  .hvoce{ display:flex; align-items:center; gap:12px; width:100%; min-height:58px; padding:8px 14px; border:none; border-top:1px solid var(--line-soft); border-radius:0;
+    background:transparent; font:inherit; color:var(--ink); text-align:left; cursor:pointer; box-shadow:none; justify-content:flex-start; }
+  .hvoce:first-child{ border-top:none; }
+  .hvoce:hover{ background:var(--sub); }
+  .hvoce .hic{ width:38px; height:38px; flex:0 0 38px; border-radius:11px; background:var(--green-t); color:var(--green-d); display:flex; align-items:center; justify-content:center; }
+  .hvoce .hic svg{ width:22px; height:22px; }
+  .hvoce b{ flex:1; font-size:1.05rem; }
+  .hvoce .fr{ color:var(--muted); display:flex; } .hvoce .fr svg{ width:20px; height:20px; }
+  .hvoce .num{ min-width:26px; height:26px; padding:0 7px; border-radius:999px; background:var(--amber); color:#fff; font-weight:700; font-size:.82rem; line-height:26px; text-align:center; }
+  .hvoce.evid{ background:var(--amber-bg); } .hvoce.evid .hic{ background:#F6DFB0; color:var(--amber-d); }
+  .sopra{ font-size:.78rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .riep{ display:flex; gap:12px; align-items:flex-start; background:var(--green-t); border:1px solid var(--green-l); border-radius:var(--r-lg); padding:12px 14px; margin:0 0 14px; }
+  .riep:empty{ display:none; }
+  .riep .ric{ width:40px; height:40px; flex:0 0 40px; border-radius:12px; background:var(--surface); color:var(--green-d); display:flex; align-items:center; justify-content:center; }
+  .riep .ric svg{ width:22px; height:22px; }
+  .riep b{ display:block; font-size:1.05rem; } .riep span{ font-size:.95rem; }
+  .riep.evid{ background:var(--amber-bg); border-color:var(--amber-line); } .riep.evid .ric{ color:var(--amber-d); }
+  .nota{ display:flex; gap:12px; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--green); border-radius:14px; padding:12px 14px; margin:0 0 10px; }
+  .nota.fare{ border-left-color:var(--amber); } .nota.urg{ border-left-color:var(--red); }
+  .nota .nic{ width:36px; height:36px; flex:0 0 36px; border-radius:10px; background:var(--green-t); color:var(--green-d); display:flex; align-items:center; justify-content:center; }
+  .nota.fare .nic{ background:var(--amber-bg); color:var(--amber-d); } .nota.urg .nic{ background:var(--red-bg); color:var(--red); }
+  .nota .nic svg{ width:20px; height:20px; }
+  .nota .nt{ flex:1; min-width:0; } .nota .nt > b{ display:block; }
+  .nota .nt .nm{ color:var(--muted); font-size:.95rem; margin-top:2px; white-space:pre-line; }
+  .nota .nazioni{ margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+  .etich{ display:inline-block; font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:2px 8px; border-radius:999px; margin-bottom:4px; background:var(--green-t); color:var(--green-d); }
+  .nota.fare .etich{ background:var(--amber-bg); color:var(--amber-d); } .nota.urg .etich{ background:var(--red-bg); color:var(--red); }
+  .ngrp{ margin:18px 0 8px; font-size:1.2rem; }
+  .barra-home{ position:fixed; left:0; right:0; bottom:0; z-index:45; display:flex; justify-content:center; padding:8px 16px calc(10px + env(safe-area-inset-bottom,0px));
+    background:rgba(255,253,248,.97); border-top:1px solid var(--line); }
+  .barra-home button{ width:100%; max-width:280px; min-height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; gap:10px; font-size:1.05rem; }
+  .barra-home button.su{ background:var(--green-t); color:var(--green-d); border-color:var(--green-t); }
+  .barra-home svg{ width:24px; height:24px; }
 </style>
 <script>
   /* App installata (contenitore su GitHub Pages): i passaggi tra pagine restano dentro l'app.
@@ -227,5 +266,70 @@
       const ov=apri('<h2>'+escT(titolo||'Avviso')+'</h2><div style="font-size:1.02rem;white-space:pre-line;word-break:break-word">'+escT(testo)+'</div><div class="btns"><button data-v="1">Ho capito</button></div>');
       ov.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b && e.target!==ov) return; ov.remove(); res(); });
       setTimeout(()=>{ const b=ov.querySelector('button'); if(b) b.focus(); },30); }); };
+  })();
+  /* Componenti comuni: Home a elenco diviso per sezioni, riepilogo in cima alle pagine, notifiche, tasto Home.
+     Le notifiche non si chiudono a mano: si calcolano dai dati e spariscono quando l'evento cambia stato. */
+  window.GasUI = (function(){
+    function e(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    const P={
+      home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+      notif:'<path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 003.4 0"/>',
+      ordini:'<path d="M5 8h14l-1.5 12h-11z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
+      storico:'<path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
+      racc:'<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+      cons:'<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+      soci:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 010 7"/><path d="M21.5 20c0-2.6-1.4-4.6-3.7-5.5"/>',
+      forn:'<path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-7h6v7"/>',
+      cat:'<path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8z"/><path d="M7.5 7.5h.01"/>',
+      stat:'<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/>',
+      admin:'<path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/>',
+      segn:'<path d="M4 21V4h11l-1 4h6v9h-9l1-4H4"/>',
+      profilo:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>',
+      aiuto:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/>',
+      listino:'<path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/>',
+      bilancia:'<path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-3 7a3 3 0 006 0z"/><path d="M19 7l-3 7a3 3 0 006 0z"/>',
+      orologio:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      euro:'<path d="M17 6.5A7 7 0 107 17.5"/><path d="M4 10h9"/><path d="M4 14h9"/>',
+      attenz:'<path d="M12 3l10 18H2z"/><path d="M12 10v5"/><path d="M12 18h.01"/>',
+      fr:'<path d="M9 6l6 6-6 6"/>'
+    };
+    function icona(k){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(P[k]||P.notif)+'</svg>'; }
+    function voce(v){ return '<button type="button" class="hvoce'+(v.evid?' evid':'')+'" data-k="'+e(v.k)+'"><span class="hic">'+icona(v.icona||v.k)+'</span><b>'+e(v.nome)+'</b>'+
+      (v.n?'<span class="num" aria-label="'+v.n+' in attesa">'+v.n+'</span>':'')+'<span class="fr">'+icona('fr')+'</span></button>'; }
+    return {
+      icona: icona,
+      /** home(box, {nome, sotto, gruppi:[{titolo, voci:[{k, nome, icona, n}]}], notifiche:n, vai:fn(k)}) */
+      home: function(box, o){
+        let h='<div class="home-saluto"><div class="gas-icon" aria-hidden="true"></div><div><h1>Ciao'+(o.nome?' '+e(o.nome):'')+'</h1><div class="muted">'+e(o.sotto||'Cosa vuoi fare?')+'</div></div></div>';
+        h+='<div class="hlista">'+voce({k:'notif',nome:'Notifiche',n:o.notifiche,evid:!!o.notifiche})+'</div>';
+        (o.gruppi||[]).forEach(g=>{ h+='<div class="hgrp">'+e(g.titolo)+'</div><div class="hlista">'+g.voci.map(voce).join('')+'</div>'; });
+        box.innerHTML=h;
+        box.querySelectorAll('.hvoce').forEach(b=>b.onclick=()=>o.vai(b.dataset.k));
+      },
+      /** riep(el, titolo, testo, {evid, icona}) — riquadro di riepilogo in cima a una pagina */
+      riep: function(el, titolo, testo, o){ if(!el) return; o=o||{};
+        if(!titolo){ el.innerHTML=''; return; }
+        el.className='riep'+(o.evid?' evid':'');
+        el.innerHTML='<span class="ric">'+icona(o.icona)+'</span><div><b>'+e(titolo)+'</b>'+(testo?'<span>'+e(testo)+'</span>':'')+'</div>'; },
+      /** notifiche(box, lista) — lista: [{tipo:'urg'|'fare'|'info', etich, titolo, testo, icona, html, azioni:[{testo, fn}]}] */
+      notifiche: function(box, lista, vuoto){
+        const ordine={urg:0,fare:1,info:2}; const l=(lista||[]).slice().sort((a,b)=>ordine[a.tipo]-ordine[b.tipo]);
+        if(!l.length){ box.innerHTML='<div class="nota"><div class="nic">'+icona('notif')+'</div><div class="nt"><b>Nessuna notifica</b><div class="nm">'+e(vuoto||'Qui compaiono le cose da fare e gli avvisi che ti riguardano.')+'</div></div></div>'; return; }
+        let h='', gruppo=null; const azioni=[];
+        l.forEach(n=>{ const g=n.tipo==='info'?'Per sapere':'Da fare'; if(g!==gruppo){ gruppo=g; h+='<h2 class="ngrp">'+g+'</h2>'; }
+          const et=n.etich||(n.tipo==='urg'?'Importante':(n.tipo==='fare'?'Da fare':'Promemoria'));
+          h+='<div class="nota'+(n.tipo==='info'?'':' '+n.tipo)+'"><div class="nic">'+icona(n.icona||(n.tipo==='info'?'notif':'attenz'))+'</div><div class="nt"><span class="etich">'+e(et)+'</span><b>'+e(n.titolo)+'</b>'+
+            (n.testo?'<div class="nm">'+e(n.testo)+'</div>':'')+(n.html||'')+
+            ((n.azioni&&n.azioni.length)?'<div class="nazioni">'+n.azioni.map(a=>{ azioni.push(a.fn); return '<button type="button" class="sec" data-a="'+(azioni.length-1)+'">'+e(a.testo)+'</button>'; }).join('')+'</div>':'')+'</div></div>'; });
+        box.innerHTML=h;
+        box.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>azioni[+b.dataset.a]());
+      },
+      /** barra(el, suHome, fn) — in basso solo il tasto Home */
+      barra: function(el, suHome, fn){ el.innerHTML='<button type="button" class="'+(suHome?'su':'')+'"'+(suHome?' aria-current="page"':'')+'>'+icona('home')+'Home</button>';
+        el.querySelector('button').onclick=fn; },
+      /** data GG-MM-AAAA [HH:MM] -> Date (null se non leggibile) */
+      data: function(t){ const m=String(t||'').match(/^(\d{2})-(\d{2})-(\d{4})(?:\s+(\d{1,2})[:.](\d{2}))?/); if(!m) return null;
+        return m[4]!==undefined ? new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]) : new Date(+m[3],+m[2]-1,+m[1],23,59); }
+    };
   })();
 </script>

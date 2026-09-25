@@ -85,7 +85,7 @@ function contestoOrdiniSocio_(so) {
   function dettOrdini(racId) {
     const lista = mieiOrdini.filter(o => String(o.raccolta_id) === String(racId));
     if (!lista.length) return null;
-    const righe = []; let tot = 0, daConf = false, stato = 'valido', note = [];
+    const righe = []; let tot = 0, daConf = false, aPeso = false, stato = 'valido', note = [];
     lista.forEach(o => {
       if (String(o.stato) !== 'valido') stato = 'da_verificare';
       if (o.note) note.push(String(o.note));
@@ -94,12 +94,12 @@ function contestoOrdiniSocio_(so) {
         const op = r.opzione_id ? opz[String(r.opzione_id)] : null;
         const q = num(r.quantita), pc = num(r.peso_confermato);
         const imp = prezzoRiga_(p, op, q, pc); tot += imp;
-        if (isSi(p.peso_variabile) && !pc) daConf = true;
+        if (isSi(p.peso_variabile)) { aPeso = true; if (!pc) daConf = true; }
         const u = String(p.unita || ''); const um = u.indexOf('/') >= 0 ? (' ' + u.split('/').pop()) : '';
         righe.push({ nome: p.nome + (op ? (' – ' + op.nome) : ''), quantita: (Math.round(q * 100) / 100).toString().replace('.', ',') + um, importo: imp });
       });
     });
-    return { stato: stato, righe: righe, totale: tot, definitivo: !daConf, note: note.join(' · '), nOrdini: lista.length };
+    return { stato: stato, righe: righe, totale: tot, definitivo: !daConf, aPeso: aPeso, note: note.join(' · '), nOrdini: lista.length };
   }
   function infoConsegna(r) {
     const cid = String(r.consegna_id || '');
@@ -182,7 +182,7 @@ function socioStorico(token, da) {
   tutte.sort((a, b) => b.dt - a.dt);
   const inizio = Math.max(0, Math.floor(num(da)));
   return { voci: tutte.slice(inizio, inizio + PAGINA).map(x => ({ fornitore: x.fornitore, emoji: x.emoji, data: x.data, anno: x.anno, ordine: x.ordine })),
-    altri: tutte.length > inizio + PAGINA };
+    altri: tutte.length > inizio + PAGINA, totale: tutte.length };
 }
 
 /** Dati del form in modalità socio: form normale + identità + ordine esistente da precompilare. */

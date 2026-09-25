@@ -9,13 +9,7 @@
 <?!= include('Aiuto') ?>
 <style>
   .wrap{ max-width:620px; margin:0 auto; padding:18px 16px 120px; }
-  .hello h1{ font-size:2rem; margin:0; }
-  .hero{ background:var(--green); color:var(--surface); border-radius:18px; padding:18px; margin:18px 0 6px; }
-  .hero small{ display:block; font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#D6E6CF; }
-  .hero .d{ font-family:var(--serif); font-size:1.5rem; font-weight:600; line-height:1.15; margin:6px 0 2px; }
-  .hero .l{ color:#E6EEDF; }
-  .hero .p{ display:flex; justify-content:space-between; align-items:center; border-top:1px solid #5C8A55; margin-top:12px; padding-top:10px; }
-  .hero .p b{ font-size:1.3rem; white-space:nowrap; }
+  .ptit{ font-size:2rem; margin:2px 0 10px; }
   h2.sez{ margin:26px 0 8px; font-size:1.35rem; }
   .ct{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
   .ct b{ font-size:1.12rem; }
@@ -42,21 +36,27 @@
 <body>
 <header class="topbar"><div class="brand"><div class="mark" role="img" aria-label="GAS Isticcadeddu"></div><div class="bt"><b>GAS Isticcadeddu</b><small id="tb_sub">La mia pagina</small></div></div></header>
 <div class="wrap">
-  <div id="out" role="status"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
-  <div id="sez_storico" class="hidden">
-    <h1 style="font-size:2rem;margin:0">Storico</h1>
-    <div class="meta">I tuoi ordini delle consegne già fatte, dal più recente.</div>
-    <div id="storico_box" role="status" style="margin-top:14px"></div>
+  <div id="caricamento" role="status"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
+  <div id="sez_home" class="hidden"><div id="home_box"></div></div>
+  <div id="sez_notif" class="hidden">
+    <h1 class="ptit">Notifiche</h1>
+    <div class="meta">Restano qui finché la cosa non cambia: un ordine fatto, un peso confermato, un ritiro passato.</div>
+    <div id="notif_box" style="margin-top:6px"></div>
   </div>
-  <div id="sez_profilo" class="hidden"><div id="prof_box"></div></div>
-  <div id="sez_aiuto" class="hidden"><div id="aiuto_box"></div></div>
+  <div id="sez_attivi" class="hidden">
+    <div class="sopra">Ordini</div><h1 class="ptit">Attivi</h1>
+    <div id="riep_attivi" class="riep"></div>
+    <div id="out"></div>
+  </div>
+  <div id="sez_storico" class="hidden">
+    <div class="sopra">Ordini</div><h1 class="ptit">Storico</h1>
+    <div id="riep_storico" class="riep"></div>
+    <div id="storico_box" role="status"></div>
+  </div>
+  <div id="sez_profilo" class="hidden"><div class="sopra">La mia tessera</div><div id="prof_box"></div></div>
+  <div id="sez_aiuto" class="hidden"><div class="sopra">La mia tessera</div><div id="aiuto_box"></div></div>
 </div>
-<nav class="bottomnav" aria-label="Menu">
-  <button class="navbtn active" data-s="ordini" onclick="vai('ordini')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.5 12h-11z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>I miei ordini</button>
-  <button class="navbtn" data-s="storico" onclick="vai('storico')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Storico</button>
-  <button class="navbtn" data-s="profilo" onclick="vai('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profilo</button>
-  <button class="navbtn" data-s="aiuto" onclick="vai('aiuto')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg>Aiuto</button>
-</nav>
+<nav class="barra-home" id="barra" aria-label="Menu"></nav>
 <script>
   const TOKEN = "<?= token ?>";
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -78,28 +78,59 @@
     return h;
   }
 
+  const SEZIONI=['home','notif','attivi','storico','profilo','aiuto'];
   function vai(k){
-    document.getElementById('out').classList.toggle('hidden', k!=='ordini');
-    document.getElementById('sez_profilo').classList.toggle('hidden', k!=='profilo');
-    document.getElementById('sez_aiuto').classList.toggle('hidden', k!=='aiuto');
-    document.getElementById('sez_storico').classList.toggle('hidden', k!=='storico');
-    document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.s===k));
+    SEZIONI.forEach(x=>document.getElementById('sez_'+x).classList.toggle('hidden', x!==k));
+    GasUI.barra(document.getElementById('barra'), k==='home', ()=>vai('home'));
     if(k==='storico' && !STORICO.caricato) caricaStorico();
     if(k==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'socio');
     if(k==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'socio', pagina:'pagina socio', sezione:'aiuto' });
     window.scrollTo({top:0});
   }
+  // apre un link dell'app come se fosse stato toccato (così funziona anche dentro l'app installata)
+  function apriLink(url){ const a=document.createElement('a'); a.href=url; a.target='_top'; document.body.appendChild(a); a.click(); a.remove(); }
+  function plurale(n, uno, tanti){ return n+' '+(n===1?uno:tanti); }
+  // notifiche del socio: calcolate dai dati, restano finché l'evento non cambia stato
+  function notificheSocio(d){
+    const ora=new Date(), l=[], inVerifica={};
+    d.aperte.forEach(r=>{
+      if(r.ordine){ if(r.ordine.stato!=='valido') inVerifica[r.fornitore]=1; return; }
+      const dt=GasUI.data(r.chiusura), presto=dt && (dt-ora)<=24*3600*1000;
+      l.push({ tipo:presto?'fare':'info', etich:presto?'Da fare':'Novità', icona:presto?'orologio':'racc',
+        titolo:presto?(r.fornitore+' chiude presto'):('Raccolta aperta: '+r.fornitore),
+        testo:'Ordini fino al '+chiusura(r.chiusura)+'.'+(presto?' Non hai ancora ordinato.':''),
+        azioni:[{testo:'Ordina', fn:()=>apriLink(r.formUrl)}] });
+    });
+    const oggi=new Date(ora.getFullYear(),ora.getMonth(),ora.getDate()), tra7=new Date(oggi.getTime()+8*864e5);
+    d.consegne.forEach(c=>{
+      c.ritiri.forEach(x=>{
+        if(x.ordine.stato!=='valido') inVerifica[x.fornitore]=1;
+        if(!x.aperta && x.ordine.aPeso && x.ordine.definitivo) l.push({ tipo:'info', etich:'Novità', icona:'euro',
+          titolo:'Importo confermato: '+euro(x.ordine.totale), testo:x.fornitore+' ha pesato i tuoi prodotti. Da pagare in contanti al ritiro.',
+          azioni:[{testo:'Vedi l\'ordine', fn:()=>vai('attivi')}] });
+      });
+      const dt=pd(c.data);
+      if(c.ritiri.length && dt && dt>=oggi && dt<tra7){ const tot=c.ritiri.reduce((a,x)=>a+x.ordine.totale,0), def=c.ritiri.every(x=>x.ordine.definitivo);
+        l.push({ tipo:'info', etich:'Promemoria', icona:'cons', titolo:'Ritiro '+giorno(c.data).toLowerCase()+(c.fascia?(', '+c.fascia):''),
+          testo:[c.luogo, plurale(c.ritiri.length,'fornitore','fornitori'), (def?'da pagare ':'circa ')+euro(tot)].filter(Boolean).join(' · ') }); }
+    });
+    Object.keys(inVerifica).forEach(f=>l.push({ tipo:'urg', etich:'Importante', titolo:'Il tuo ordine è in verifica',
+      testo:f+': un amministratore o il fornitore potrebbero contattarti.', azioni:[{testo:'Vedi l\'ordine', fn:()=>vai('attivi')}] }));
+    return l;
+  }
+  function riepAttivi(d){
+    const nOrd=d.aperte.filter(r=>r.ordine).length, nDa=d.aperte.length-nOrd;
+    const titolo=d.aperte.length ? [nOrd?plurale(nOrd,'ordine aperto','ordini aperti'):'', nDa?plurale(nDa,'raccolta da ordinare','raccolte da ordinare'):''].filter(Boolean).join(' · ') : 'Nessuna raccolta aperta';
+    const p=d.consegne.find(c=>c.ritiri.length); let testo='Nessun ritiro in programma.';
+    if(p){ const tot=p.ritiri.reduce((a,x)=>a+x.ordine.totale,0), def=p.ritiri.every(x=>x.ordine.definitivo);
+      testo='Prossimo ritiro: '+(p.data==='data da definire'?'data da definire':giorno(p.data))+(p.fascia?(', '+p.fascia):'')+(p.luogo?(' · '+p.luogo):'')+' · '+(def?'da pagare ':'circa ')+euro(tot)+' in contanti.'; }
+    const urgente=d.aperte.some(r=>{ const dt=GasUI.data(r.chiusura); return !r.ordine && dt && (dt-new Date())<=24*3600*1000; });
+    GasUI.riep(document.getElementById('riep_attivi'), titolo, testo, { icona:'ordini', evid:urgente });
+  }
   function render(d){
     document.getElementById('tb_sub').textContent='La mia pagina · tessera '+d.socio.tessera;
-    let h='<div class="hello"><h1>Ciao '+esc((d.socio.nominativo||'').split(' ')[0])+'</h1><div class="meta">Qui trovi i tuoi ordini e le prossime consegne.</div></div>';
+    let h='';
     if(!d.socio.attiva) h+='<div class="notice warn">La tua tessera risulta non attiva: puoi ordinare, ma gli ordini verranno verificati. Chiedi informazioni al comitato.</div>';
-
-    // prossimo ritiro
-    const prossima=d.consegne.find(c=>c.ritiri.length);
-    if(prossima){ const tot=prossima.ritiri.reduce((a,x)=>a+x.ordine.totale,0); const def=prossima.ritiri.every(x=>x.ordine.definitivo);
-      h+='<section class="hero"><small>Il tuo prossimo ritiro</small><div class="d">'+esc(prossima.data==='data da definire'?'Data da definire':giorno(prossima.data))+(prossima.fascia?(', '+esc(prossima.fascia)):'')+'</div>'+
-         '<div class="l">'+esc([prossima.luogo,prossima.indirizzo].filter(Boolean).join(' · '))+'</div>'+
-         '<div class="p"><span>'+prossima.ritiri.length+(prossima.ritiri.length===1?' fornitore':' fornitori')+' · '+(def?'da pagare':'circa')+' in contanti</span><b>'+euro(tot)+'</b></div></section>'; }
 
     // ordini aperti
     h+='<h2 class="sez">Ordini aperti</h2>';
@@ -124,23 +155,35 @@
         h+='</div></div>'; });
       h+='</div>'; }
 
-    h+='<p class="meta" style="margin-top:22px">Gli ordini delle consegne già fatte sono nella voce <b>Storico</b>, nel menu in basso.</p>';
+    h+='<p class="meta" style="margin-top:22px">Gli ordini delle consegne già fatte sono in <b>Storico</b>: tocca Home e poi Storico.</p>';
     h+='<p class="meta" style="margin-top:28px">Questo link è solo tuo: non inoltrarlo. Se lo perdi, chiedine uno nuovo a un amministratore.</p>';
-    const out=document.getElementById('out'); out.className='enter'; out.innerHTML=h;
+    document.getElementById('out').innerHTML=h;
+    riepAttivi(d);
+    const note=notificheSocio(d);
+    GasUI.notifiche(document.getElementById('notif_box'), note);
+    GasUI.home(document.getElementById('home_box'), { nome:(d.socio.nominativo||'').split(' ')[0], notifiche:note.length, vai:vai,
+      gruppi:[ { titolo:'Ordini', voci:[{k:'attivi',nome:'Attivi',icona:'ordini'},{k:'storico',nome:'Storico',icona:'storico'}] },
+               { titolo:'La mia tessera', voci:[{k:'profilo',nome:'Profilo'},{k:'aiuto',nome:'Aiuto'}] } ] });
+    document.getElementById('caricamento').classList.add('hidden');
+    if(!PRIMA_VOLTA) return; PRIMA_VOLTA=false; vai('home');
   }
+  let PRIMA_VOLTA=true;
   // storico: si carica la prima volta che si apre la voce, poi a pagine con "Mostra altri"
   const STORICO={ caricato:false, voci:[], altri:false };
   function caricaStorico(){
     const box=document.getElementById('storico_box');
     if(!STORICO.caricato) box.innerHTML='<div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div>';
     else { const b=document.getElementById('storico_altri'); if(b){ b.disabled=true; b.textContent='Caricamento…'; } }
-    google.script.run.withSuccessHandler(r=>{ STORICO.caricato=true; STORICO.voci=STORICO.voci.concat(r.voci); STORICO.altri=r.altri; renderStorico(); })
+    google.script.run.withSuccessHandler(r=>{ STORICO.caricato=true; STORICO.voci=STORICO.voci.concat(r.voci); STORICO.altri=r.altri; STORICO.totale=r.totale; renderStorico(); })
       .withFailureHandler(e=>{ if(!STORICO.caricato) box.textContent=e.message||'Qualcosa è andato storto. Riprova.'; else avvisa(e.message||'Qualcosa è andato storto. Riprova.'); renderStorico(); })
       .socioStorico(TOKEN, STORICO.voci.length);
   }
   function renderStorico(){
     const box=document.getElementById('storico_box');
     if(!STORICO.caricato) return;
+    const u=STORICO.voci[0];
+    GasUI.riep(document.getElementById('riep_storico'), STORICO.totale?plurale(STORICO.totale,'ordine passato','ordini passati'):'Nessun ordine passato',
+      u?('L\'ultimo: '+u.fornitore+(u.data?(', consegna del '+u.data):'')+'.'):'Qui trovi gli ordini delle consegne già fatte.', { icona:'storico' });
     if(!STORICO.voci.length){ box.innerHTML='<div class="vuoto">Non hai ancora ordini passati.</div>'; return; }
     let h='', anno=null;
     STORICO.voci.forEach(s=>{
@@ -153,7 +196,7 @@
     box.innerHTML=h;
   }
   google.script.run.withSuccessHandler(render)
-    .withFailureHandler(e=>{ const o=document.getElementById('out'); o.className='center'; o.textContent=e.message||'Qualcosa è andato storto. Riprova.'; })
+    .withFailureHandler(e=>{ const o=document.getElementById('caricamento'); o.className='center'; o.textContent=e.message||'Qualcosa è andato storto. Riprova.'; })
     .socioDati(TOKEN);
 </script>
 </body>

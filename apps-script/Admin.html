@@ -21,7 +21,7 @@
   .sidenav .tab.active .ico{ color:var(--surface); }
   .sidenav .tab .cnt{ margin-left:auto; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:var(--amber-bg); color:var(--amber); font-size:.78rem; line-height:22px; }
   .sidenav .tab .cnt:empty{ display:none; }
-  .sidenav .spacer{ flex:1; }
+  .sidenav .sgrp{ font-size:.74rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:14px 12px 4px; }
   .ptitle{ display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin:4px 0 14px; }
   .kpis{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:12px 0; }
   .kpi{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
@@ -32,7 +32,7 @@
     .sidenav{ display:flex; flex-direction:column; gap:4px; width:260px; flex:0 0 260px; position:sticky; top:0; height:100vh; overflow:auto;
       padding:20px 14px; background:var(--surface); border-right:1px solid var(--line); }
     .sidenav .brand{ padding:0 8px 16px; flex:none; }
-    .topbar.m, .bottomnav{ display:none; }
+    .topbar.m, .barra-home{ display:none; }
     .wrap{ padding:28px 32px 48px; }
   }
 </style>
@@ -41,30 +41,24 @@
 <div class="layout">
 <aside class="sidenav" aria-label="Menu">
   <div class="brand"><div class="mark" role="img" aria-label="GAS Isticcadeddu"></div><div class="bt"><b>GAS Isticcadeddu</b><small>Amministrazione</small></div></div>
-  <button class="tab active" data-sez="dafare" onclick="mostraSez('dafare')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9"/></svg><span>Da fare</span><span class="cnt cnt-dafare"></span></button>
-  <button class="tab" data-sez="racc" onclick="mostraSez('racc')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg><span>Raccolte</span></button>
-  <button class="tab" data-sez="cons" onclick="mostraSez('cons')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>Consegne</span></button>
-  <button class="tab" data-sez="soci" onclick="mostraSez('soci')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 010 7"/><path d="M21.5 20c0-2.6-1.4-4.6-3.7-5.5"/></svg><span>Soci</span></button>
-  <button class="tab" data-sez="forn" onclick="mostraSez('forn')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-7h6v7"/></svg><span>Fornitori</span></button>
-  <button class="tab" data-sez="cat" onclick="mostraSez('cat')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8z"/><path d="M7.5 7.5h.01"/></svg><span>Categorie</span></button>
-  <button class="tab" data-sez="stat" onclick="mostraSez('stat')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span>Statistiche</span></button>
-  <button class="tab" data-sez="admin" onclick="mostraSez('admin')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/></svg><span>Amministratori</span></button>
-  <div class="spacer"></div>
-  <button class="tab" data-sez="segn" onclick="mostraSez('segn')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h11l-1 4h6v9h-9l1-4H4"/></svg><span>Segnalazioni</span><span class="cnt cnt-segn"></span></button>
-  <button class="tab" data-sez="profilo" onclick="mostraSez('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profilo</span></button>
-  <button class="tab" data-sez="aiuto" onclick="mostraSez('aiuto')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg><span>Aiuto</span></button>
+  <div id="side_voci" style="display:contents"></div>
 </aside>
 <div class="main">
 <header class="topbar m"><div class="brand"><div class="mark" role="img" aria-label="GAS Isticcadeddu"></div><div class="bt"><b>GAS Isticcadeddu</b><small>Amministrazione</small></div></div></header>
 <div class="wrap">
 
-  <section id="sez_dafare">
-    <div class="secbar"><h2>Da fare</h2><button class="sec" onclick="caricaDaFare()">Aggiorna</button></div>
+  <section id="sez_home"><div id="home_box"></div></section>
+
+  <section id="sez_notif" style="display:none">
+    <div class="secbar"><h2>Notifiche</h2><button class="sec" onclick="caricaDaFare()">Aggiorna</button></div>
+    <p class="muted" style="margin-top:0">Restano qui finché la cosa non cambia: un ordine verificato, un peso confermato, una segnalazione presa in carico.</p>
     <div id="df_out" role="status"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
   </section>
 
   <section id="sez_soci" style="display:none">
+    <div class="sopra">Persone</div>
     <div class="secbar"><h2>Soci</h2><div style="display:flex;gap:8px;align-items:center"><button class="sec" onclick="toggleIE()">Import/Export</button><button class="addbtn" onclick="toggleAdd('soci')">+</button></div></div>
+    <div id="riep_soci" class="riep"></div>
     <div id="add_soci" class="addpanel hidden">
       <div class="frow"><label>Tessera</label><input type="text" id="ns_tess"></div>
       <div class="frow"><label>Nominativo</label><input type="text" id="ns_nome"></div>
@@ -83,7 +77,9 @@
   </section>
 
   <section id="sez_forn" style="display:none">
+    <div class="sopra">Persone</div>
     <div class="secbar"><h2>Fornitori</h2><button class="addbtn" onclick="toggleAdd('forn')">+</button></div>
+    <div id="riep_forn" class="riep"></div>
     <div id="add_forn" class="addpanel hidden">
       <p class="muted" style="margin-top:0">Ogni fornitore è un socio: indica la sua tessera. Entrerà nel portale con il suo link personale.</p>
       <div class="frow"><label for="nf_tess">Tessera del socio</label><input type="text" id="nf_tess" inputmode="numeric"></div>
@@ -101,7 +97,9 @@
 
   <section id="sez_racc" style="display:none">
   <div id="racc_main">
+    <div class="sopra">Ordini</div>
     <div class="secbar"><h2>Raccolte</h2><button class="addbtn" id="racc_add" onclick="toggleAdd('racc')">+</button></div>
+    <div id="riep_racc" class="riep"></div>
     <div class="seg" id="racc_seg"><button aria-pressed="true" data-v="in_corso" onclick="vistaRacc('in_corso')">In corso</button><button aria-pressed="false" data-v="storico" onclick="vistaRacc('storico')">Storico</button></div>
     <div id="racc_filtro" class="frow hidden"><label for="racc_forn">Fornitore</label><select id="racc_forn" onchange="renderRacc(RACC_L)"></select></div>
     <div id="add_racc" class="addpanel hidden">
@@ -118,7 +116,9 @@
   </section>
 
   <section id="sez_cons" style="display:none">
+    <div class="sopra">Ordini</div>
     <div class="secbar"><h2>Consegne</h2><button class="addbtn" id="cons_add" onclick="toggleAdd('cons')">+</button></div>
+    <div id="riep_cons" class="riep"></div>
     <div class="seg" id="cons_seg"><button aria-pressed="true" data-v="in_corso" onclick="vistaCons('in_corso')">In corso</button><button aria-pressed="false" data-v="storico" onclick="vistaCons('storico')">Storico</button></div>
     <div id="cons_filtro" class="frow hidden"><label for="cons_forn">Fornitore</label><select id="cons_forn" onchange="renderCons()"></select></div>
     <div id="add_cons" class="addpanel hidden">
@@ -139,7 +139,9 @@
   </section>
 
   <section id="sez_cat" style="display:none">
+    <div class="sopra">Gestione</div>
     <div class="secbar"><h2>Categorie</h2><button class="addbtn" onclick="toggleAdd('cat')">+</button></div>
+    <div id="riep_cat" class="riep"></div>
     <div id="add_cat" class="addpanel hidden">
       <div class="frow"><label>Nome</label><input type="text" id="ncat_nome"></div>
       <div class="frow"><label>Emoji</label><input type="text" id="ncat_emoji" style="max-width:80px"></div>
@@ -151,13 +153,17 @@
   </section>
 
   <section id="sez_stat" style="display:none">
+    <div class="sopra">Gestione</div>
     <div class="secbar"><h2>Statistiche</h2></div>
+    <div id="riep_stat" class="riep"></div>
     <div class="frow"><label>Periodo dal</label><input type="text" id="st_dal" placeholder="GG-MM-AAAA (opz.)"><label style="width:auto">al</label><input type="text" id="st_al" placeholder="GG-MM-AAAA (opz.)"><button class="mini" onclick="caricaStat()">Calcola</button></div>
     <div id="stat_out" class="muted">Imposta un periodo (facoltativo) e premi Calcola.</div>
   </section>
 
   <section id="sez_admin" style="display:none">
+    <div class="sopra">Persone</div>
     <div class="secbar"><h2>Amministratori</h2><button class="addbtn" onclick="toggleAdd('adm')">+</button></div>
+    <div id="riep_admin" class="riep"></div>
     <div id="add_adm" class="addpanel hidden">
       <p class="muted" style="margin-top:0">Gli amministratori si scelgono tra i soci. Useranno il loro link personale di socio: non serve un link nuovo.</p>
       <div class="frow"><label for="na_tess">Tessera del socio</label><input type="text" id="na_tess" inputmode="numeric"></div>
@@ -173,27 +179,23 @@
   </section>
 
   <section id="sez_profilo" style="display:none">
-    <div id="prof_box"></div>
+    <div class="sopra">La mia tessera</div><div id="prof_box"></div>
   </section>
 
   <section id="sez_segn" style="display:none">
+    <div class="sopra">Gestione</div>
     <div class="secbar"><h2>Segnalazioni</h2><button class="ghost mini" id="segn_filtro" onclick="filtroSegn()">Mostra anche le risolte</button></div>
+    <div id="riep_segn" class="riep"></div>
     <p class="muted">Arrivano a tutti gli amministratori. Quelle segnate come <b>tecniche</b> le segue il referente tecnico.</p>
     <div id="segn_lista" class="list"></div>
   </section>
 
-  <section id="sez_aiuto" style="display:none"><div id="aiuto_box"></div></section>
+  <section id="sez_aiuto" style="display:none"><div class="sopra">La mia tessera</div><div id="aiuto_box"></div></section>
 
 </div>
 </div>
 </div>
-<nav class="bottomnav" aria-label="Menu">
-  <button class="navbtn tab active" data-sez="dafare" onclick="mostraSez('dafare')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9"/></svg>Da fare<span class="cnt cnt-dafare"></span></button>
-  <button class="navbtn tab" data-sez="racc" onclick="mostraSez('racc')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Raccolte</button>
-  <button class="navbtn tab" data-sez="cons" onclick="mostraSez('cons')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>Consegne</button>
-  <button class="navbtn tab" data-sez="profilo" onclick="mostraSez('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profilo</button>
-  <button class="navbtn" id="nav_altro" onclick="apriAltro()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>Altro</button>
-</nav>
+<nav class="barra-home" id="barra" aria-label="Menu"></nav>
 
 <script>
   const TOKEN = "<?= token ?>";
@@ -214,13 +216,30 @@
   run().withSuccessHandler(l=>{FORN_SEMPL=l; riempiMenu();}).withFailureHandler(()=>{}).adminListaFornitori(TOKEN);
   run().withSuccessHandler(l=>{CONSEGNE_L=l;}).withFailureHandler(()=>{}).adminListaConsegne(TOKEN);
   run().withSuccessHandler(l=>{CAT_L=l;}).withFailureHandler(()=>{}).adminListaCategorie(TOKEN);
-  run().withSuccessHandler(p=>{ APP_URL=p.url; PROFILO=p; }).withFailureHandler(()=>{}).adminProfilo(TOKEN);
+  run().withSuccessHandler(p=>{ APP_URL=p.url; PROFILO=p; renderHome(); }).withFailureHandler(()=>{}).adminProfilo(TOKEN);
   let PROFILO={};
 
-  function mostraSez(id){ if(id==='racc'&&document.getElementById('racc_det')) chiudiRacc(); ['dafare','soci','forn','racc','cons','cat','stat','admin','profilo','segn','aiuto'].forEach(k=>{ document.getElementById('sez_'+k).style.display=(k===id)?'block':'none'; });
+  /* ---------- MENU, HOME E TASTO HOME ---------- */
+  // sezioni divise per gruppi: uguali nella Home e nel menu laterale (computer)
+  const MENU=[ {titolo:'Ordini', voci:[{k:'racc',nome:'Raccolte'},{k:'cons',nome:'Consegne'}]},
+    {titolo:'Persone', voci:[{k:'soci',nome:'Soci'},{k:'forn',nome:'Fornitori'},{k:'admin',nome:'Amministratori'}]},
+    {titolo:'Gestione', voci:[{k:'cat',nome:'Categorie'},{k:'stat',nome:'Statistiche'},{k:'segn',nome:'Segnalazioni'}]},
+    {titolo:'La mia tessera', voci:[{k:'profilo',nome:'Profilo'},{k:'aiuto',nome:'Aiuto'}]} ];
+  const SEZIONI=['home','notif','soci','forn','racc','cons','cat','stat','admin','profilo','segn','aiuto'];
+  let NOTIF_N=0, SEGN_N=0, SEZ='home';
+  function conteggio(k){ return k==='notif'?NOTIF_N:(k==='segn'?SEGN_N:0); }
+  function renderSidebar(){ const tab=(k,nome)=>'<button class="tab'+(k===SEZ?' active':'')+'" data-sez="'+k+'" onclick="mostraSez(\''+k+'\')">'+GasUI.icona(k).replace('<svg','<svg class="ico"')+'<span>'+nome+'</span><span class="cnt">'+(conteggio(k)||'')+'</span></button>';
+    let h=tab('home','Home')+tab('notif','Notifiche');
+    MENU.forEach(g=>{ h+='<div class="sgrp">'+g.titolo+'</div>'+g.voci.map(v=>tab(v.k,v.nome)).join(''); });
+    document.getElementById('side_voci').innerHTML=h; }
+  function renderHome(){ GasUI.home(document.getElementById('home_box'), { nome:(PROFILO&&PROFILO.nome)||'', notifiche:NOTIF_N, vai:mostraSez,
+      gruppi:MENU.map(g=>({ titolo:g.titolo, voci:g.voci.map(v=>({k:v.k, nome:v.nome, n:conteggio(v.k)})) })) }); }
+  function mostraSez(id){ if(id==='racc'&&document.getElementById('racc_det')) chiudiRacc(); SEZ=id;
+    SEZIONI.forEach(k=>{ document.getElementById('sez_'+k).style.display=(k===id)?'block':'none'; });
     const sec=document.getElementById('sez_'+id); sec.classList.remove('enter'); void sec.offsetWidth; sec.classList.add('enter');
-    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.sez===id));
-    if(id==='forn'&&!LOAD.forn) caricaFornitori(); if(id==='soci'&&!LOAD.soci) caricaSoci(); if(id==='cons'&&!LOAD.cons) caricaConsegne(); if(id==='cat'&&!LOAD.cat) caricaCategorie(); if(id==='admin'&&!LOAD.admin) caricaAdmin(); if(id==='dafare') caricaDaFare(); if(id==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'admin'); if(id==='segn') caricaSegn(); if(id==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'admin', pagina:'pannello', sezione:'aiuto' });
+    renderSidebar(); GasUI.barra(document.getElementById('barra'), id==='home', ()=>mostraSez('home'));
+    if(id==='forn'&&!LOAD.forn) caricaFornitori(); if(id==='soci'&&!LOAD.soci) caricaSoci(); if(id==='cons'&&!LOAD.cons) caricaConsegne(); if(id==='cat'&&!LOAD.cat) caricaCategorie(); if(id==='admin'&&!LOAD.admin) caricaAdmin(); if(id==='notif'||id==='home') caricaDaFare(); if(id==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'admin'); if(id==='segn') caricaSegn(); if(id==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'admin', pagina:'pannello', sezione:'aiuto' });
+    if(id==='stat' && !document.getElementById('riep_stat').innerHTML) GasUI.riep(document.getElementById('riep_stat'),'Ordini e importi per periodo','Scegli un periodo (facoltativo) e tocca Calcola.',{icona:'stat'});
     window.scrollTo({top:0,behavior:'smooth'});
   }
   function toggleAdd(id){ const p=document.getElementById('add_'+id); const show=p.classList.contains('hidden'); p.classList.toggle('hidden'); if(show){ p.classList.remove('enter'); void p.offsetWidth; p.classList.add('enter'); } }
@@ -265,7 +284,13 @@
     document.getElementById('racc_add').classList.toggle('hidden', vv==='storico'); hideAdd('racc');
     document.getElementById('lista').innerHTML=SPIN; ricaricaCicli(); }
   function concl(st){ return st==='consegnato'||st==='archiviato'; }
-  function renderRacc(cicli){ RACC_L=cicli; if(VISTA_RACC==='storico'){ renderStoricoRacc(cicli); return; }
+  function riepRacc(cicli){ const el=document.getElementById('riep_racc');
+    if(VISTA_RACC==='storico'){ GasUI.riep(el, cicli.length===1?'1 raccolta conclusa':cicli.length+' raccolte concluse', 'Le raccolte già consegnate, dalla più recente.', {icona:'storico'}); return; }
+    const ap=cicli.filter(c=>c.stato==='aperto').length, ch=cicli.filter(c=>c.stato!=='aperto'&&c.stato!=='bozza').length, dv=cicli.reduce((a,c)=>a+(+c.nDaVerificare||0),0);
+    const prox=cicli.filter(c=>c.stato==='aperto'&&c.chiusura).map(c=>({c:c,d:GasUI.data(c.chiusura)})).filter(x=>x.d).sort((a,b)=>a.d-b.d)[0];
+    GasUI.riep(el, cicli.length?[ap?(ap===1?'1 raccolta aperta':ap+' raccolte aperte'):'', ch?(ch===1?'1 chiusa':ch+' chiuse'):''].filter(Boolean).join(' · ')||(cicli.length+' in bozza'):'Nessuna raccolta in corso',
+      [prox?(prox.c.fornitore+' chiude il '+prox.c.chiusura):'', dv?(dv===1?'1 ordine da verificare':dv+' ordini da verificare'):''].filter(Boolean).join(' · '), {icona:'racc', evid:dv>0}); }
+  function renderRacc(cicli){ RACC_L=cicli; riepRacc(cicli); if(VISTA_RACC==='storico'){ renderStoricoRacc(cicli); return; }
     const box=document.getElementById('lista'); box.innerHTML=''; if(!cicli.length){ box.innerHTML='<div class="muted">Nessuna raccolta in corso.</div>'; return; }
     cicli.forEach(c=>{ const badge=chipStato(c.stato); const dav=c.nDaVerificare?' · <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'';
       const row=document.createElement('div'); row.className='litem rowflex'; row.dataset.id=c.id; row.dataset.nome=c.fornitore;
@@ -361,7 +386,9 @@
 
   /* ---------- FORNITORI ---------- */
   function caricaFornitori(){ LOAD.forn=true; document.getElementById('forn_lista').innerHTML=SPIN;
-    run().withSuccessHandler(l=>{ FORN_SEMPL=l; riempiMenu(); const box=document.getElementById('forn_lista'); box.innerHTML=''; if(!l.length){ box.innerHTML='<div class="muted">Nessun fornitore.</div>'; return; }
+    run().withSuccessHandler(l=>{ FORN_SEMPL=l; riempiMenu(); const box=document.getElementById('forn_lista'); box.innerHTML='';
+      const att=l.filter(f=>f.attivo).length, st=l.filter(f=>!f.tessera).length;
+      GasUI.riep(document.getElementById('riep_forn'), (l.length===1?'1 fornitore':l.length+' fornitori')+' · '+att+(att===1?' attivo':' attivi'), st?(st===1?'1 fornitore non è collegato a una tessera: non può entrare nel portale.':st+' fornitori non sono collegati a una tessera: non possono entrare nel portale.'):'', {icona:'forn', evid:st>0}); if(!l.length){ box.innerHTML='<div class="muted">Nessun fornitore.</div>'; return; }
       l.forEach(f=>{ const row=document.createElement('div'); row.className='litem'; row.innerHTML='<div class="li1">'+esc(f.nome)+(f.attivo?'':' <span class="badge off">non attivo</span>')+'</div>'; row.onclick=()=>openForn(f.id,row); box.appendChild(row); });
     }).withFailureHandler(e=>{document.getElementById('forn_lista').textContent='Errore: '+e.message;}).adminListaFornitori(TOKEN); }
   function openForn(id,row){ const html='<div id="fe" class="muted">'+SPIN+'</div>'; const ed=openEd('forn',id,row,html); if(!ed) return;
@@ -389,6 +416,7 @@
   /* ---------- SOCI ---------- */
   function caricaSoci(){ LOAD.soci=true; document.getElementById('soci_lista').innerHTML=SPIN; run().withSuccessHandler(l=>{ SOCI_DATI=l; renderSoci(); }).withFailureHandler(e=>{document.getElementById('soci_lista').textContent='Errore: '+e.message;}).adminListaSoci(TOKEN); }
   function renderSoci(){ const f=(v('soci_filtro')||'').toLowerCase(); const box=document.getElementById('soci_lista'); if(!box) return; box.innerHTML='';
+    const att=SOCI_DATI.filter(s=>s.attiva).length; GasUI.riep(document.getElementById('riep_soci'), SOCI_DATI.length+' soci · '+att+(att===1?' attivo':' attivi'), 'Tocca un socio per modificarlo o mandargli il suo link.', {icona:'soci'});
     const fl=SOCI_DATI.filter(s=>!f||s.tessera.toLowerCase().includes(f)||(s.nominativo||'').toLowerCase().includes(f)); if(!fl.length){ box.innerHTML='<div class="muted">Nessun socio.</div>'; return; }
     fl.slice(0,400).forEach(s=>{ const badge=s.attiva?'<span class="badge">attiva</span>':'<span class="badge off">non attiva</span>';
       const row=document.createElement('div'); row.className='litem'; row.innerHTML='<div class="li1">'+esc(s.tessera)+' — '+esc(s.nominativo||'')+' '+badge+'</div>'+(s.telefono?'<div class="li2">'+esc(s.telefono)+'</div>':'');
@@ -434,6 +462,10 @@
   // in corso: dalla più vicina; storico: dalla più recente, divise per mese (l'ordine arriva già dal server)
   function renderCons(){ const box=document.getElementById('cons_lista'); if(!LOAD.cons) return; box.innerHTML='';
     const storico=VISTA_CONS==='storico'; let l=CONSEGNE_L.filter(c=>!!c.conclusa===storico);
+    const pr=l.find(c=>c.dt);
+    if(storico) GasUI.riep(document.getElementById('riep_cons'), l.length===1?'1 consegna conclusa':l.length+' consegne concluse', 'Dalla più recente.', {icona:'storico'});
+    else GasUI.riep(document.getElementById('riep_cons'), pr?('Prossima consegna '+pr.data):(l.length?'Consegne senza data':'Nessuna consegna in programma'),
+      pr?[pr.oraInizio?('dalle '+pr.oraInizio):'', pr.luogoNome, pr.raccolte.map(r=>r.fornitore).join(', ')].filter(Boolean).join(' · '):'', {icona:'cons'});
     if(storico){ const voci=[]; l.forEach(c=>c.raccolte.forEach(r=>voci.push(r))); riempiFiltroForn('cons_forn', voci);
       const fid=v('cons_forn'); if(fid) l=l.filter(c=>c.raccolte.some(r=>r.fornitoreId===fid)); }
     if(!l.length){ box.innerHTML='<div class="muted">'+(storico?'Nessuna consegna conclusa.':'Nessuna consegna in programma.')+'</div>'; return; }
@@ -463,7 +495,8 @@
 
   /* ---------- CATEGORIE ---------- */
   function caricaCategorie(){ LOAD.cat=true; document.getElementById('cat_lista').innerHTML=SPIN;
-    run().withSuccessHandler(l=>{ CAT_L=l; const box=document.getElementById('cat_lista'); box.innerHTML=''; if(!l.length){ box.innerHTML='<div class="muted">Nessuna categoria.</div>'; return; }
+    run().withSuccessHandler(l=>{ CAT_L=l; const box=document.getElementById('cat_lista'); box.innerHTML='';
+      GasUI.riep(document.getElementById('riep_cat'), l.length===1?'1 categoria':l.length+' categorie', 'Valgono per tutti i listini.', {icona:'cat'}); if(!l.length){ box.innerHTML='<div class="muted">Nessuna categoria.</div>'; return; }
       l.forEach(c=>{ const row=document.createElement('div'); row.className='litem'; row.innerHTML='<div class="li1">'+esc((c.emoji?c.emoji+' ':'')+c.nome)+'</div>'+(c.ordine?'<div class="li2">ordine '+c.ordine+'</div>':''); row.onclick=()=>openCat(c,row); box.appendChild(row); });
     }).withFailureHandler(e=>{document.getElementById('cat_lista').textContent='Errore: '+e.message;}).adminListaCategorie(TOKEN); }
   function openCat(c,row){ const html=
@@ -493,6 +526,7 @@
   function tab(titolo, headers, rows){ let h='<h2 style="margin-top:16px">'+titolo+'</h2><table><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr>';
     rows.forEach(r=>{ h+='<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>'; }); return h+'</table>'; }
   function renderStat(d){ const g=d.generali;
+    GasUI.riep(document.getElementById('riep_stat'), (g.nOrdini===1?'1 ordine':g.nOrdini+' ordini')+' · '+eu(g.volume), (v('st_dal')||v('st_al'))?('Periodo '+(v('st_dal')||'…')+' – '+(v('st_al')||'oggi')+'.'):'Tutto il periodo.', {icona:'stat'});
     let h='<div class="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
     const cards=[['Volume scambiato',eu(g.volume)],['Ordini',g.nOrdini],['Soci ordinanti',g.nSoci],['Raccolte',g.nRaccolte],['Fornitori',g.nFornitori],['Prodotti',g.nProdotti]];
     cards.forEach(c=>{ h+='<div class="litem"><div class="li2">'+c[0]+'</div><div class="li1" style="font-size:1.1rem">'+c[1]+'</div></div>'; });
@@ -506,7 +540,9 @@
 
   // ---------- AMMINISTRATORI ----------
   function caricaAdmin(){ LOAD.admin=true; document.getElementById('adm_lista').innerHTML=SPIN;
-    run().withSuccessHandler(l=>{ const box=document.getElementById('adm_lista'); box.innerHTML=''; if(!l.length){ box.innerHTML='<div class="muted">Nessun amministratore in elenco (si usa il token master).</div>'; }
+    run().withSuccessHandler(l=>{ const box=document.getElementById('adm_lista'); box.innerHTML='';
+      const att=l.filter(a=>a.attivo).length, io=l.find(a=>a.io);
+      GasUI.riep(document.getElementById('riep_admin'), att===1?'1 amministratore attivo':att+' amministratori attivi', io?('Tu sei '+io.nome+', tessera '+io.tessera+'.'):'', {icona:'admin'}); if(!l.length){ box.innerHTML='<div class="muted">Nessun amministratore in elenco (si usa il token master).</div>'; }
       l.forEach(a=>{ const row=document.createElement('div'); row.className='litem'+(a.attivo?'':' off'); row.innerHTML='<div class="li1">'+esc(a.nome||'(senza nome)')+(a.io?' <span class="badge">sei tu</span>':'')+(a.attivo?'':' <span class="badge off">disattivato</span>')+'</div><div class="li2">tessera '+esc(a.tessera||'—')+'</div>'; row.onclick=()=>openAdmin(a,row); box.appendChild(row); });
     }).withFailureHandler(e=>{document.getElementById('adm_lista').textContent='Errore: '+e.message;}).adminListaAdmin(TOKEN); }
   function openAdmin(a,row){ const html=
@@ -545,51 +581,44 @@
   function confOrdG(id){ run().withSuccessHandler(()=>{ordiniRacc();ricaricaCicli();}).withFailureHandler(err).adminConfermaOrdine(TOKEN,id); }
   function annOrdG(id){ chiediTesto('Scrivi il motivo:','Su richiesta del socio',{titolo:'Annullare l\'ordine?',ok:'Annulla l\'ordine'}).then(m=>{ if(m===null)return; run().withSuccessHandler(()=>{ordiniRacc();ricaricaCicli();}).withFailureHandler(err).adminAnnullaOrdine(TOKEN,id,m); }); }
 
-  // ---------- DA FARE ----------
-  function caricaDaFare(){ const box=document.getElementById('df_out'); box.innerHTML=SPIN;
+  // ---------- NOTIFICHE (prima "Da fare") ----------
+  // calcolate dal server a ogni apertura; restano finché l'evento non cambia stato
+  function caricaDaFare(){ const box=document.getElementById('df_out'); if(!box.querySelector('.nota')) box.innerHTML=SPIN;
     run().withSuccessHandler(renderDaFare).withFailureHandler(e=>{box.textContent='Errore: '+e.message;}).adminDaFare(TOKEN); }
-  function dfBlocco(titolo, n, inner){ return '<div class="litem" style="cursor:default;margin-bottom:10px"><div class="li1">'+titolo+' <span class="badge'+(n?' off':'')+'">'+n+'</span></div>'+inner+'</div>'; }
   function vaiBtn(id){ return '<button class="sec mini" onclick="vaiRacc(\''+id+'\')">Apri raccolta</button>'; }
-  function renderDaFare(d){ let h=''; let tot=0;
+  function renderDaFare(d){ const l=[];
     const ca=d.chiusuraAuto||{trigger:true,nonLeggibili:[]};
-    if(ca.trigger===false){ tot++; h+='<div class="notice warn"><b>La chiusura automatica non è attiva.</b> Le raccolte vengono comunque chiuse quando qualcuno apre il form o il pannello, ma per chiuderle puntuali un amministratore tecnico deve eseguire una volta <b>installaTriggerChiusura</b> dall\'editor di Apps Script.</div>'; }
-    if(ca.nonLeggibili && ca.nonLeggibili.length){ tot+=ca.nonLeggibili.length; h+='<div class="notice warn"><b>Data di chiusura non leggibile</b>: queste raccolte non si chiuderanno da sole finché non correggi la data (esempio: 10-10-2026 20:00).'+ca.nonLeggibili.map(x=>'<div style="margin-top:6px">'+esc(x.chiusura)+' '+vaiBtn(x.id)+'</div>').join('')+'</div>'; }
-    // ordini da verificare
-    let n=0, inner=''; d.daVerificare.forEach(g=>{ inner+='<div style="margin-top:8px"><b>'+esc(g.fornitore)+'</b> '+vaiBtn(g.raccoltaId)+'</div>';
-      g.ordini.forEach(o=>{ n++; inner+='<div class="frow" style="margin:4px 0"><span style="flex:1;min-width:160px">'+esc(o.tessera)+' — '+esc(o.nominativo)+'<br><span class="li2">⚠️ '+esc(o.motivo)+'</span></span><button class="mini" onclick="dfConf(\''+o.id+'\')">Conferma</button><button class="warn mini" onclick="dfAnn(\''+o.id+'\')">Annulla</button></div>'; }); });
-    tot+=n; if(n) h+=dfBlocco('Ordini da verificare', n, inner);
-    // in chiusura
-    inner=''; d.inChiusura.forEach(r=>{ inner+='<div class="frow" style="margin:4px 0"><span style="flex:1">'+esc(r.fornitore)+' · chiude '+esc(r.chiusura)+' · '+r.nOrdini+' ordini</span>'+vaiBtn(r.raccoltaId)+'</div>'; });
-    tot+=d.inChiusura.length; if(d.inChiusura.length) h+=dfBlocco('Raccolte che chiudono entro 24 ore', d.inChiusura.length, inner);
-    // pesi
-    inner=''; d.pesi.forEach(r=>{ inner+='<div class="frow" style="margin:4px 0"><span style="flex:1">'+esc(r.fornitore)+' · '+r.nRighe+' pesi da confermare</span>'+vaiBtn(r.raccoltaId)+'</div>'; });
-    tot+=d.pesi.length; if(d.pesi.length) h+=dfBlocco('Pesi da confermare', d.pesi.length, inner);
-    // senza consegna
-    inner=''; d.senzaConsegna.forEach(r=>{ inner+='<div class="frow" style="margin:4px 0"><span style="flex:1">'+esc(r.fornitore)+'</span>'+vaiBtn(r.raccoltaId)+'</div>'; });
-    tot+=d.senzaConsegna.length; if(d.senzaConsegna.length) h+=dfBlocco('Raccolte chiuse senza consegna', d.senzaConsegna.length, inner);
-    const sg=d.segnalazioni||[]; document.querySelectorAll('.cnt-segn').forEach(x=>x.textContent=sg.length?String(sg.length):'');
-    if(sg.length){ tot+=sg.length; h+=dfBlocco('Segnalazioni nuove', sg.length, sg.map(s=>'<div class="frow" style="margin:4px 0"><span style="flex:1;min-width:160px">'+esc(s.tipo)+(s.tecnico?' <span class="badge warn">tecnica</span>':'')+'<br><span class="li2">'+esc(s.nominativo||'anonimo')+' · '+esc(s.quando)+'</span></span></div>').join('')+'<div class="edact"><button class="sec mini" onclick="mostraSez(\'segn\')">Apri le segnalazioni</button></div>'); }
-    if(!tot) h='<div class="litem" style="cursor:default"><div class="li1">Niente in attesa ✓</div><div class="li2">Non ci sono ordini da verificare, pesi da confermare o raccolte in scadenza.</div></div>'+h;
-    // prossime consegne (informativo)
-    inner=''; d.consegne.forEach(c=>{ inner+='<div style="margin:4px 0">'+esc(c.data)+(c.fascia?(' · '+esc(c.fascia)):'')+(c.luogo?(' · '+esc(c.luogo)):'')+'<br><span class="li2">'+(c.fornitori.length?esc(c.fornitori.join(', ')):'nessuna raccolta assegnata')+'</span></div>'; });
-    h+='<div class="litem" style="cursor:default;margin-top:10px"><div class="li1">Consegne dei prossimi 7 giorni</div>'+(inner||'<div class="li2">Nessuna.</div>')+'</div>';
-    document.getElementById('df_out').innerHTML=h;
-    document.querySelectorAll('.cnt-dafare').forEach(x=>x.textContent=tot?String(tot):'');
+    if(ca.trigger===false) l.push({ tipo:'urg', titolo:'Chiusura automatica non attiva',
+      testo:'Le raccolte si chiudono comunque quando qualcuno apre il form o il pannello. Per chiuderle puntuali, un amministratore tecnico deve eseguire una volta installaTriggerChiusura dall\'editor di Apps Script.' });
+    (ca.nonLeggibili||[]).forEach(x=>l.push({ tipo:'urg', titolo:'Data di chiusura non leggibile', testo:'"'+x.chiusura+'": la raccolta non si chiuderà da sola finché non correggi la data (esempio: 10-10-2026 20:00).',
+      azioni:[{testo:'Apri raccolta', fn:()=>vaiRacc(x.id)}] }));
+    d.daVerificare.forEach(g=>l.push({ tipo:'fare', icona:'attenz', titolo:(g.ordini.length===1?'1 ordine da verificare':g.ordini.length+' ordini da verificare')+' · '+g.fornitore,
+      html:g.ordini.map(o=>'<div class="frow" style="margin:6px 0"><span style="flex:1;min-width:160px">'+esc(o.tessera)+' — '+esc(o.nominativo)+'<br><span class="li2">'+esc(o.motivo)+'</span></span><button class="mini" onclick="dfConf(\''+o.id+'\')">Conferma</button><button class="warn mini" onclick="dfAnn(\''+o.id+'\')">Annulla</button></div>').join(''),
+      azioni:[{testo:'Apri raccolta', fn:()=>vaiRacc(g.raccoltaId)}] }));
+    d.pesi.forEach(r=>l.push({ tipo:'fare', icona:'bilancia', titolo:'Pesi da confermare · '+r.fornitore, testo:(r.nRighe===1?'1 prodotto a peso':r.nRighe+' prodotti a peso')+' ancora da confermare.',
+      azioni:[{testo:'Apri raccolta', fn:()=>vaiRacc(r.raccoltaId)}] }));
+    d.senzaConsegna.forEach(r=>l.push({ tipo:'fare', icona:'cons', titolo:'Raccolta chiusa senza consegna · '+r.fornitore, testo:'Assegnale una consegna, dalle impostazioni della raccolta.',
+      azioni:[{testo:'Apri raccolta', fn:()=>vaiRacc(r.raccoltaId)}] }));
+    const sg=d.segnalazioni||[]; SEGN_N=sg.length;
+    if(sg.length) l.push({ tipo:'fare', icona:'segn', titolo:(sg.length===1?'1 segnalazione nuova':sg.length+' segnalazioni nuove'),
+      testo:sg.map(x=>x.tipo+(x.tecnico?' (tecnica)':'')+' · '+(x.nominativo||'anonimo')+' · '+x.quando).join('\n'), azioni:[{testo:'Apri le segnalazioni', fn:()=>mostraSez('segn')}] });
+    d.inChiusura.forEach(r=>l.push({ tipo:'info', icona:'orologio', titolo:'Chiude entro 24 ore · '+r.fornitore, testo:'Ordini fino al '+r.chiusura+' · '+(r.nOrdini===1?'1 ordine':r.nOrdini+' ordini')+' finora.',
+      azioni:[{testo:'Apri raccolta', fn:()=>vaiRacc(r.raccoltaId)}] }));
+    d.consegne.forEach(c=>l.push({ tipo:'info', icona:'cons', titolo:'Consegna del '+c.data+(c.fascia?(' · '+c.fascia):''),
+      testo:[c.luogo, c.fornitori.length?c.fornitori.join(', '):'nessuna raccolta assegnata'].filter(Boolean).join(' · '), azioni:[{testo:'Vedi le consegne', fn:()=>mostraSez('cons')}] }));
+    NOTIF_N=l.length;
+    GasUI.notifiche(document.getElementById('df_out'), l, 'Non ci sono ordini da verificare, pesi da confermare o raccolte in scadenza.');
+    renderSidebar(); renderHome();
   }
   function dfConf(id){ run().withSuccessHandler(()=>{caricaDaFare();ricaricaCicli();}).withFailureHandler(err).adminConfermaOrdine(TOKEN,id); }
   function dfAnn(id){ chiediTesto('Scrivi il motivo:','Ordine doppio',{titolo:'Annullare l\'ordine?',ok:'Annulla l\'ordine'}).then(m=>{ if(m===null)return; run().withSuccessHandler(()=>{caricaDaFare();ricaricaCicli();}).withFailureHandler(err).adminAnnullaOrdine(TOKEN,id,m); }); }
   function vaiRacc(id){ mostraSez('racc'); if(VISTA_RACC!=='in_corso') vistaRacc('in_corso'); const trova=(k)=>{ if(RACC_L.find(x=>x.id===id)) openRacc(id,''); else if(k<25) setTimeout(()=>trova(k+1),200); }; trova(0); }
-  function apriAltro(){ const voci=[['segn','Segnalazioni'],['soci','Soci'],['forn','Fornitori'],['cat','Categorie'],['stat','Statistiche'],['admin','Amministratori'],['aiuto','Aiuto']];
-    const ov=document.createElement('div'); ov.className='ov';
-    let h='<div class="sheet"><div class="grab"></div><h2>Altre sezioni</h2><div class="btns">';
-    voci.forEach(v=>{ h+='<button class="ghost" data-s="'+v[0]+'" style="justify-content:flex-start">'+v[1]+'</button>'; });
-    h+='<button data-s="">Chiudi</button></div></div>'; ov.innerHTML=h; document.body.appendChild(ov);
-    ov.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b && e.target!==ov) return; ov.remove(); if(b && b.dataset.s) mostraSez(b.dataset.s); }); }
   // ---------- SEGNALAZIONI ----------
   let SEGN_TUTTE=false, SEGN_L=[];
   function filtroSegn(){ SEGN_TUTTE=!SEGN_TUTTE; document.getElementById('segn_filtro').textContent=SEGN_TUTTE?'Solo quelle da gestire':'Mostra anche le risolte'; caricaSegn(); }
   function caricaSegn(){ const box=document.getElementById('segn_lista'); box.innerHTML=SPIN;
-    run().withSuccessHandler(l=>{ SEGN_L=l; if(!l.length){ box.innerHTML='<div class="muted">Nessuna segnalazione '+(SEGN_TUTTE?'':'da gestire')+'.</div>'; return; }
+    run().withSuccessHandler(l=>{ SEGN_L=l;
+      const nu=l.filter(x=>x.stato==='nuova').length; GasUI.riep(document.getElementById('riep_segn'), nu?(nu===1?'1 segnalazione nuova':nu+' segnalazioni nuove'):'Nessuna segnalazione nuova', nu?'Aprila, leggila e cambia lo stato in "In corso".':'', {icona:'segn', evid:nu>0}); if(!l.length){ box.innerHTML='<div class="muted">Nessuna segnalazione '+(SEGN_TUTTE?'':'da gestire')+'.</div>'; return; }
       box.innerHTML=l.map(s=>{ const st={nuova:['Nuova','warn'],in_corso:['In corso',''],risolta:['Risolta','grey']}[s.stato]||[s.stato,'grey'];
         return '<div class="card" style="margin:0"><div class="rowflex"><div><b>'+esc(s.tipo)+'</b> '+(s.tecnico?'<span class="badge warn">tecnica</span> ':'')+'<span class="badge '+st[1]+'">'+st[0]+'</span></div><span class="muted">'+esc(s.quando)+'</span></div>'+
           '<div class="li2" style="margin-top:4px">'+esc(s.nominativo||'anonimo')+(s.tessera?' · tessera '+esc(s.tessera):'')+(s.recapito?' · '+esc(s.recapito):'')+(s.contatto?' · preferisce '+esc(s.contatto):'')+'</div>'+
@@ -603,7 +632,7 @@
     }).withFailureHandler(e=>{ box.textContent='Errore: '+e.message; }).adminSegnalazioni(TOKEN, SEGN_TUTTE?'tutte':'aperte'); }
   function salvaSegn(id){ const m=document.getElementById('sg_msg_'+id); m.textContent='…';
     run().withSuccessHandler(()=>{ m.textContent='Salvato ✓'; caricaDaFare(); }).withFailureHandler(err).adminAggiornaSegnalazione(TOKEN,id,{ stato:v('sg_st_'+id), note:v('sg_nt_'+id) }); }
-  caricaDaFare();
+  mostraSez('home');
 </script>
 </body>
 </html>

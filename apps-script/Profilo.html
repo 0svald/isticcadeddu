@@ -52,7 +52,7 @@
       const n=1+(d.isFornitore?1:0)+(d.isAdmin?1:0);
       if(n>1){
         h+='<div class="card"><div class="grpt">I tuoi profili<small>Con lo stesso link passi da un profilo all\'altro.</small></div><div class="prof-links">'+
-           riga(d.url.socio,'I miei ordini','Pagina del socio', corrente==='socio')+
+           riga(d.url.socio,'Pagina del socio','Ordini attivi e storico', corrente==='socio')+
            (d.isFornitore?riga(d.url.fornitore,'Portale fornitore', d.fornitoreNome||'Listino e raccolte', corrente==='fornitore'):'')+
            (d.isAdmin?riga(d.url.admin,'Pannello amministratori','Gestione del GAS', corrente==='admin'):'')+
            '</div></div>';

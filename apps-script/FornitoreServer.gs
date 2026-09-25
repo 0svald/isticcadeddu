@@ -31,6 +31,12 @@ function fornitoreDati(token) {
   const f = fornitoreDaToken_(token);
   const ordini = leggiTabella(SHEETS.ORDINI);
   const consegne = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(co => consegne[String(co.id)] = co);
+  // pesi ancora da confermare, per raccolta (solo ordini validi e prodotti a peso variabile): servono alle notifiche
+  const aPeso = {}; leggiTabella(SHEETS.PRODOTTI).forEach(p => { if (isSi(p.peso_variabile)) aPeso[String(p.id)] = true; });
+  const racDiOrdine = {}; ordini.forEach(o => { if (String(o.stato) === 'valido') racDiOrdine[String(o.id)] = String(o.raccolta_id); });
+  const pesiDa = {};
+  leggiTabella(SHEETS.RIGHE).forEach(r => { const rid = racDiOrdine[String(r.ordine_id)];
+    if (rid && aPeso[String(r.prodotto_id)] && !num(r.peso_confermato)) pesiDa[rid] = (pesiDa[rid] || 0) + 1; });
   const cicli = leggiTabella(SHEETS.RACCOLTE)
     .filter(c => String(c.fornitore_id) === String(f.id))
     .map(c => {
@@ -39,6 +45,7 @@ function fornitoreDati(token) {
       return {
         id: String(c.id), stato: String(c.stato || '').trim().toLowerCase(),
         conclusa: raccoltaConclusa_(c), dt: dt ? dt.getTime() : 0, // le concluse vanno in "Raccolte concluse"
+        nPesiDaConfermare: pesiDa[String(c.id)] || 0,
         chiusura: testoData_(c.chiusura),
         dataConsegna: consegnaDiRaccolta_(c).data,
         nValidi: suoi.filter(o => String(o.stato) === 'valido').length,

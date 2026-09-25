@@ -65,9 +65,15 @@ A4 **verticale**, una riga per tessera, una colonna per prodotto (nomi ruotati, 
 - Stile unico in `Stile.html` (incluso con `<?!= include('Stile') ?>`): colori carta e oliva, **Atkinson Hyperlegible** per il testo (17 px), **Fraunces** per i titoli, pulsanti alti almeno 48 px, etichette di stato sempre con colore **e** parola.
 - Niente `alert/confirm/prompt` del browser: usare `chiedi()`, `chiediTesto()`, `avvisa()` di `Stile.html`.
 - Icona del GAS: le **quattro mani** del logo del comitato (`design/mani.svg`), incorporata in `Stile.html`. Durante i caricamenti ruota con il movimento "a ribaltamento" (giro completo in 4 quarti) e la scritta "Caricamento…".
-- Menu: su telefono barra in basso, su computer menu laterale nel pannello.
+- **Home** (tutti i profili): saluto, voce **Notifiche** in cima, poi le sezioni in un **elenco diviso per gruppi** (solo icona e nome, niente riassunti). Socio: *Ordini* (Attivi, Storico) · *La mia tessera* (Profilo, Aiuto). Fornitore: *Vendite* (Raccolte, Listino) · *La mia tessera*. Amministratore: *Ordini* (Raccolte, Consegne) · *Persone* (Soci, Fornitori, Amministratori) · *Gestione* (Categorie, Statistiche, Segnalazioni) · *La mia tessera*.
+- Ogni pagina aperta ha in alto il gruppo (piccolo), il titolo e un **riquadro di riepilogo** (`GasUI.riep`, arancione se c'è qualcosa da fare).
+- In basso c'è **solo il tasto Home** (`GasUI.barra`), senza numeri. Su computer il pannello ha il menu laterale con gli stessi gruppi (e il tasto Home è nascosto).
+- **Notifiche** (prima "Da fare"), per tutti i profili: divise in *Da fare* e *Per sapere*, con colore e parola (Importante, Da fare, Novità, Promemoria) e un pulsante che porta dove serve. Si **calcolano dai dati** a ogni apertura: restano finché l'evento che le ha generate non cambia stato, non si chiudono a mano. Socio e fornitore le calcolano nella pagina dai dati già caricati; il pannello usa `adminDaFare`.
+- Componenti comuni in `Stile.html`: `GasUI.home`, `GasUI.riep`, `GasUI.notifiche`, `GasUI.barra`, `GasUI.icona`, `GasUI.data`.
 - Selettore a due voci (es. In corso | Storico): classe `.seg` di `Stile.html`, pulsanti con `aria-pressed`.
 - `Profilo.html` e `Aiuto.html` sono condivisi da pagina socio, portale fornitore e pannello.
+- **Domande frequenti** (scheda `Aiuto`): i testi predefiniti sono in `faqDefault_()` di `AiutoServer.gs`. Quando cambiano, aumentare `FAQ_VERSIONE_` e aggiungere le risposte superate in `FAQ_PRECEDENTI_`: alla prima apertura di Aiuto `aggiornaDomandeAiuto()` aggiorna solo le risposte mai modificate a mano e aggiunge le domande nuove (quelle tolte a mano restano tolte). La versione applicata è nella proprietà `AIUTO_FAQ_VERSIONE` (la scrive il codice).
+- **Guide PDF**: gli script `guide/g_soci.py`, `g_forn.py`, `g_adm.py` (con `build_guide.py`) scrivono l'HTML; il PDF si stampa con Chromium (A4, sfondi attivi). Schemi disegnati a mano con dati inventati, non schermate vere.
 - Nessuna emoji sui singoli prodotti: resta solo quella della categoria.
 
 ## File e convenzioni del codice
@@ -115,4 +121,4 @@ Le idee di nuove funzioni dell'utente sono in **`RICHIESTE.md`** (una sezione pe
 - **Referenti** del comitato e **regole del GAS** (ordini per altri, ritiri mancati, tempi per le modifiche): da definire, poi da aggiungere alle domande frequenti (scheda `Aiuto`).
 - **`LINK_BASE_URL`**: da impostare a `https://0svald.github.io/isticcadeddu/` perché i nuovi link personali aprano l'app installabile; dopo, eseguire una volta `azzeraLinkBrevi()`.
 - Fornitori del foglio senza tessera: vanno collegati a un socio, altrimenti non entrano nel portale.
-- Guide PDF (`guide/`): rigenerate il 24-09-2026; da aggiornare con lo **Storico** (soci, amministratori) e le **raccolte concluse** (fornitori).
+- Guide PDF (`guide/`): rigenerate il 25-09-2026 con Home, Notifiche, Storico e raccolte concluse. Da caricare su Drive al posto delle vecchie (stesso file, "Gestisci versioni", così l'ID in `GUIDA_*_ID` non cambia).
