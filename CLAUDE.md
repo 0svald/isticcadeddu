@@ -103,7 +103,7 @@ Note su clasp e Claude Code:
 - Claude pubblica su Apps Script (push e deployment) **solo con l'autorizzazione esplicita** dell'utente, ogni volta.
 - Credenziali di clasp (`~/.clasprc.json`): mai in chat né nel repository. Per le sessioni cloud vanno nella variabile d'ambiente `CLASPRC_JSON` dell'ambiente, da scrivere in `~/.clasprc.json` all'avvio.
 - Le pagine si vedono dentro l'app installabile solo se il server le marca con `setXFrameOptionsMode(ALLOWALL)` (in `conFavicon_` di `WebApp.gs`): altrimenti l'app mostra "script.google.com refused to connect".
-- Ultima pubblicazione: versione **59** del deployment, 26-09-2026 (codice uguale al ramo `main`: raccolte concluse in sola lettura, solo PDF definitivo).
+- Ultima pubblicazione: versione **60** del deployment, 26-09-2026 (codice uguale al ramo `main`: Aiuto › Documenti con regolamento ed elenco dei fornitori).
 
 Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPREADSHEET_ID`, `APP_URL`, `ADMIN_TOKEN`, `LINK_BASE_URL`, `FAVICON_URL`, `SHORTENER`, `ACCORCIA_LINK_PERSONALI`, `LOGO_URL`, `GUIDA_SOCI_ID`, `GUIDA_FORNITORI_ID`, `GUIDA_AMMINISTRATORI_ID`, `DOC_REGOLAMENTO_ID`, `DOC_FORNITORI_ID`.
 
@@ -126,4 +126,4 @@ Le idee di nuove funzioni dell'utente sono in **`RICHIESTE.md`** (una sezione pe
 - **Referenti** del comitato e **regole del GAS** (ordini per altri, ritiri mancati, tempi per le modifiche): da definire, poi da aggiungere alle domande frequenti (scheda `Aiuto`).
 - **`LINK_BASE_URL`**: da impostare a `https://0svald.github.io/isticcadeddu/` perché i nuovi link personali aprano l'app installabile; dopo, eseguire una volta `azzeraLinkBrevi()`.
 - Fornitori del foglio senza tessera: vanno collegati a un socio, altrimenti non entrano nel portale.
-- Guide PDF (`guide/`): rigenerate il 25-09-2026 con Home, Notifiche, Storico e raccolte concluse, e caricate su Drive. Quando cambiano: stesso file, "Gestisci versioni", così l'ID in `GUIDA_*_ID` non cambia.
+- Guide PDF (`guide/`): rigenerate il 26-09-2026 (raccolte concluse in sola lettura, scheda Documenti di Aiuto); da ricaricare su Drive. Quando cambiano: stesso file, "Gestisci versioni", così l'ID in `GUIDA_*_ID` non cambia.
