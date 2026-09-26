@@ -47,6 +47,49 @@ var DOCUMENTI_ = [
   { id: 'fornitori', titolo: 'Elenco dei fornitori', nota: 'L\'elenco ufficiale, con i telefoni', prop: 'DOC_FORNITORI_ID', file: 'Elenco-Fornitori-GAS.pdf', soloConLink: true }
 ];
 
+/**
+ * ID di un file di Drive da una proprietà dello script. Accetta anche il link intero
+ * (…/d/ID/view, …?id=ID) e toglie spazi e virgolette. '' se la proprietà manca.
+ */
+function idFileDrive_(prop) {
+  let v = String(PropertiesService.getScriptProperties().getProperty(prop) || '').trim().replace(/^["']+|["']+$/g, '');
+  const m = v.match(/\/d\/([\w-]{20,})/) || v.match(/[?&]id=([\w-]{20,})/);
+  if (m) v = m[1];
+  return v;
+}
+
+/** Scarica un file privato di Drive come { filename, base64 }, con un messaggio chiaro se non si apre. */
+function scaricaFileDrive_(prop, nomeFile) {
+  const id = idFileDrive_(prop);
+  if (!id) throw new Error('Il documento non è ancora disponibile.');
+  let blob;
+  try { blob = DriveApp.getFileById(id).getBlob(); }
+  catch (e) { throw new Error('Il file non si apre: controlla la proprietà ' + prop + ' (deve contenere l\'ID del file su Drive).'); }
+  return { filename: nomeFile, base64: Utilities.base64Encode(blob.getBytes()) };
+}
+
+/**
+ * DIAGNOSTICA: eseguila dall'editor e leggi il risultato in "Log di esecuzione".
+ * Elenca le proprietà dello script che l'app vede: solo i nomi e la lunghezza dei valori, mai i valori.
+ */
+function diagnosiProprieta() {
+  const tutte = PropertiesService.getScriptProperties().getProperties();
+  const nomi = Object.keys(tutte).sort();
+  const righe = ['Progetto: ' + ScriptApp.getScriptId(), 'Proprietà trovate: ' + nomi.length];
+  const brevi = nomi.filter(k => k.indexOf('short_') === 0).length;
+  if (brevi) righe.push('(' + brevi + ' link brevi in memoria, nomi "short_…": non elencati)');
+  nomi.filter(k => k.indexOf('short_') !== 0).forEach(k => righe.push('- ' + k + ': ' + String(tutte[k]).length + ' caratteri'));
+  GUIDE_.map(g => g.prop).concat(DOCUMENTI_.map(d => d.prop)).forEach(p => {
+    const id = idFileDrive_(p);
+    let esito = 'MANCA';
+    if (id) { try { esito = 'ok: ' + DriveApp.getFileById(id).getName(); } catch (e) { esito = 'file NON trovato su Drive (ID sbagliato o file di un altro account)'; } }
+    righe.push(p + ' → ' + esito);
+  });
+  const testo = righe.join('\n');
+  Logger.log(testo);
+  return testo;
+}
+
 /** Crea la scheda con le colonne indicate, se manca. */
 function assicuraScheda_(nome, colonne, righeIniziali) {
   let sh = trovaScheda_(nome);
@@ -99,11 +142,10 @@ function aiutoDati(token, contesto) {
     .forEach(r => { const f = fornById[String(r.fornitore_id)]; if (!f || visti[f.id]) return; visti[f.id] = true;
       fornitori.push({ nome: String(f.nome || ''), referente: String(f.referente || ''), telefono: String(f.telefono || ''), wa: numeroWa_(f.telefono) }); });
 
-  const props = PropertiesService.getScriptProperties();
-  const guide = GUIDE_.filter(g => ammessi[g.ruolo]).map(g => ({ ruolo: g.ruolo, titolo: g.titolo, disponibile: !!props.getProperty(g.prop) }));
+  const guide = GUIDE_.filter(g => ammessi[g.ruolo]).map(g => ({ ruolo: g.ruolo, titolo: g.titolo, disponibile: !!idFileDrive_(g.prop) }));
   const conLink = !!(pr.persona || pr.admin);
   const documenti = DOCUMENTI_.map(d => ({ id: d.id, titolo: d.titolo, nota: d.nota,
-    disponibile: !!props.getProperty(d.prop), serveLink: !!d.soloConLink && !conLink }));
+    disponibile: !!idFileDrive_(d.prop), serveLink: !!d.soloConLink && !conLink }));
 
   return {
     profili: ammessi, anonimo: !pr.persona && !pr.admin,
@@ -119,10 +161,8 @@ function aiutoGuida(token, ruolo) {
   const g = GUIDE_.find(x => x.ruolo === ruolo);
   if (!g) throw new Error('Guida non trovata.');
   if (!({ socio: pr.socio, fornitore: pr.fornitore, admin: pr.admin })[ruolo]) throw new Error('Questa guida non riguarda il tuo profilo.');
-  const id = PropertiesService.getScriptProperties().getProperty(g.prop);
-  if (!id) throw new Error('La guida non è ancora disponibile.');
-  const blob = DriveApp.getFileById(String(id).trim()).getBlob();
-  return { filename: g.file, base64: Utilities.base64Encode(blob.getBytes()) };
+  if (!idFileDrive_(g.prop)) throw new Error('La guida non è ancora disponibile.');
+  return scaricaFileDrive_(g.prop, g.file);
 }
 
 /** Scarica un documento del GAS (regolamento, elenco dei fornitori). Ritorna { filename, base64 }. */
@@ -131,10 +171,7 @@ function aiutoDocumento(token, id) {
   if (!d) throw new Error('Documento non trovato.');
   const pr = profiliAiuto_(token);
   if (d.soloConLink && !pr.persona && !pr.admin) throw new Error('Per scaricare questo documento apri l\'app con il tuo link personale.');
-  const fid = PropertiesService.getScriptProperties().getProperty(d.prop);
-  if (!fid) throw new Error('Il documento non è ancora disponibile.');
-  const blob = DriveApp.getFileById(String(fid).trim()).getBlob();
-  return { filename: d.file, base64: Utilities.base64Encode(blob.getBytes()) };
+  return scaricaFileDrive_(d.prop, d.file);
 }
 
 /**
