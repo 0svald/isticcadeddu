@@ -322,8 +322,8 @@
       row.onclick=()=>openRacc(c.id, c.fornitore, row); box.appendChild(row); }); }
   function openRacc(id, nome, row){
     const c=RACC_L.find(x=>x.id===id)||{fornitore:nome,stato:'',nValidi:0,nDaVerificare:0,chiusura:''};
-    const conclusa=concl(c.stato);
-    // pulsanti per lo stato: aperta → chiudi; chiusa → riapri o segna consegnata; conclusa → solo correzioni
+    const conclusa=concl(c.stato); RACC_CONCL=conclusa;
+    // pulsanti per lo stato: aperta → chiudi; chiusa → riapri o segna consegnata; conclusa → sola lettura
     const azioni = conclusa
       ? (c.consegnaPassata?'':'<button class="ghost" onclick="riportaInCorso()">Riporta tra le raccolte in corso</button>')
       : (c.stato==='aperto'?'<button class="warn" onclick="chiudiCiclo()">Chiudi gli ordini adesso</button>'
@@ -332,16 +332,16 @@
       '<button class="backlink" onclick="chiudiRacc()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Raccolte</button>'+
       '<div class="ptitle"><div><h1>'+esc(c.fornitore)+'</h1><div>'+chipStato(c.stato)+' <span class="muted">chiusura '+esc(c.chiusura||'—')+'</span></div></div>'+
       (conclusa?'':'<a class="btnlink" target="_blank" rel="noopener" href="'+(APP_URL||'')+'?form='+encodeURIComponent(id)+'">Apri form</a>')+'</div>'+
-      (conclusa?'<p class="notice">Raccolta conclusa: è nello storico. Puoi ancora vedere e correggere gli ordini e scaricare il foglio per la consegna.</p>':'')+
+      (conclusa?'<p class="notice">Raccolta conclusa: è nello storico. Gli ordini si possono solo vedere, non modificare. Puoi scaricare il foglio definitivo.</p>':'')+
       '<div class="kpis"><div class="kpi"><b>'+c.nValidi+'</b><span>ordini</span></div><div class="kpi'+(c.nDaVerificare?' warn':'')+'"><b>'+c.nDaVerificare+'</b><span>da verificare</span></div><div class="kpi"><b id="kpi_cons">—</b><span>consegna</span></div></div>'+
       '<div id="verifica"></div>'+
       (conclusa?'':'<div class="grp"><div class="grpt">Messaggi per WhatsApp<small>Il testo si apre pronto da copiare.</small></div>'+
         '<div class="edact"><button class="sec" onclick="genera(\'apertura\')">Apertura</button><button class="sec" onclick="genera(\'chiusura\')">Chiusura</button></div>'+
         '<div id="msgwrap" class="hidden" style="margin-top:10px"><textarea id="p_msg" readonly></textarea><div class="edact"><button onclick="copiaMsg()">Copia il messaggio</button><span id="copia_msg" class="ok"></span></div></div></div>')+
-      '<div class="grp"><div class="grpt">Foglio per la consegna (PDF)<small>Il definitivo dopo la conferma dei pesi.</small></div>'+
-        '<div class="edact"><button class="sec" onclick="scaricaPdf(\'stato\')">Provvisorio</button><button class="sec" onclick="scaricaPdf(\'definitivo\')">Definitivo</button><span id="pdf_msg" class="muted"></span></div></div>'+
+      '<div class="grp"><div class="grpt">Foglio per la consegna (PDF)<small>'+(conclusa?'Raccolta conclusa: solo il definitivo.':'Il definitivo dopo la conferma dei pesi.')+'</small></div>'+
+        '<div class="edact">'+(conclusa?'':'<button class="sec" onclick="scaricaPdf(\'stato\')">Provvisorio</button>')+'<button class="sec" onclick="scaricaPdf(\'definitivo\')">Definitivo</button><span id="pdf_msg" class="muted"></span></div></div>'+
       '<div class="grp"><div class="grpt">Ordini dei soci</div>'+
-        '<div class="edact"><button class="sec" onclick="ordiniRacc()">Gestisci ordini</button>'+azioni+'</div>'+
+        '<div class="edact"><button class="sec" onclick="ordiniRacc()">'+(conclusa?'Vedi gli ordini':'Gestisci ordini')+'</button>'+azioni+'</div>'+
         '<div id="ord_out" style="margin-top:8px"></div></div>'+
       (conclusa?'':'<details class="grp" style="padding:8px 14px"><summary>Impostazioni: prodotti, chiusura, consegna</summary>'+
       '<div class="frow"><label>Fornitore</label><select id="er_forn" onchange="caricaProd(\'er_prod\',\'er_forn\',[])"></select></div>'+
@@ -368,7 +368,7 @@
       if(d.consegnaId && !Array.from(sel.options).some(o=>o.value===d.consegnaId)) sel.appendChild(new Option(co?((co.data||'(senza data)')+' · '+co.luogoNome):d.consegnaId, d.consegnaId));
       sel.value=d.consegnaId||''; }).withFailureHandler(()=>{}).adminConsegnaDiRaccolta(TOKEN,id);
   }
-  let CICLO=null, RACC_L=[];
+  let CICLO=null, RACC_L=[], RACC_CONCL=false; // RACC_CONCL: la raccolta aperta nel dettaglio è conclusa (sola lettura)
   function chipStato(st){ const m={aperto:['Aperta',''],chiuso:['Chiusa',' grey'],definitivo:['Definitiva',' grey'],consegnato:['Consegnata',' grey'],archiviato:['Archiviata',' grey'],bozza:['Bozza',' off']}; const x=m[st]||[st,' grey']; return '<span class="badge'+x[1]+'">'+x[0]+'</span>'; }
   function chiudiRacc(){ document.getElementById('racc_det').classList.add('hidden'); document.getElementById('racc_main').classList.remove('hidden'); CICLO=null; window.scrollTo({top:0}); }
   function salvaRaccolta(){ const d={ fornitoreId:v('er_forn'), chiusura:v('er_chiusura').trim(), avvisi:v('er_avvisi').trim(), maxOrdini:v('er_max').trim(), prodottiIds:raccProd('er_prod') };
@@ -387,7 +387,7 @@
   function riportaInCorso(){ chiedi('La raccolta torna tra quelle in corso, come chiusa.',{titolo:'Riportare in corso?',ok:'Riporta in corso'}).then(ok=>{ if(!ok)return;
     run().withSuccessHandler(()=>{ chiudiRacc(); ricaricaCicli(); avvisa('La raccolta ora è tra quelle in corso.','Fatto'); }).withFailureHandler(err).adminRiportaInCorso(TOKEN,CICLO); }); }
   function mostraVerifica(l){ const box=document.getElementById('verifica'); if(!box) return; if(!l.length){ box.innerHTML='<p class="muted">Nessun ordine da verificare.</p>'; return; }
-    let h='<b>Da verificare</b>'; l.forEach(o=>{ h+='<div class="litem" style="margin-top:6px"><div class="li1">'+esc(o.nominativo)+' (tess. '+o.tessera+')</div><div class="li2">'+esc(o.motivo)+'</div><div class="edact"><button class="mini" onclick="confOrd(\''+o.id+'\')">Conferma</button> <button class="warn mini" onclick="annOrd(\''+o.id+'\')">Annulla</button></div></div>'; }); box.innerHTML=h; }
+    let h='<b>Da verificare</b>'; l.forEach(o=>{ h+='<div class="litem" style="margin-top:6px"><div class="li1">'+esc(o.nominativo)+' (tess. '+o.tessera+')</div><div class="li2">'+esc(o.motivo)+'</div>'+(RACC_CONCL?'':'<div class="edact"><button class="mini" onclick="confOrd(\''+o.id+'\')">Conferma</button> <button class="warn mini" onclick="annOrd(\''+o.id+'\')">Annulla</button></div>')+'</div>'; }); box.innerHTML=h; }
   function confOrd(id){ run().withSuccessHandler(()=>{ run().withSuccessHandler(mostraVerifica).adminOrdiniDaVerificare(TOKEN,CICLO); ricaricaCicli(); }).withFailureHandler(err).adminConfermaOrdine(TOKEN,id); }
   function annOrd(id){ chiediTesto('Scrivi il motivo:','Tessera non valida',{titolo:'Annullare l\'ordine?',ok:'Annulla l\'ordine'}).then(m=>{ if(m===null)return; run().withSuccessHandler(()=>{ run().withSuccessHandler(mostraVerifica).adminOrdiniDaVerificare(TOKEN,CICLO); ricaricaCicli(); }).withFailureHandler(err).adminAnnullaOrdine(TOKEN,id,m); }); }
   function aggiungiRaccolta(){ const d={ fornitoreId:v('nr_forn'), chiusura:v('nr_chiusura').trim(), maxOrdini:v('nr_max').trim(), avvisi:v('nr_avvisi').trim(), prodottiIds:raccProd('nr_prod') };
@@ -625,8 +625,9 @@
       let h='<b>Ordini della raccolta</b>';
       l.forEach(o=>{ const badge=o.stato==='valido'?'<span class="badge">valido</span>':'<span class="badge off">da verificare</span>';
         h+='<div class="litem" style="margin-top:6px"><div class="li1">'+esc(o.tessera)+' — '+esc(o.nominativo)+' '+badge+'</div>'+(o.telefono?'<div class="li2">'+esc(o.telefono)+'</div>':'')+(o.motivo?'<div class="li2">⚠️ '+esc(o.motivo)+'</div>':'')+(o.note?'<div class="li2">✎ nota: '+esc(o.note)+'</div>':'');
-        o.righe.forEach(r=>{ h+='<div class="frow" style="margin:2px 0"><span style="flex:1;min-width:120px">'+esc(r.prodotto)+'</span><input id="rq_'+r.rigaId+'" value="'+qn(r.quantita)+'" style="width:64px;flex:none"><span class="li2">'+esc(r.unita)+'</span><button class="sec mini" onclick="salvaRiga(\''+r.rigaId+'\')">Salva</button></div>'; });
-        h+='<div class="edact">'+(o.stato!=='valido'?'<button class="mini" onclick="confOrdG(\''+o.id+'\')">Conferma</button>':'')+'<button class="warn mini" onclick="annOrdG(\''+o.id+'\')">Annulla ordine</button></div></div>';
+        // raccolta conclusa: solo lettura, quantità come testo e nessun pulsante
+        o.righe.forEach(r=>{ h+='<div class="frow" style="margin:2px 0"><span style="flex:1;min-width:120px">'+esc(r.prodotto)+'</span>'+(RACC_CONCL?'<b style="flex:none">'+qn(r.quantita)+'</b>':'<input id="rq_'+r.rigaId+'" value="'+qn(r.quantita)+'" style="width:64px;flex:none">')+'<span class="li2">'+esc(r.unita)+'</span>'+(RACC_CONCL?'':'<button class="sec mini" onclick="salvaRiga(\''+r.rigaId+'\')">Salva</button>')+'</div>'; });
+        h+=(RACC_CONCL?'':'<div class="edact">'+(o.stato!=='valido'?'<button class="mini" onclick="confOrdG(\''+o.id+'\')">Conferma</button>':'')+'<button class="warn mini" onclick="annOrdG(\''+o.id+'\')">Annulla ordine</button></div>')+'</div>';
       }); box.innerHTML=h;
     }).withFailureHandler(err).adminOrdiniRaccolta(TOKEN,CICLO); }
   function salvaRiga(rid){ run().withSuccessHandler(()=>ordiniRacc()).withFailureHandler(err).adminModificaRiga(TOKEN,rid,document.getElementById('rq_'+rid).value.replace(',','.')); }

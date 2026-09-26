@@ -109,6 +109,8 @@ function adminGeneraMessaggio(token, tipo, cicloId) {
 /** Genera il PDF dello stato provvisorio (una riga per tessera): {filename, base64}. */
 function adminPdfStato(token, cicloId) {
   checkToken_(token);
+  const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
+  if (c && raccoltaConclusa_(c)) throw new Error('La raccolta è conclusa: si scarica solo il foglio definitivo.');
   return pdfStatoProvvisorio(cicloId);
 }
 
@@ -123,6 +125,7 @@ function adminChiudiCiclo(token, cicloId) {
   checkToken_(token);
   const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
   if (!c) throw new Error('Ciclo non trovato.');
+  bloccaSeConclusa_(c);
   aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'chiuso');
   logAdmin_('ciclo_chiuso', String(cicloId));
   return true;
@@ -133,6 +136,7 @@ function adminRiapriCiclo(token, cicloId) {
   checkToken_(token);
   const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
   if (!c) throw new Error('Ciclo non trovato.');
+  bloccaSeConclusa_(c);
   aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'aperto');
   logAdmin_('ciclo_riaperto', String(cicloId));
   return true;
@@ -154,6 +158,7 @@ function adminConfermaOrdine(token, ordineId) {
   checkToken_(token);
   const o = leggiTabella(SHEETS.ORDINI).find(x => String(x.id) === String(ordineId));
   if (!o) throw new Error('Ordine non trovato.');
+  bloccaOrdineConcluso_(o);
   aggiornaCella(SHEETS.ORDINI, o._riga, 'stato', 'valido');
   aggiornaCella(SHEETS.ORDINI, o._riga, 'motivo_annullamento', '');
   logAdmin_('ordine_confermato', String(ordineId));
@@ -165,6 +170,7 @@ function adminAnnullaOrdine(token, ordineId, motivo) {
   checkToken_(token);
   const o = leggiTabella(SHEETS.ORDINI).find(x => String(x.id) === String(ordineId));
   if (!o) throw new Error('Ordine non trovato.');
+  bloccaOrdineConcluso_(o);
   aggiornaCella(SHEETS.ORDINI, o._riga, 'stato', 'annullato');
   aggiornaCella(SHEETS.ORDINI, o._riga, 'motivo_annullamento', String(motivo || 'Annullato dall\'amministratore'));
   logAdmin_('ordine_annullato', String(ordineId) + ' – ' + (motivo || ''));
@@ -223,6 +229,7 @@ function adminModificaRaccolta(token, id, d) {
   checkToken_(token);
   const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(id));
   if (!c) throw new Error('Raccolta non trovata.');
+  bloccaSeConclusa_(c);
   if (d.fornitoreId) {
     const f = leggiTabella(SHEETS.FORNITORI).find(x => String(x.id) === String(d.fornitoreId));
     if (!f) throw new Error('Fornitore non valido.');
@@ -520,6 +527,8 @@ function adminModificaRiga(token, rigaId, quantita) {
   checkToken_(token);
   const r = leggiTabella(SHEETS.RIGHE).find(x => String(x.id) === String(rigaId));
   if (!r) throw new Error('Riga non trovata.');
+  const o = leggiTabella(SHEETS.ORDINI).find(x => String(x.id) === String(r.ordine_id));
+  if (o) bloccaOrdineConcluso_(o);
   const q = num(quantita);
   if (q <= 0) { eliminaRiga_(SHEETS.RIGHE, r._riga); logAdmin_('riga_rimossa', rigaId); }
   else { aggiornaCella(SHEETS.RIGHE, r._riga, 'quantita', q); logAdmin_('riga_modificata', rigaId + ' = ' + q); }
@@ -547,6 +556,7 @@ function adminDaFare(token) {
   // 1) ordini da verificare, raggruppati per raccolta
   const daVer = [];
   raccolte.forEach(r => {
+    if (raccoltaConclusa_(r)) return; // concluse: in sola lettura, non c'è più niente da fare
     const l = ordini.filter(o => String(o.raccolta_id) === String(r.id) && String(o.stato) === 'da_verificare');
     if (l.length) daVer.push({ raccoltaId: String(r.id), fornitore: nomeF(r),
       ordini: l.map(o => ({ id: String(o.id), tessera: tessKey_(o.numero_tessera), nominativo: o.nominativo_inserito || '', motivo: o.motivo_annullamento || '' })) });

@@ -194,7 +194,7 @@ function segnalazioniNuove_() {
 /* Le risposte si modificano nella scheda "Aiuto" del foglio. Le regole del GAS (ordini per altri,
    ritiri mancati, tempi per le modifiche) vanno aggiunte quando il comitato le avrà decise.
    Ogni domanda: [ruolo, domanda, risposta, ordine]. */
-var FAQ_VERSIONE_ = '2026.09.25'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
+var FAQ_VERSIONE_ = '2026.09.26'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
 function faqDefault_() {
   return [
     ['socio', 'Come faccio un ordine?', 'Quando un fornitore apre gli ordini, nella Community WhatsApp arriva un messaggio con un link. Toccalo, scegli i prodotti con i tasti + e –, controlla il riepilogo e premi "Conferma e invia". Se hai il tuo link personale, puoi ordinare anche dalla tua pagina: nella Home tocca "Attivi".', 10],
@@ -214,14 +214,14 @@ function faqDefault_() {
     ['fornitore', 'Come confermo i pesi?', 'Nella Home tocca "Raccolte", poi "Conferma pesi" e scrivi il peso reale di ogni pezzo. Gli importi dei soci si aggiornano da soli. Le raccolte con pesi da confermare compaiono anche in "Notifiche".', 120],
     ['fornitore', 'Un socio mi chiede di cambiare il suo ordine', 'Nella Home tocca "Raccolte" e poi "Ordini": puoi correggere le quantità o annullare l\'ordine. Accordati prima con il socio.', 130],
     ['fornitore', 'Dove vedo quanto preparare?', 'Nella Home tocca "Raccolte" e poi "Riepilogo": trovi il totale di ogni prodotto e l\'incasso previsto.', 140],
-    ['fornitore', 'Dove trovo le raccolte già consegnate?', 'Nella pagina "Raccolte", in fondo, c\'è il riquadro "Raccolte concluse": toccalo per aprirlo. Il giorno dopo la consegna le raccolte ci passano da sole.', 142],
+    ['fornitore', 'Dove trovo le raccolte già consegnate?', 'Nella pagina "Raccolte", in fondo, c\'è il riquadro "Raccolte concluse": toccalo per aprirlo. Il giorno dopo la consegna le raccolte ci passano da sole. Qui gli ordini si possono solo vedere, non modificare.', 142],
     ['fornitore', 'Cosa trovo nelle notifiche?', 'Ordini da verificare, pesi da confermare, raccolte che chiudono entro 24 ore e consegne dei prossimi giorni. Ogni avviso sparisce da solo quando la cosa è fatta o passata.', 144],
     ['admin', 'Come apro una raccolta?', 'Nella Home tocca "Raccolte", poi +. Scegli il fornitore, spunta i prodotti e scrivi la data di chiusura (per esempio 10-10-2026 20:00). Poi apri la raccolta e prepara il messaggio di apertura da incollare su WhatsApp.', 150],
     ['admin', 'Come invio il link personale a un socio?', 'Nella Home tocca "Soci", poi il socio e "Invia link": si apre WhatsApp con il messaggio già scritto.', 160],
     ['admin', 'Una raccolta non si è chiusa da sola', 'Controlla in "Notifiche" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.', 170],
     ['admin', 'Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Notifiche" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.', 180],
     ['admin', 'Quando una raccolta passa nello storico?', 'Il giorno dopo la data di consegna le raccolte chiuse diventano "Consegnata" da sole e passano nella scheda "Storico" di Raccolte e Consegne. Se una raccolta non ha la data di consegna, aprila e tocca "Segna come consegnata".', 182],
-    ['admin', 'Dove trovo raccolte e consegne passate?', 'In "Raccolte" e in "Consegne" tocca "Storico": sono divise per mese e puoi filtrarle per fornitore, anche se non è più attivo.', 184]
+    ['admin', 'Dove trovo raccolte e consegne passate?', 'In "Raccolte" e in "Consegne" tocca "Storico": sono divise per mese e puoi filtrarle per fornitore, anche se non è più attivo. Le raccolte concluse sono in sola lettura: gli ordini si possono vedere ma non modificare, e si scarica solo il foglio definitivo.', 184]
   ];
 }
 
@@ -249,6 +249,8 @@ var FAQ_PRECEDENTI_ = [
     ['Come apro una raccolta?', 'In "Raccolte" tocca +, scegli il fornitore, spunta i prodotti e scrivi la data di chiusura (per esempio 10-10-2026 20:00). Poi apri la raccolta e prepara il messaggio di apertura da incollare su WhatsApp.'],
     ['Come invio il link personale a un socio?', 'In "Soci" tocca il socio e poi "Invia link": si apre WhatsApp con il messaggio già scritto.'],
     ['Una raccolta non si è chiusa da sola', 'Controlla in "Da fare" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.'],
+    ['Dove trovo le raccolte già consegnate?', 'Nella pagina "Raccolte", in fondo, c\'è il riquadro "Raccolte concluse": toccalo per aprirlo. Il giorno dopo la consegna le raccolte ci passano da sole.'],
+    ['Dove trovo raccolte e consegne passate?', 'In "Raccolte" e in "Consegne" tocca "Storico": sono divise per mese e puoi filtrarle per fornitore, anche se non è più attivo.'],
     ['Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Da fare" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.']
 ];
 

@@ -118,6 +118,7 @@ function adminAssegnaConsegna(token, raccoltaId, consegnaId) {
   checkToken_(token);
   const r = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(raccoltaId));
   if (!r) throw new Error('Raccolta non trovata.');
+  bloccaSeConclusa_(r);
   aggiornaCella(SHEETS.RACCOLTE, r._riga, 'consegna_id', String(consegnaId || ''));
   logAdmin_('raccolta_assegnata_consegna', raccoltaId + ' -> ' + (consegnaId || '(nessuna)'));
   return true;

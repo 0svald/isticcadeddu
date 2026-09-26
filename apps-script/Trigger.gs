@@ -85,6 +85,20 @@ function raccoltaConclusa_(c) {
   return s === 'consegnato' || s === 'consegnata' || s === 'archiviato' || s === 'archiviata';
 }
 
+/**
+ * Le raccolte concluse sono in sola lettura: ordini, righe, pesi e dati della raccolta non si modificano più.
+ * Lancia un errore se la raccolta è conclusa. Per correggere un "Segna come consegnata" toccato per errore
+ * c'è "Riporta tra le raccolte in corso" (adminRiportaInCorso).
+ */
+function bloccaSeConclusa_(c) {
+  if (c && raccoltaConclusa_(c)) throw new Error('La raccolta è conclusa: gli ordini si possono vedere ma non modificare.');
+}
+
+/** Controlla che la raccolta di un ordine non sia conclusa. */
+function bloccaOrdineConcluso_(ordine) {
+  bloccaSeConclusa_(leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(ordine.raccolta_id)));
+}
+
 /** Data di consegna di una raccolta (dalla consegna assegnata o dai vecchi campi), come Date. Null se manca. */
 function dataConsegnaRaccolta_(r, consegneById) {
   const cid = String(r.consegna_id || '');

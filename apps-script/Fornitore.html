@@ -131,7 +131,8 @@
   let CONCLUSE_APERTE=false;
   function cardCiclo(c){ const card=document.createElement('div'); card.className='card ccard'+(c.nDaVerificare?' mine':''); const badge=chipStato(c.stato)+(c.nDaVerificare?' <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'');
     let b='';
-    b+='<button class="sec" onclick="ordiniF(\''+c.id+'\')">Ordini</button><button class="sec" onclick="riepilogo(\''+c.id+'\')">Riepilogo</button><button class="sec" onclick="pesi(\''+c.id+'\')">Conferma pesi</button>';
+    // raccolta conclusa: ordini e riepilogo solo da vedere, niente "Conferma pesi"
+    b+='<button class="sec" onclick="ordiniF(\''+c.id+'\')">Ordini</button><button class="sec" onclick="riepilogo(\''+c.id+'\')">Riepilogo</button>'+(c.conclusa?'':'<button class="sec" onclick="pesi(\''+c.id+'\')">Conferma pesi</button>');
     const chiudiB = c.stato==='aperto' ? '<button class="warn block" style="margin-top:8px" onclick="chiudi(\''+c.id+'\')">Chiudi gli ordini adesso</button>' : '';
     card.innerHTML='<div><b style="font-size:1.1rem">Raccolta'+(c.dataConsegna?(' – consegna '+c.dataConsegna):'')+'</b> '+badge+'<div class="muted">'+c.nValidi+' ordini'+(c.chiusura?(' · chiusura '+c.chiusura):'')+(c.dataConsegna?(' · consegna '+c.dataConsegna):'')+'</div></div><div class="actions">'+b+'</div>'+chiudiB+'<div id="det_'+c.id+'" style="margin-top:10px"></div>';
     return card; }
@@ -149,12 +150,13 @@
   function pesi(id){ const det=document.getElementById('det_'+id); det.innerHTML=SPIN; run().withSuccessHandler(l=>{ if(!l.length){ det.innerHTML='<div class="muted">Nessun prodotto a peso variabile.</div>'; return; } let h='<table><tr><th>Socio</th><th>Prodotto</th><th>Q.tà</th><th>Peso kg</th><th></th></tr>'; l.forEach(r=>{ h+='<tr><td>'+esc(r.nominativo)+'</td><td>'+esc(r.prodotto)+'</td><td>'+nfmt(r.quantita)+'</td><td><input id="pw_'+r.rigaId+'" style="width:80px" value="'+(r.pesoConfermato>0?nfmt(r.pesoConfermato):'')+'"></td><td><button class="mini" onclick="salvaPeso(\''+r.rigaId+'\')">Salva</button></td></tr>'; }); det.innerHTML=h+'</table>'; }).withFailureHandler(err).fornitoreRigheDaConfermare(TOKEN,id); }
   function salvaPeso(rid){ const val=v('pw_'+rid).replace(',','.'); run().withSuccessHandler(()=>{}).withFailureHandler(err).fornitoreConfermaPeso(TOKEN,rid,val); }
   function ordiniF(id){ const det=document.getElementById('det_'+id); det.innerHTML=SPIN;
+    const sola=!!((DATI.cicli||[]).find(c=>c.id===id)||{}).conclusa; // raccolta conclusa: sola lettura
     run().withSuccessHandler(l=>{ if(!l.length){ det.innerHTML='<div class="muted">Nessun ordine.</div>'; return; }
       let h='<b>Ordini</b>';
       l.forEach(o=>{ const badge=o.stato==='valido'?'<span class="badge">valido</span>':'<span class="badge off">da verificare</span>';
         h+='<div class="card" style="margin-top:6px"><div><b>'+esc(o.tessera)+' — '+esc(o.nominativo)+'</b> '+badge+'</div>'+(o.telefono?'<div class="li2">'+esc(o.telefono)+'</div>':'')+(o.motivo?'<div class="li2">⚠️ '+esc(o.motivo)+'</div>':'')+(o.note?'<div class="li2">✎ nota: '+esc(o.note)+'</div>':'');
-        o.righe.forEach(r=>{ h+='<div class="frow" style="margin:2px 0"><span style="flex:1;min-width:120px">'+esc(r.prodotto)+'</span><input id="rqf_'+r.rigaId+'" value="'+nfmt(r.quantita)+'" style="width:64px;flex:none"><span class="li2">'+esc(r.unita)+'</span><button class="sec mini" onclick="salvaRigaF(\''+r.rigaId+'\',\''+id+'\')">Salva</button></div>'; });
-        h+='<div class="edact">'+(o.stato!=='valido'?'<button class="mini" onclick="confOrdF(\''+o.id+'\',\''+id+'\')">Conferma</button>':'')+'<button class="warn mini" onclick="annOrdF(\''+o.id+'\',\''+id+'\')">Annulla ordine</button></div></div>';
+        o.righe.forEach(r=>{ h+='<div class="frow" style="margin:2px 0"><span style="flex:1;min-width:120px">'+esc(r.prodotto)+'</span>'+(sola?'<b style="flex:none">'+nfmt(r.quantita)+'</b>':'<input id="rqf_'+r.rigaId+'" value="'+nfmt(r.quantita)+'" style="width:64px;flex:none">')+'<span class="li2">'+esc(r.unita)+'</span>'+(sola?'':'<button class="sec mini" onclick="salvaRigaF(\''+r.rigaId+'\',\''+id+'\')">Salva</button>')+'</div>'; });
+        h+=(sola?'':'<div class="edact">'+(o.stato!=='valido'?'<button class="mini" onclick="confOrdF(\''+o.id+'\',\''+id+'\')">Conferma</button>':'')+'<button class="warn mini" onclick="annOrdF(\''+o.id+'\',\''+id+'\')">Annulla ordine</button></div>')+'</div>';
       }); det.innerHTML=h;
     }).withFailureHandler(err).fornitoreOrdini(TOKEN,id); }
   function salvaRigaF(rid,cid){ run().withSuccessHandler(()=>ordiniF(cid)).withFailureHandler(err).fornitoreModificaRiga(TOKEN,rid,document.getElementById('rqf_'+rid).value.replace(',','.')); }
