@@ -12,6 +12,7 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - Dati: un **foglio Google** (una scheda per tabella).
 - Codice: **Google Apps Script** pubblicato come web app (`apps-script/`), *Esegui come: Me*, *Chi ha accesso: Chiunque*.
 - App installabile: contenitore su **GitHub Pages** (`docs/`) che mostra le pagine di Apps Script a schermo intero.
+  Si propone di installarla solo con il link personale (`?u=` o già ricordato sul telefono): con il link generico di una raccolta (`?form=`) il manifest non viene inserito e il browser non la considera installabile.
 - La comunicazione con i soci resta su una **Community WhatsApp** (gruppi di annuncio dove solo gli amministratori scrivono). L'app non scrive su WhatsApp: prepara i testi da copiare, e usa link `wa.me` per aprire le chat.
 
 ## Lingua e tono
