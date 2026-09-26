@@ -71,6 +71,6 @@ body=f'''
 
 <h2>Profilo e Aiuto</h2>
 <p>Nel <b>Profilo</b> vedi la tua tessera e la scadenza, cambi telefono ed email e passi alla tua pagina di socio (o al pannello, se sei anche amministratore).</p>
-<p>In <b>Aiuto</b> trovi le domande frequenti, i contatti del comitato, questa guida da scaricare e <span class="k">Segnala</span> per un problema dell'app: la segnalazione arriva agli amministratori.</p>
+<p>In <b>Aiuto</b> trovi le domande frequenti, i contatti del comitato, in <b>Documenti</b> il regolamento del GAS, l'elenco dei fornitori e questa guida da scaricare, e <span class="k">Segnala</span> per un problema dell'app: la segnalazione arriva agli amministratori.</p>
 '''
 open('guida-fornitori.html','w',encoding='utf-8').write(page('Il portale del fornitore','Guida per i fornitori',body))
