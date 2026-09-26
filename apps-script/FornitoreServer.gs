@@ -102,17 +102,18 @@ function fornitoreSalvaDati(token, d) {
   return { ok: true };
 }
 
-/** Verifica che un ciclo appartenga al fornitore. */
-function cicloDelFornitore_(f, cicloId) {
+/** Verifica che un ciclo appartenga al fornitore. Con modifica=true lo vuole anche non concluso. */
+function cicloDelFornitore_(f, cicloId, modifica) {
   const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
   if (!c || String(c.fornitore_id) !== String(f.id)) throw new Error('Ciclo non valido.');
+  if (modifica) bloccaSeConclusa_(c);
   return c;
 }
 
 /** Il fornitore chiude i propri ordini. */
 function fornitoreChiudiCiclo(token, cicloId) {
   const f = fornitoreDaToken_(token);
-  const c = cicloDelFornitore_(f, cicloId);
+  const c = cicloDelFornitore_(f, cicloId, true);
   aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'chiuso');
   log_('fornitore:' + f.id, 'ciclo_chiuso', String(cicloId));
   return true;
@@ -151,7 +152,7 @@ function fornitoreConfermaPeso(token, rigaId, peso) {
   if (!riga) throw new Error('Riga non trovata.');
   const ordine = leggiTabella(SHEETS.ORDINI).find(o => String(o.id) === String(riga.ordine_id));
   if (!ordine) throw new Error('Ordine non trovato.');
-  cicloDelFornitore_(f, ordine.raccolta_id); // verifica appartenenza
+  cicloDelFornitore_(f, ordine.raccolta_id, true); // verifica appartenenza, e che la raccolta non sia conclusa
   aggiornaCella(SHEETS.RIGHE, riga._riga, 'peso_confermato', num(peso) > 0 ? num(peso) : '');
   log_('fornitore:' + f.id, 'peso_confermato', rigaId + ' = ' + peso);
   return true;
@@ -328,7 +329,7 @@ function fornitoreRiepilogoRaccolta(token, cicloId) {
 function ordineDelFornitore_(f, ordineId) {
   const o = leggiTabella(SHEETS.ORDINI).find(x => String(x.id) === String(ordineId));
   if (!o) throw new Error('Ordine non trovato.');
-  cicloDelFornitore_(f, o.raccolta_id); // lancia se non è del fornitore
+  cicloDelFornitore_(f, o.raccolta_id, true); // lancia se non è del fornitore o se la raccolta è conclusa
   return o;
 }
 /** (Fornitore) Tutti gli ordini di una sua raccolta, con le righe (per gestirli con il socio). */

@@ -72,14 +72,14 @@ body=f'''
 <h3>Dentro una raccolta</h3>
 <p>La raccolta si apre in una schermata propria, con <b>‹ Raccolte</b> per tornare indietro. In alto i numeri (ordini, da verificare, consegna) e il pulsante <span class="k">Apri form</span>, che mostra il modulo come lo vedono i soci. Sotto, i blocchi:</p>
 <ul><li><b>Messaggi per WhatsApp:</b> <span class="k">Apertura</span> e <span class="k">Chiusura</span> preparano il testo; tocca <span class="k">Copia il messaggio</span> e incollalo nella Community. L'app non scrive da sola nei gruppi.</li>
-<li><b>Foglio per la consegna (PDF):</b> una riga per ogni tessera, i prodotti, l'importo e la colonna "Saldato" da spuntare a penna. Il <i>provvisorio</i> si usa mentre si raccolgono gli ordini, il <i>definitivo</i> dopo la conferma dei pesi. Il foglio non mostra totali complessivi, perché è condiviso con tutti.</li>
+<li><b>Foglio per la consegna (PDF):</b> una riga per ogni tessera, i prodotti, l'importo e la colonna "Saldato" da spuntare a penna. Il <i>provvisorio</i> si usa mentre si raccolgono gli ordini, il <i>definitivo</i> dopo la conferma dei pesi. Per le raccolte concluse c'è solo il definitivo. Il foglio non mostra totali complessivi, perché è condiviso con tutti.</li>
 <li><b>Ordini dei soci:</b> <span class="k">Gestisci ordini</span> per correggere quantità o annullare, e <span class="k">Chiudi gli ordini adesso</span> (o "Riapri").</li>
 <li><b>Impostazioni:</b> prodotti, data di chiusura, massimo ordini, avvisi e consegna.</li></ul>
 {phone(racc,'Il dettaglio di una raccolta sul telefono.')}
 <div class="box">Le raccolte <b>si chiudono da sole</b> alla data di chiusura o al numero massimo di ordini: ogni 15 minuti e comunque appena qualcuno apre il form o il pannello. Se nelle Notifiche compare un avviso sulla chiusura, avvisa chi cura la parte tecnica.</div>
 <h3>Raccolte concluse e storico</h3>
 <p>Il giorno dopo la data di consegna le raccolte chiuse diventano <b>Consegnata</b> da sole ed escono da quelle in corso, anche per soci e fornitori. Se una raccolta non ha la data di consegna, aprila e tocca <span class="k">Segna come consegnata</span>; se l'hai toccato per sbaglio, c'è <span class="k">Riporta tra le raccolte in corso</span>.</p>
-<p>In <b>Raccolte</b> e in <b>Consegne</b> il selettore <b>In corso | Storico</b> mostra quelle passate, divise per mese, con un filtro per <b>fornitore</b> (anche quelli non più attivi). Da una raccolta conclusa puoi ancora vedere e correggere gli ordini e scaricare il foglio della consegna.</p>
+<p>In <b>Raccolte</b> e in <b>Consegne</b> il selettore <b>In corso | Storico</b> mostra quelle passate, divise per mese, con un filtro per <b>fornitore</b> (anche quelli non più attivi). Una raccolta conclusa è <b>in sola lettura</b>: puoi vedere gli ordini, ma non modificarli, e scaricare solo il foglio <i>definitivo</i>.</p>
 {browser(storico,'Lo storico delle raccolte (dati inventati).')}
 <h3>Ordini da verificare</h3>
 <p>Un ordine va in verifica quando la tessera non è attiva o scaduta, oppure quando lo stesso socio ha mandato due ordini senza il link personale (con il link personale, invece, il nuovo ordine sostituisce il vecchio). Telefona al socio, poi <span class="k">Conferma</span> l'ordine giusto e <span class="k">Annulla</span> l'altro. Lo può fare anche il fornitore dal suo portale.</p>

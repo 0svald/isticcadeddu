@@ -62,6 +62,7 @@ body=f'''
 <ul><li><span class="k">Ordini</span>: l'ordine di ogni socio con tessera, telefono ed eventuale nota. Puoi <b>correggere le quantità</b> o <b>annullare un ordine</b>, per esempio se il socio ti chiama per cambiare.</li>
 <li><span class="k">Riepilogo</span>: il totale di ogni prodotto da preparare e l'incasso previsto.</li>
 <li><span class="k">Conferma pesi</span>: per i prodotti che si pesano, scrivi il peso reale di ogni pezzo. Gli importi dei soci si aggiornano da soli.</li></ul>
+<p>Nelle <b>raccolte concluse</b> ci sono solo <span class="k">Ordini</span> e <span class="k">Riepilogo</span>, da vedere: gli ordini non si possono più modificare.</p>
 <p>Se la raccolta è ancora aperta c'è anche <span class="k">Chiudi gli ordini adesso</span>, per fermarli prima della data (per esempio se la merce è finita).</p>
 {phones([(raccolte,'Le raccolte con il riepilogo'),(ordini,'gli ordini, con uno da verificare')])}
 <h3>Ordini "da verificare"</h3>
