@@ -7,7 +7,16 @@
 <meta name="description" content="Ordini del Gruppo di Acquisto Solidale del comitato di quartiere Isticcadeddu">
 <meta name="theme-color" content="#F4F1E8">
 <meta name="referrer" content="no-referrer">
-<link rel="manifest" href="manifest.webmanifest">
+<script>
+  /* L'app si può installare solo con il link personale (?u=… adesso, o già ricordato su questo telefono).
+     Con il link generico di una raccolta (?form=… senza link personale) non si propone l'installazione:
+     l'app installata non saprebbe chi è il socio. Senza il "manifest" il browser non la considera installabile. */
+  (function(){ var q=new URLSearchParams(location.search), t=null;
+    try{ t=q.has('esci')?null:(q.get('u')||localStorage.getItem('gas_link_personale')); }catch(e){ t=q.get('u'); }
+    window.GAS_CON_LINK=!!t;
+    if(t){ var l=document.createElement('link'); l.rel='manifest'; l.href='manifest.webmanifest'; document.head.appendChild(l); }
+  })();
+</script>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -114,7 +123,7 @@
   let richiesta = null;
   window.addEventListener('beforeinstallprompt', ev => {
     ev.preventDefault(); richiesta = ev;
-    if (leggi('gas_installa_no') !== '1' && p.toString()) $('installa').hidden = false;
+    if (leggi('gas_installa_no') !== '1' && token) $('installa').hidden = false; // solo con il link personale
   });
   $('installa_si').onclick = async () => { $('installa').hidden = true; if (richiesta) { richiesta.prompt(); await richiesta.userChoice; richiesta = null; } };
   $('installa_no').onclick = () => { $('installa').hidden = true; salva('gas_installa_no', '1'); };
