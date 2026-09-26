@@ -57,3 +57,21 @@ Quando un socio vuole contattare un fornitore, può chiamarlo o aprire una chat 
 
 **Nota tecnica**
 - Un numero fisso non ha WhatsApp: in quel caso resta attivo solo "Chiama".
+
+---
+
+## 3. Rinnovo della tessera
+
+- **Data:** 26-09-2026
+- **Per chi:** Socio (riceve l'avviso e chiede il rinnovo), Amministratore (raccoglie le quote)
+- **Stato:** da valutare
+
+**Cosa serve**
+Un mese prima della scadenza della tessera, il socio riceve una notifica. Da lì può chiedere il rinnovo agli amministratori. Ogni richiesta diventa un "ordine di rinnovo", e le richieste sono raccolte in una "raccolta dei rinnovi" mensile. Così gli amministratori vedono ogni mese tutte le tessere che scadono il mese dopo, raccolgono le quote e sanno chi non ha ancora chiesto il rinnovo, per contattarlo direttamente.
+
+**Domande aperte**
+- Dove si legge la scadenza: c'è già una colonna nella scheda `Soci`?
+- La quota è uguale per tutti? Va indicata nella richiesta?
+- Chi segna il rinnovo come pagato, e cosa succede alla tessera: si allunga di un anno da sola?
+- La "raccolta dei rinnovi" va nella sezione Raccolte del pannello o in una sezione a parte, così non si mescola con gli ordini dei fornitori?
+- Il socio che non chiede il rinnovo compare in un elenco "da contattare", con i pulsanti WhatsApp e Chiama?
