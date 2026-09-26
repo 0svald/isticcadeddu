@@ -9,9 +9,14 @@
  * Guide PDF: file privati su Drive, indicati nelle proprietà dello script
  *   GUIDA_SOCI_ID, GUIDA_FORNITORI_ID, GUIDA_AMMINISTRATORI_ID  (l'ID è la parte dell'indirizzo del file tra /d/ e /view)
  * Ognuno scarica solo le guide dei propri profili: il file passa dal server, non c'è un link pubblico.
+ *
+ * Documenti del GAS (per tutti i soci), anch'essi file privati su Drive:
+ *   DOC_REGOLAMENTO_ID  regolamento interno del GAS
+ *   DOC_FORNITORI_ID    elenco ufficiale dei fornitori (con i telefoni: solo con il link personale)
+ * Questi file non vanno mai nel repository: contengono nomi e telefoni veri.
  */
 
-var VERSIONE_APP = '2026.09.25';
+var VERSIONE_APP = '2026.09.27';
 
 var SCHEDA_AIUTO_ = 'Aiuto';
 var SCHEDA_SEGNALAZIONI_ = 'Segnalazioni';
@@ -35,6 +40,11 @@ var GUIDE_ = [
   { ruolo: 'socio',     titolo: 'Guida per i soci',           prop: 'GUIDA_SOCI_ID',            file: 'Guida-Soci.pdf' },
   { ruolo: 'fornitore', titolo: 'Guida per i fornitori',      prop: 'GUIDA_FORNITORI_ID',       file: 'Guida-Fornitori.pdf' },
   { ruolo: 'admin',     titolo: 'Guida per gli amministratori', prop: 'GUIDA_AMMINISTRATORI_ID', file: 'Guida-Amministratori.pdf' }
+];
+
+var DOCUMENTI_ = [
+  { id: 'regolamento', titolo: 'Regolamento del GAS', nota: 'Le regole del Gruppo di Acquisto', prop: 'DOC_REGOLAMENTO_ID', file: 'Regolamento-GAS-Isticcadeddu.pdf' },
+  { id: 'fornitori', titolo: 'Elenco dei fornitori', nota: 'L\'elenco ufficiale, con i telefoni', prop: 'DOC_FORNITORI_ID', file: 'Elenco-Fornitori-GAS.pdf', soloConLink: true }
 ];
 
 /** Crea la scheda con le colonne indicate, se manca. */
@@ -91,10 +101,13 @@ function aiutoDati(token, contesto) {
 
   const props = PropertiesService.getScriptProperties();
   const guide = GUIDE_.filter(g => ammessi[g.ruolo]).map(g => ({ ruolo: g.ruolo, titolo: g.titolo, disponibile: !!props.getProperty(g.prop) }));
+  const conLink = !!(pr.persona || pr.admin);
+  const documenti = DOCUMENTI_.map(d => ({ id: d.id, titolo: d.titolo, nota: d.nota,
+    disponibile: !!props.getProperty(d.prop), serveLink: !!d.soloConLink && !conLink }));
 
   return {
     profili: ammessi, anonimo: !pr.persona && !pr.admin,
-    faq: faq, referenti: referenti, fornitori: fornitori, guide: guide,
+    faq: faq, referenti: referenti, fornitori: fornitori, guide: guide, documenti: documenti,
     tipi: Object.keys(TIPI_SEGNALAZIONE_).map(k => ({ id: k, nome: TIPI_SEGNALAZIONE_[k].nome })),
     versione: VERSIONE_APP
   };
@@ -110,6 +123,18 @@ function aiutoGuida(token, ruolo) {
   if (!id) throw new Error('La guida non è ancora disponibile.');
   const blob = DriveApp.getFileById(String(id).trim()).getBlob();
   return { filename: g.file, base64: Utilities.base64Encode(blob.getBytes()) };
+}
+
+/** Scarica un documento del GAS (regolamento, elenco dei fornitori). Ritorna { filename, base64 }. */
+function aiutoDocumento(token, id) {
+  const d = DOCUMENTI_.find(x => x.id === id);
+  if (!d) throw new Error('Documento non trovato.');
+  const pr = profiliAiuto_(token);
+  if (d.soloConLink && !pr.persona && !pr.admin) throw new Error('Per scaricare questo documento apri l\'app con il tuo link personale.');
+  const fid = PropertiesService.getScriptProperties().getProperty(d.prop);
+  if (!fid) throw new Error('Il documento non è ancora disponibile.');
+  const blob = DriveApp.getFileById(String(fid).trim()).getBlob();
+  return { filename: d.file, base64: Utilities.base64Encode(blob.getBytes()) };
 }
 
 /**
@@ -194,7 +219,7 @@ function segnalazioniNuove_() {
 /* Le risposte si modificano nella scheda "Aiuto" del foglio. Le regole del GAS (ordini per altri,
    ritiri mancati, tempi per le modifiche) vanno aggiunte quando il comitato le avrà decise.
    Ogni domanda: [ruolo, domanda, risposta, ordine]. */
-var FAQ_VERSIONE_ = '2026.09.26'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
+var FAQ_VERSIONE_ = '2026.09.27'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
 function faqDefault_() {
   return [
     ['socio', 'Come faccio un ordine?', 'Quando un fornitore apre gli ordini, nella Community WhatsApp arriva un messaggio con un link. Toccalo, scegli i prodotti con i tasti + e –, controlla il riepilogo e premi "Conferma e invia". Se hai il tuo link personale, puoi ordinare anche dalla tua pagina: nella Home tocca "Attivi".', 10],
@@ -206,6 +231,7 @@ function faqDefault_() {
     ['socio', 'La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura il modulo non accetta più ordini. Per casi particolari puoi scrivere al fornitore.', 70],
     ['socio', 'Come cambio il mio numero di telefono o la mia email?', 'Nella Home della tua pagina tocca "Profilo": trovi i campi Telefono ed Email e il pulsante Salva.', 80],
     ['socio', 'Come metto l\'app sulla schermata Home del telefono?', 'Apri il tuo link personale. Su Android: tocca i tre puntini in alto a destra e poi "Aggiungi a schermata Home". Su iPhone: tocca il pulsante di condivisione (il quadrato con la freccia) e poi "Aggiungi alla schermata Home".', 90],
+    ['socio', 'Dove trovo il regolamento e l\'elenco dei fornitori?', 'In "Aiuto" tocca "Documenti": puoi scaricare il regolamento del GAS e l\'elenco ufficiale dei fornitori, in PDF. L\'elenco dei fornitori si scarica solo con il tuo link personale.', 93],
     ['socio', 'Dove trovo i miei ordini passati?', 'Nella Home tocca "Storico": trovi gli ordini delle consegne già fatte, dal più recente. Tocca un ordine per vedere i prodotti.', 92],
     ['socio', 'Cosa sono le notifiche?', 'In cima alla Home c\'è "Notifiche": ti avvisa di una raccolta che sta per chiudere, di un ordine da verificare, dell\'importo confermato dopo la pesatura e del prossimo ritiro. Ogni avviso sparisce da solo quando la cosa è fatta o passata.', 94],
     ['socio', 'Come torno alla pagina iniziale?', 'Tocca il pulsante verde "Home" in basso: da lì raggiungi tutte le sezioni.', 96],

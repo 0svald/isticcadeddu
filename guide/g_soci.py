@@ -35,7 +35,7 @@ profilo = top('GAS Isticcadeddu','La mia pagina · tessera 0123')+'''<div class=
 <div class="card"><div class="grpt">I tuoi contatti</div><div class="lab">Telefono</div><div class="in">333 000 0000</div><div class="lab">Email</div><div class="in" style="color:#999">facoltativa</div><div class="btn" style="width:70px">Salva</div></div>
 </div>'''+barra()
 aiuto = top('GAS Isticcadeddu','La mia pagina · tessera 0123')+'''<div class="body">
-<div class="h">Aiuto</div><div class="btns" style="grid-template-columns:repeat(4,1fr)"><span class="btn ghost" style="margin:0">Domande</span><span class="btn" style="margin:0">Segnala</span><span class="btn ghost" style="margin:0">Contatti</span><span class="btn ghost" style="margin:0">Guide</span></div>
+<div class="h">Aiuto</div><div class="btns" style="grid-template-columns:repeat(4,1fr)"><span class="btn ghost" style="margin:0">Domande</span><span class="btn" style="margin:0">Segnala</span><span class="btn ghost" style="margin:0">Contatti</span><span class="btn ghost" style="margin:0">Documenti</span></div>
 <div class="card warn"><b>È un problema con un tuo ordine?</b><div class="sub" style="color:#5E3908">Scrivi direttamente al fornitore.</div><div class="row" style="margin-top:5px"><span>Caseificio La Collina</span><span class="badge">WhatsApp</span></div></div>
 <div class="card"><b>Segnala un problema dell'app</b><div class="lab" style="margin-top:5px">Cosa è successo?</div><div class="in">◉ Non riesco a ordinare</div><div class="in">○ La pagina non si carica o si blocca</div><div class="lab">Descrivi il problema</div><div class="in" style="height:34px"></div><div class="btn">Invia la segnalazione</div></div>
 </div>'''+barra()
@@ -97,7 +97,7 @@ body=f'''
 <p>Se sei anche fornitore o amministratore, nel Profilo trovi i pulsanti per <b>passare agli altri profili</b> con lo stesso link.</p>
 
 <h2>Aiuto</h2>
-<p>In <b>Aiuto</b> trovi le <b>domande frequenti</b>, i <b>contatti</b> e la <b>guida</b> da scaricare. Se qualcosa non funziona, apri <span class="k">Segnala</span>:</p>
+<p>In <b>Aiuto</b> trovi le <b>domande frequenti</b>, i <b>contatti</b> e, in <b>Documenti</b>, il <b>regolamento del GAS</b>, l'<b>elenco dei fornitori</b> e questa guida da scaricare. Se qualcosa non funziona, apri <span class="k">Segnala</span>:</p>
 <ul><li>per un errore <b>nel tuo ordine</b> (quantità sbagliata, prodotto mancante) scrivi direttamente al <b>fornitore</b>, con i pulsanti WhatsApp o Chiama;</li>
 <li>per un problema <b>dell'app</b>, scegli cosa è successo, descrivilo in poche parole e invia. La segnalazione arriva agli amministratori, che ti ricontatteranno se serve.</li></ul>
 {phones([(profilo,'Il Profilo'),(aiuto,'Aiuto › Segnala')])}

@@ -116,7 +116,7 @@ body=f'''
 {browser(segn,'Una segnalazione da gestire.')}
 
 <h2>Profilo e Aiuto</h2>
-<p>Nel <b>Profilo</b> vedi la tua tessera, cambi telefono ed email e passi agli altri tuoi profili. In <b>Aiuto</b> trovi le domande frequenti (anche quelle per gli amministratori), i contatti e le guide dei tuoi profili.</p>
+<p>Nel <b>Profilo</b> vedi la tua tessera, cambi telefono ed email e passi agli altri tuoi profili. In <b>Aiuto</b> trovi le domande frequenti (anche quelle per gli amministratori), i contatti e, in <b>Documenti</b>, il regolamento del GAS, l'elenco dei fornitori e le guide dei tuoi profili.</p>
 
 <h2>Per chi cura la parte tecnica</h2>
 <ul><li>I dati sono in un <b>foglio Google</b>, il programma in <b>Apps Script</b> (proprietà <code>SPREADSHEET_ID</code>). Le domande frequenti stanno nella scheda <b>Aiuto</b>, i referenti nella scheda <b>Referenti</b>, le segnalazioni nella scheda <b>Segnalazioni</b>.</li>
@@ -125,6 +125,7 @@ body=f'''
 <li>Le <b>domande frequenti</b> della scheda Aiuto si aggiornano da sole dopo una nuova versione dell'app (una volta sola, segnata nella proprietà <code>AIUTO_FAQ_VERSIONE</code>): cambiano solo le risposte mai modificate a mano e si aggiungono le domande nuove. Si può anche eseguire <code>aggiornaDomandeAiuto</code> dall'editor.</li>
 <li>Backup automatici ogni 6 ore nella cartella Drive "GAS Backup" (resta l'ultima settimana).</li>
 <li>Guide PDF: caricale su Drive e metti l'ID di ciascun file nelle proprietà <code>GUIDA_SOCI_ID</code>, <code>GUIDA_FORNITORI_ID</code>, <code>GUIDA_AMMINISTRATORI_ID</code>. Ognuno scarica solo le guide dei propri profili.</li>
+<li>Documenti del GAS: il regolamento in <code>DOC_REGOLAMENTO_ID</code> e l'elenco dei fornitori in <code>DOC_FORNITORI_ID</code>. Li scaricano tutti i soci; l'elenco dei fornitori, che ha i telefoni, solo chi usa il link personale.</li>
 <li><code>ADMIN_TOKEN</code> è l'accesso di emergenza. <code>ACCORCIA_LINK_PERSONALI</code> = NO lascia lunghi i link personali. <code>FAVICON_URL</code> è l'icona della scheda del browser.</li></ul>
 '''
 open('guida-admin.html','w',encoding='utf-8').write(page('Gestire il Gruppo d\'Acquisto','Guida per gli amministratori',body))

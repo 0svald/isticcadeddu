@@ -105,7 +105,7 @@ Note su clasp e Claude Code:
 - Le pagine si vedono dentro l'app installabile solo se il server le marca con `setXFrameOptionsMode(ALLOWALL)` (in `conFavicon_` di `WebApp.gs`): altrimenti l'app mostra "script.google.com refused to connect".
 - Ultima pubblicazione: versione **59** del deployment, 26-09-2026 (codice uguale al ramo `main`: raccolte concluse in sola lettura, solo PDF definitivo).
 
-Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPREADSHEET_ID`, `APP_URL`, `ADMIN_TOKEN`, `LINK_BASE_URL`, `FAVICON_URL`, `SHORTENER`, `ACCORCIA_LINK_PERSONALI`, `LOGO_URL`, `GUIDA_SOCI_ID`, `GUIDA_FORNITORI_ID`, `GUIDA_AMMINISTRATORI_ID`.
+Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPREADSHEET_ID`, `APP_URL`, `ADMIN_TOKEN`, `LINK_BASE_URL`, `FAVICON_URL`, `SHORTENER`, `ACCORCIA_LINK_PERSONALI`, `LOGO_URL`, `GUIDA_SOCI_ID`, `GUIDA_FORNITORI_ID`, `GUIDA_AMMINISTRATORI_ID`, `DOC_REGOLAMENTO_ID`, `DOC_FORNITORI_ID`.
 
 ## Privacy e sicurezza
 
@@ -113,6 +113,7 @@ Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPRE
 - Nome, cognome e tessera dei soci sono considerati "pubblici" nel GAS (compaiono nel PDF di consegna); il telefono lo diventa entrando nella Community.
 - I link accorciati sono codici brevi: per gli amministratori si può scegliere di lasciarli lunghi (`ACCORCIA_LINK_PERSONALI` = NO).
 - Le guide PDF su Drive restano private: ognuno scarica solo quelle dei propri profili, passando dal server.
+- **Documenti del GAS** (Aiuto › Documenti, `DOCUMENTI_` / `aiutoDocumento` in `AiutoServer.gs`): regolamento interno (`DOC_REGOLAMENTO_ID`) ed elenco ufficiale dei fornitori (`DOC_FORNITORI_ID`), file privati su Drive. L'elenco ha nomi e telefoni veri: si scarica solo con il link personale e **non va mai nel repository**.
 
 ## In sospeso / prossimi passi
 
