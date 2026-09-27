@@ -13,24 +13,24 @@ var LOGO_URL_ = 'https://www.isticcadeddu.com/test/wp-content/uploads/cropped-is
 
 function escHtml_(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-/** Logo come data URI (scaricato una volta e messo in cache). '' se non disponibile. */
+/** Logo come data URI (scaricato e tenuto in memoria temporanea per 6 ore, non nelle proprietà). '' se non disponibile. */
 function logoDataUri_(){
-  const props = PropertiesService.getScriptProperties();
-  const cached = props.getProperty('LOGO_B64');
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get('LOGO_B64');
   if (cached) return cached;
-  const url = props.getProperty('LOGO_URL') || LOGO_URL_;
+  const url = PropertiesService.getScriptProperties().getProperty('LOGO_URL') || LOGO_URL_;
   try{
     const resp = UrlFetchApp.fetch(url, { muteHttpExceptions:true, followRedirects:true });
     if (resp.getResponseCode() === 200){
       const uri = 'data:image/png;base64,' + Utilities.base64Encode(resp.getBlob().getBytes());
-      props.setProperty('LOGO_B64', uri);
+      try { cache.put('LOGO_B64', uri, 21600); } catch (e) { /* logo troppo grande per la memoria: si riscarica */ }
       return uri;
     }
   }catch(e){}
   return '';
 }
-/** Svuota la cache del logo (se cambia l'immagine). */
-function svuotaLogo(){ PropertiesService.getScriptProperties().deleteProperty('LOGO_B64'); return 'OK'; }
+/** Svuota la memoria del logo (se cambia l'immagine). */
+function svuotaLogo(){ CacheService.getScriptCache().remove('LOGO_B64'); PropertiesService.getScriptProperties().deleteProperty('LOGO_B64'); return 'OK'; }
 
 /** Dati a matrice: prodotti (colonne) e righe per socio con quantità e totale. */
 function dettaglioMatrice_(cicloId){
