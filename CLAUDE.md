@@ -105,6 +105,8 @@ Note su clasp e Claude Code:
 - Le pagine si vedono dentro l'app installabile solo se il server le marca con `setXFrameOptionsMode(ALLOWALL)` (in `conFavicon_` di `WebApp.gs`): altrimenti l'app mostra "script.google.com refused to connect".
 - Ultima pubblicazione: versione **60** del deployment, 26-09-2026 (codice uguale al ramo `main`: Aiuto › Documenti con regolamento ed elenco dei fornitori).
 
+**Proprietà dello script: niente dati di servizio.** L'editor ne gestisce al massimo 50: salvando dall'editor, quelle oltre le 50 venivano cancellate (così si sono perse `SPREADSHEET_ID`, `GUIDA_*` e altre). Per questo link brevi e logo stanno in `CacheService` (6 ore) e non nelle proprietà; `pulisciProprieta()` (in `Short.gs`, eseguita anche dalla chiusura automatica) toglie i vecchi `short_…` e `LOGO_B64`. `diagnosiProprieta()` (in `AiutoServer.gs`) elenca dall'editor le proprietà che l'app vede, senza mostrare i valori.
+
 Proprietà dello script (le imposta l'utente dall'editor, mai nel codice): `SPREADSHEET_ID`, `APP_URL`, `ADMIN_TOKEN`, `LINK_BASE_URL`, `FAVICON_URL`, `SHORTENER`, `ACCORCIA_LINK_PERSONALI`, `LOGO_URL`, `GUIDA_SOCI_ID`, `GUIDA_FORNITORI_ID`, `GUIDA_AMMINISTRATORI_ID`, `DOC_REGOLAMENTO_ID`, `DOC_FORNITORI_ID`.
 
 ## Privacy e sicurezza

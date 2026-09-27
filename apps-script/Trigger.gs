@@ -146,6 +146,7 @@ function chiusuraAutomatica(chi) {
     let chiuse = 0;
     raccolte.forEach(c => { if (chiudiSeScaduta_(c, ordini, autore)) chiuse++; });
     try { concludiConsegnate_(raccolte, autore); } catch (e) { log_(autore, 'errore_conclusione_consegne', String(e && e.message || e)); }
+    try { pulisciProprieta(); } catch (e) { /* dati di servizio delle versioni precedenti: si riprova alla prossima */ }
     return chiuse;
   } finally {
     lock.releaseLock();
