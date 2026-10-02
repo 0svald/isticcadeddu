@@ -128,4 +128,4 @@ Le idee di nuove funzioni dell'utente sono in **`RICHIESTE.md`** (una sezione pe
 - **Referenti** del comitato e **regole del GAS** (ordini per altri, ritiri mancati, tempi per le modifiche): da definire, poi da aggiungere alle domande frequenti (scheda `Aiuto`).
 - **`LINK_BASE_URL`**: da impostare a `https://0svald.github.io/isticcadeddu/` perché i nuovi link personali aprano l'app installabile; dopo, eseguire una volta `azzeraLinkBrevi()`.
 - Fornitori del foglio senza tessera: vanno collegati a un socio, altrimenti non entrano nel portale.
-- Guide PDF (`guide/`): rigenerate il 26-09-2026 (raccolte concluse in sola lettura, scheda Documenti di Aiuto); da ricaricare su Drive. Quando cambiano: stesso file, "Gestisci versioni", così l'ID in `GUIDA_*_ID` non cambia.
+- Guide PDF (`guide/`): rigenerate il 26-09-2026 (raccolte concluse in sola lettura, scheda Documenti di Aiuto) e caricate su Drive. Anche regolamento ed elenco dei fornitori sono su Drive, con `DOC_REGOLAMENTO_ID` e `DOC_FORNITORI_ID` impostate. Quando cambiano: stesso file, "Gestisci versioni", così l'ID in `GUIDA_*_ID` non cambia.
