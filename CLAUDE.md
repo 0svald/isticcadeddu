@@ -30,12 +30,14 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - Indicare sempre **quali file** sostituire e ricordare di pubblicare una **nuova versione** del deployment.
 - Verificare il codice prima di consegnarlo (sintassi, e dove possibile una simulazione della logica).
 - Rami git con **nomi sensati** che descrivono il lavoro (es. `importa-progetto`, `messaggi-whatsapp`), non nomi generati a caso.
+- **Mostrare tutte le modifiche prima di applicarle.** Si può lavorare su un ramo locale, ma **nessun push** (né pull request, né pubblicazione) senza la conferma esplicita dell'utente.
 
 ## Utenti, ruoli e accesso
 
 - **Un solo link personale per persona**, legato alla tessera: `…?u=TOKEN`. Il token è nella colonna `token` della scheda `Soci`. Nessuna password, nessun account Google.
 - **Fornitore** e **Amministratore** sono ruoli di un **socio**: tutti i fornitori e gli amministratori sono soci, **non esistono fornitori senza tessera**. Non hanno un token proprio: usano quello del socio.
 - `?u=` apre il pannello per gli amministratori, il portale per i fornitori, altrimenti la pagina del socio. Ogni pagina ha la voce **Profilo** per passare agli altri profili della stessa persona.
+- **API dei dati** (`Api.gs`, istruzioni in `API.md`): `doPost` con JSON `{chiave, azione, dati}`, solo per gli amministratori. La chiave è il token personale da amministratore (o `ADMIN_TOKEN`) e passa per `checkToken_`, come il pannello. Solo le azioni di `AZIONI_API_`, **nessuna cancellazione**, ogni modifica nel `Log` con autore `api`.
 - Rotte di `doGet` (`WebApp.gs`): `?u=`, `?socio=`, `?fornitore=`, `?admin=` (tutte con lo stesso token), `?form=ID` (form della raccolta, anche anonimo con tessera + nome; `&socio=TOKEN` per la versione precompilata).
 - `ADMIN_TOKEN` (proprietà dello script) è solo un **accesso di emergenza**.
 - Se un socio viene **disattivato**, i suoi ruoli di amministratore e fornitore **decadono** (segnati come non attivi). Riattivando il socio **non tornano da soli**. Non si può disattivare la propria tessera né l'ultimo amministratore attivo.
