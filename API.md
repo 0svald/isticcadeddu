@@ -45,6 +45,7 @@ curl -sL -X POST "https://script.google.com/macros/s/ID-DEPLOYMENT/exec" \
 | `leggi` | `{ scheda, filtro?: {colonna: valore}, conToken? }` – schede: Fornitori, Categorie, Prodotti, Opzioni, Luoghi, Raccolte, Consegne, Ordini, Righe, Soci, Admin, TemplateMessaggi, Log, Aiuto, Segnalazioni, Referenti |
 | `ordiniRaccolta` | `{ raccoltaId }` – ordini con le righe |
 | `statistiche` | `{ mesi?: 3, 6, 12 o "anno", fornitoreId?, categoria? }` |
+| `pdf` | `{ raccoltaId, tipo?: "definitivo" o "provvisorio" }` – il foglio per la consegna in PDF (`filename`, `base64`), come il pulsante del pannello |
 
 ### Soci e fornitori
 
