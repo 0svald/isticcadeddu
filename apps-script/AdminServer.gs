@@ -24,22 +24,72 @@ var _ADMIN_TESSERA = '';
 function logAdmin_(azione, dettaglio) { log_(_ADMIN_CORRENTE || 'admin', azione, dettaglio); }
 
 /** Elenco dei cicli con conteggi utili, per la dashboard. */
-function adminListaCicli(token) {
+/**
+ * Elenco raccolte. vista = 'storico': solo quelle concluse (consegnate o archiviate), dalla più recente;
+ * altrimenti solo quelle in corso. Lo storico si carica solo quando l'amministratore lo apre.
+ */
+function adminListaCicli(token, vista) {
   checkToken_(token);
   try { chiusuraAutomatica('pannello'); } catch (e) {} // chiude subito le raccolte scadute
+  const storico = vista === 'storico';
   const fornitori = {}; leggiTabella(SHEETS.FORNITORI).forEach(f => fornitori[String(f.id)] = f);
-  const ordini = leggiTabella(SHEETS.ORDINI);
-  return leggiTabella(SHEETS.RACCOLTE).map(c => {
-    const suoi = ordini.filter(o => String(o.raccolta_id) === String(c.id));
+  const consegne = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(co => consegne[String(co.id)] = co);
+  const conta = {}; // raccolta_id -> { valido, da_verificare }
+  leggiTabella(SHEETS.ORDINI).forEach(o => {
+    const k = String(o.raccolta_id); const x = conta[k] = conta[k] || { valido: 0, da_verificare: 0 };
+    if (String(o.stato) === 'valido') x.valido++; else if (String(o.stato) === 'da_verificare') x.da_verificare++;
+  });
+  const lista = leggiTabella(SHEETS.RACCOLTE).filter(c => raccoltaConclusa_(c) === storico).map(c => {
+    const f = fornitori[String(c.fornitore_id)] || {};
+    const dtCons = dataConsegnaRaccolta_(c, consegne);
+    const dt = dtCons || parseChiusura_(c.chiusura);
+    const x = conta[String(c.id)] || { valido: 0, da_verificare: 0 };
+    const cid = String(c.consegna_id || '');
     return {
       id: String(c.id),
-      fornitore: (fornitori[String(c.fornitore_id)] || {}).nome || String(c.fornitore_id),
-      stato: c.stato,
-      chiusura: c.chiusura ? String(c.chiusura) : '',
-      nValidi: suoi.filter(o => String(o.stato) === 'valido').length,
-      nDaVerificare: suoi.filter(o => String(o.stato) === 'da_verificare').length
+      fornitore: f.nome || String(c.fornitore_id),
+      fornitoreId: String(c.fornitore_id || ''),
+      fornitoreAttivo: isSi(f.attivo),
+      stato: String(c.stato || '').trim().toLowerCase(),
+      chiusura: c.chiusura ? testoData_(c.chiusura) : '',
+      dataConsegna: cid && consegne[cid] ? testoData_(consegne[cid].data) : testoData_(c.data_consegna || ''),
+      dt: dt ? dt.getTime() : 0,
+      consegnaPassata: consegnaPassata_(dtCons),
+      nValidi: x.valido,
+      nDaVerificare: x.da_verificare
     };
   });
+  if (storico) lista.sort((a, b) => b.dt - a.dt);
+  return lista;
+}
+
+/** (Admin) Segna una raccolta come consegnata: esce dalle consegne in corso e va nello storico. */
+function adminSegnaConsegnata(token, cicloId) {
+  checkToken_(token);
+  const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
+  if (!c) throw new Error('Raccolta non trovata.');
+  if (raccoltaAperta_(c)) throw new Error('Prima chiudi gli ordini di questa raccolta.');
+  const st = String(c.stato || '').trim().toLowerCase();
+  if (st !== 'chiuso' && st !== 'chiusa' && st !== 'definitivo') throw new Error('Si può segnare come consegnata solo una raccolta chiusa.');
+  aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'consegnato');
+  logAdmin_('raccolta_consegnata', String(cicloId));
+  return true;
+}
+
+/**
+ * (Admin) Riporta una raccolta conclusa tra quelle in corso (stato "chiuso"), per correggere
+ * un "Segna come consegnata" toccato per errore. Non vale per le raccolte con la data di consegna
+ * già passata: la chiusura automatica le rimetterebbe subito nello storico.
+ */
+function adminRiportaInCorso(token, cicloId) {
+  checkToken_(token);
+  const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
+  if (!c) throw new Error('Raccolta non trovata.');
+  const consegne = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(co => consegne[String(co.id)] = co);
+  if (consegnaPassata_(dataConsegnaRaccolta_(c, consegne))) throw new Error('La data di consegna è già passata: per spostarla, cambia prima la data della consegna.');
+  aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'chiuso');
+  logAdmin_('raccolta_riportata_in_corso', String(cicloId));
+  return true;
 }
 
 /** Restituisce il link (accorciato) al form del ciclo. */
@@ -59,6 +109,8 @@ function adminGeneraMessaggio(token, tipo, cicloId) {
 /** Genera il PDF dello stato provvisorio (una riga per tessera): {filename, base64}. */
 function adminPdfStato(token, cicloId) {
   checkToken_(token);
+  const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
+  if (c && raccoltaConclusa_(c)) throw new Error('La raccolta è conclusa: si scarica solo il foglio definitivo.');
   return pdfStatoProvvisorio(cicloId);
 }
 
@@ -73,6 +125,7 @@ function adminChiudiCiclo(token, cicloId) {
   checkToken_(token);
   const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
   if (!c) throw new Error('Ciclo non trovato.');
+  bloccaSeConclusa_(c);
   aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'chiuso');
   logAdmin_('ciclo_chiuso', String(cicloId));
   return true;
@@ -83,6 +136,7 @@ function adminRiapriCiclo(token, cicloId) {
   checkToken_(token);
   const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
   if (!c) throw new Error('Ciclo non trovato.');
+  bloccaSeConclusa_(c);
   aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'aperto');
   logAdmin_('ciclo_riaperto', String(cicloId));
   return true;
@@ -104,6 +158,7 @@ function adminConfermaOrdine(token, ordineId) {
   checkToken_(token);
   const o = leggiTabella(SHEETS.ORDINI).find(x => String(x.id) === String(ordineId));
   if (!o) throw new Error('Ordine non trovato.');
+  bloccaOrdineConcluso_(o);
   aggiornaCella(SHEETS.ORDINI, o._riga, 'stato', 'valido');
   aggiornaCella(SHEETS.ORDINI, o._riga, 'motivo_annullamento', '');
   logAdmin_('ordine_confermato', String(ordineId));
@@ -115,6 +170,7 @@ function adminAnnullaOrdine(token, ordineId, motivo) {
   checkToken_(token);
   const o = leggiTabella(SHEETS.ORDINI).find(x => String(x.id) === String(ordineId));
   if (!o) throw new Error('Ordine non trovato.');
+  bloccaOrdineConcluso_(o);
   aggiornaCella(SHEETS.ORDINI, o._riga, 'stato', 'annullato');
   aggiornaCella(SHEETS.ORDINI, o._riga, 'motivo_annullamento', String(motivo || 'Annullato dall\'amministratore'));
   logAdmin_('ordine_annullato', String(ordineId) + ' – ' + (motivo || ''));
@@ -173,6 +229,7 @@ function adminModificaRaccolta(token, id, d) {
   checkToken_(token);
   const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(id));
   if (!c) throw new Error('Raccolta non trovata.');
+  bloccaSeConclusa_(c);
   if (d.fornitoreId) {
     const f = leggiTabella(SHEETS.FORNITORI).find(x => String(x.id) === String(d.fornitoreId));
     if (!f) throw new Error('Fornitore non valido.');
@@ -190,32 +247,63 @@ function adminModificaRaccolta(token, id, d) {
 /** (Admin) Elenco categorie globali (condivise tra i listini). */
 function adminListaCategorie(token) {
   checkToken_(token);
-  return leggiTabella(SHEETS.CATEGORIE)
-    .map(c => ({ id: String(c.id), nome: c.nome || '', emoji: c.emoji || '', ordine: num(c.ordine) }))
-    .sort((a, b) => a.ordine - b.ordine || a.nome.localeCompare(b.nome));
+  return categorieOrdinate_().map(c => ({ id: String(c.id), nome: c.nome || '', emoji: c.emoji || '', ordine: num(c.ordine) }));
 }
 
-/** (Admin) Crea una categoria globale. */
+/** Categorie nell'ordine della lista (colonna "ordine"; a pari ordine, per nome). */
+function categorieOrdinate_() {
+  return leggiTabella(SHEETS.CATEGORIE)
+    .sort((a, b) => (num(a.ordine) || 1e9) - (num(b.ordine) || 1e9) || String(a.nome || '').localeCompare(String(b.nome || '')));
+}
+
+/** Rinumera 1, 2, 3… nell'ordine dato: tutte le pagine (form, portale, messaggi) vedono lo stesso ordine. */
+function rinumeraCategorie_(lista) {
+  lista.forEach((c, i) => { if (num(c.ordine) !== i + 1) aggiornaCella(SHEETS.CATEGORIE, c._riga, 'ordine', i + 1); });
+}
+
+/** (Admin) Crea una categoria globale: va in fondo alla lista. */
 function adminAggiungiCategoria(token, d) {
   checkToken_(token);
   const nome = String(d.nome || '').trim();
   if (!nome) throw new Error('Il nome della categoria è obbligatorio.');
-  const id = nuovoId(SHEETS.CATEGORIE, 'C');
-  aggiungiRiga(SHEETS.CATEGORIE, { id: id, fornitore_id: '', nome: nome, emoji: String(d.emoji || '').trim(), ordine: num(d.ordine) || '' });
-  logAdmin_('categoria_creata', id + ' ' + nome);
-  return { ok: true, id: id };
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const lista = categorieOrdinate_();
+    rinumeraCategorie_(lista);
+    const id = nuovoId(SHEETS.CATEGORIE, 'C');
+    aggiungiRiga(SHEETS.CATEGORIE, { id: id, fornitore_id: '', nome: nome, emoji: String(d.emoji || '').trim(), ordine: lista.length + 1 });
+    logAdmin_('categoria_creata', id + ' ' + nome);
+    return { ok: true, id: id };
+  } finally { lock.releaseLock(); }
 }
 
-/** (Admin) Modifica una categoria. */
+/** (Admin) Modifica nome ed emoji di una categoria (la posizione si cambia con le frecce). */
 function adminModificaCategoria(token, id, d) {
   checkToken_(token);
   const c = leggiTabella(SHEETS.CATEGORIE).find(x => String(x.id) === String(id));
   if (!c) throw new Error('Categoria non trovata.');
   if (d.nome !== undefined) aggiornaCella(SHEETS.CATEGORIE, c._riga, 'nome', String(d.nome).trim());
   if (d.emoji !== undefined) aggiornaCella(SHEETS.CATEGORIE, c._riga, 'emoji', String(d.emoji).trim());
-  if (d.ordine !== undefined) aggiornaCella(SHEETS.CATEGORIE, c._riga, 'ordine', num(d.ordine) || '');
   logAdmin_('categoria_modificata', String(id));
   return { ok: true };
+}
+
+/** (Admin) Sposta una categoria di un posto: direzione -1 = su, +1 = giù. Ritorna la lista aggiornata. */
+function adminSpostaCategoria(token, id, direzione) {
+  checkToken_(token);
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const lista = categorieOrdinate_();
+    const i = lista.findIndex(x => String(x.id) === String(id));
+    if (i < 0) throw new Error('Categoria non trovata.');
+    const j = i + (num(direzione) < 0 ? -1 : 1);
+    if (j >= 0 && j < lista.length) {
+      const t = lista[i]; lista[i] = lista[j]; lista[j] = t;
+      logAdmin_('categoria_spostata', String(id) + (j < i ? ' su' : ' giù'));
+    }
+    rinumeraCategorie_(lista);
+  } finally { lock.releaseLock(); }
+  return adminListaCategorie(token);
 }
 
 /** (Admin) Elimina una categoria (i prodotti che la usavano restano senza categoria). */
@@ -228,66 +316,100 @@ function adminEliminaCategoria(token, id) {
   return { ok: true };
 }
 
-/** (Admin) Statistiche sugli ordini validi, con filtro periodo opzionale (date GG-MM-AAAA). */
-function adminStatistiche(token, dalStr, alStr) {
+/**
+ * (Admin) Statistiche con andamento mese per mese.
+ * f = { mesi: 3 | 6 | 12 | 'anno', fornitoreId, categoria }  (tutti facoltativi; predefinito 12 mesi)
+ * Il mese di una raccolta è quello della sua consegna (o, se manca, della chiusura). Contano solo gli ordini validi.
+ * Il "periodo prima" ha la stessa durata e finisce dove comincia quello scelto: serve alle differenze ▲▼.
+ */
+function adminStatistiche(token, f) {
   checkToken_(token);
-  const dal = dalStr ? parseChiusura_(dalStr) : null;
-  const al = alStr ? parseChiusura_(alStr) : null;
+  f = (f && typeof f === 'object') ? f : {};
+  const ora = new Date();
+  const nMesi = f.mesi === 'anno' ? ora.getMonth() + 1 : Math.max(1, Math.min(36, Math.round(num(f.mesi)) || 12));
+  const inizio = new Date(ora.getFullYear(), ora.getMonth() - nMesi + 1, 1);
+  const fine = new Date(ora.getFullYear(), ora.getMonth() + 1, 1);            // escluso
+  const inizioPrima = new Date(inizio.getFullYear(), inizio.getMonth() - nMesi, 1);
+  const chiaveMese = d => d.getFullYear() * 12 + d.getMonth();
+  const k0 = chiaveMese(inizio);
+  const NOMI_MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
 
   const prodById = {}; leggiTabella(SHEETS.PRODOTTI).forEach(p => prodById[String(p.id)] = p);
   const opz = {}; leggiTabella(SHEETS.OPZIONI).forEach(o => opz[String(o.id)] = o);
-  const fornById = {}; leggiTabella(SHEETS.FORNITORI).forEach(f => fornById[String(f.id)] = f);
+  const fornById = {}; leggiTabella(SHEETS.FORNITORI).forEach(x => fornById[String(x.id)] = x);
+  const catById = {}; leggiTabellaSafe_(SHEETS.CATEGORIE).forEach(c => catById[String(c.id)] = c);
   const cons = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(c => cons[String(c.id)] = c);
   const luoghi = {}; leggiTabella(SHEETS.LUOGHI).forEach(l => luoghi[String(l.id)] = l);
   const raccolte = leggiTabella(SHEETS.RACCOLTE);
-  const raccById = {}; raccolte.forEach(r => raccById[String(r.id)] = r);
+  const nomeCat = p => { const c = catById[String(p.categoria_id || '')]; return c ? String(c.nome) : 'Senza categoria'; };
 
-  function refData(r){ let dt = parseChiusura_(consegnaDiRaccolta_(r).data); if (!dt) dt = parseChiusura_(r.chiusura); return dt; }
-  const incl = {};
-  raccolte.forEach(r => { const dt = refData(r); if (dal && (!dt || dt < dal)) return; if (al && (!dt || dt > al)) return; incl[String(r.id)] = true; });
+  // raccolte del periodo scelto e di quello prima, con il loro mese
+  const racc = {};
+  raccolte.forEach(r => {
+    if (f.fornitoreId && String(r.fornitore_id) !== String(f.fornitoreId)) return;
+    const dt = dataConsegnaRaccolta_(r, cons) || parseChiusura_(r.chiusura);
+    if (!dt || dt < inizioPrima || dt >= fine) return;
+    racc[String(r.id)] = { r: r, prima: dt < inizio, k: chiaveMese(dt) - k0 };
+  });
+  const ordini = {}; leggiTabella(SHEETS.ORDINI).forEach(o => { if (String(o.stato) === 'valido' && racc[String(o.raccolta_id)]) ordini[String(o.id)] = o; });
 
-  const ordini = leggiTabella(SHEETS.ORDINI).filter(o => String(o.stato) === 'valido' && incl[String(o.raccolta_id)]);
-  const idOrd = {}; ordini.forEach(o => idOrd[String(o.id)] = o);
+  const mesi = []; for (let i = 0; i < nMesi; i++) { const d = new Date(inizio.getFullYear(), inizio.getMonth() + i, 1);
+    mesi.push({ etichetta: NOMI_MESI[d.getMonth()].substring(0, 3), lungo: NOMI_MESI[d.getMonth()] + ' ' + d.getFullYear(), volume: 0, ordini: {}, soci: {}, fornitori: {} }); }
+  const prima = { volume: 0, ordini: {}, soci: {}, fornitori: {} };
+  const tot = { volume: 0, ordini: {}, soci: {}, fornitori: {}, raccolte: {}, prodotti: {} };
+  const perCatMese = {}, perF = {}, perP = {}, perS = {}, perC = {};
 
-  const perF = {}, perP = {}, perS = {}, perC = {};
-  let volume = 0; const raccSet = {}, sociSet = {};
   leggiTabella(SHEETS.RIGHE).forEach(rg => {
-    const o = idOrd[String(rg.ordine_id)]; if (!o) return;
+    const o = ordini[String(rg.ordine_id)]; if (!o) return;
     const qta = num(rg.quantita); if (qta <= 0) return;
     const prod = prodById[String(rg.prodotto_id)]; if (!prod) return;
-    const rc = raccById[String(o.raccolta_id)] || {};
+    const x = racc[String(o.raccolta_id)], rc = x.r;
     if (String(prod.fornitore_id) !== String(rc.fornitore_id || '')) return; // ignora righe incoerenti
+    const cat = nomeCat(prod);
+    if (f.categoria && cat !== String(f.categoria)) return;
     const op = rg.opzione_id ? opz[String(rg.opzione_id)] : null;
     const imp = prezzoRiga_(prod, op, qta, num(rg.peso_confermato));
-    volume += imp;
-    const fid = String(rc.fornitore_id || '');
-    raccSet[String(o.raccolta_id)] = true; sociSet[tessKey_(o.numero_tessera)] = true;
+    const oid = String(o.id), tk = tessKey_(o.numero_tessera), fid = String(rc.fornitore_id || '');
+    if (x.prima) { prima.volume += imp; prima.ordini[oid] = 1; prima.soci[tk] = 1; prima.fornitori[fid] = 1; return; }
+
+    const m = mesi[x.k]; if (!m) return;
+    m.volume += imp; m.ordini[oid] = 1; m.soci[tk] = 1; m.fornitori[fid] = 1;
+    tot.volume += imp; tot.ordini[oid] = 1; tot.soci[tk] = 1; tot.fornitori[fid] = 1; tot.raccolte[String(o.raccolta_id)] = 1; tot.prodotti[String(rg.prodotto_id)] = 1;
+    (perCatMese[cat] = perCatMese[cat] || mesi.map(() => 0))[x.k] += imp;
 
     const pk = String(rg.prodotto_id);
     if (!perP[pk]) perP[pk] = { nome: prod.nome, qta: 0, volume: 0 };
     perP[pk].qta += qta; perP[pk].volume += imp;
-
     if (!perF[fid]) perF[fid] = { nome: (fornById[fid] || {}).nome || fid, volume: 0, ordini: {} };
-    perF[fid].volume += imp; perF[fid].ordini[String(o.id)] = true;
-
-    const tk = tessKey_(o.numero_tessera);
+    perF[fid].volume += imp; perF[fid].ordini[oid] = 1;
     if (!perS[tk]) perS[tk] = { tessera: tk, nominativo: o.nominativo_inserito || '', volume: 0, ordini: {} };
-    perS[tk].volume += imp; perS[tk].ordini[String(o.id)] = true;
-
+    perS[tk].volume += imp; perS[tk].ordini[oid] = 1;
     const cid = String(rc.consegna_id || '') || '(senza consegna)';
     if (!perC[cid]) { const co = cons[cid] || {}; const lu = luoghi[String(co.luogo_id || '')] || {};
       perC[cid] = { etichetta: cid === '(senza consegna)' ? '(senza consegna)' : ((co.data ? testoData_(co.data) : '') + ' ' + (lu.nome || '')).trim(), volume: 0, raccolte: {} }; }
-    perC[cid].volume += imp; perC[cid].raccolte[String(o.raccolta_id)] = true;
+    perC[cid].volume += imp; perC[cid].raccolte[String(o.raccolta_id)] = 1;
   });
 
+  const n = o => Object.keys(o).length;
   const A = (obj, fn) => Object.keys(obj).map(k => fn(obj[k]));
+  const nOrd = n(tot.ordini), nOrdPrima = n(prima.ordini);
   return {
-    generali: { volume: volume, nOrdini: ordini.length, nSoci: Object.keys(sociSet).length,
-                nRaccolte: Object.keys(raccSet).length, nFornitori: Object.keys(perF).length, nProdotti: Object.keys(perP).length },
-    perFornitore: A(perF, x => ({ nome: x.nome, nOrdini: Object.keys(x.ordini).length, volume: x.volume })).sort((a,b)=>b.volume-a.volume),
-    perProdotto:  A(perP, x => ({ nome: x.nome, qta: x.qta, volume: x.volume })).sort((a,b)=>b.volume-a.volume).slice(0,80),
-    perSocio:     A(perS, x => ({ tessera: x.tessera, nominativo: x.nominativo, nOrdini: Object.keys(x.ordini).length, volume: x.volume })).sort((a,b)=>b.volume-a.volume).slice(0,80),
-    perConsegna:  A(perC, x => ({ etichetta: x.etichetta, nRaccolte: Object.keys(x.raccolte).length, volume: x.volume })).sort((a,b)=>b.volume-a.volume)
+    periodo: { mesi: nMesi, dal: mesi[0].lungo, al: mesi[mesi.length - 1].lungo },
+    generali: { volume: tot.volume, nOrdini: nOrd, prezzoMedio: nOrd ? tot.volume / nOrd : 0, nSoci: n(tot.soci), nFornitori: n(tot.fornitori),
+                nRaccolte: n(tot.raccolte), nProdotti: n(tot.prodotti) },
+    prima: { volume: prima.volume, nOrdini: nOrdPrima, prezzoMedio: nOrdPrima ? prima.volume / nOrdPrima : 0, nSoci: n(prima.soci), nFornitori: n(prima.fornitori) },
+    mesi: mesi.map(m => ({ etichetta: m.etichetta, lungo: m.lungo, volume: m.volume, ordini: n(m.ordini), soci: n(m.soci), fornitori: n(m.fornitori),
+                           prezzoMedio: n(m.ordini) ? m.volume / n(m.ordini) : 0 })),
+    perCategoria: Object.keys(perCatMese).map(k => ({ nome: k, serie: perCatMese[k] })),
+    perFornitore: A(perF, x => ({ nome: x.nome, nOrdini: n(x.ordini), volume: x.volume })).sort((a, b) => b.volume - a.volume),
+    perProdotto:  A(perP, x => ({ nome: x.nome, qta: x.qta, volume: x.volume })).sort((a, b) => b.volume - a.volume).slice(0, 80),
+    perSocio:     A(perS, x => ({ tessera: x.tessera, nominativo: x.nominativo, nOrdini: n(x.ordini), volume: x.volume })).sort((a, b) => b.volume - a.volume).slice(0, 80),
+    perConsegna:  A(perC, x => ({ etichetta: x.etichetta, nRaccolte: n(x.raccolte), volume: x.volume })).sort((a, b) => b.volume - a.volume),
+    // per i menu dei filtri: tutti i fornitori (anche non attivi) e tutte le categorie
+    filtri: {
+      fornitori: A(fornById, x => ({ id: String(x.id), nome: String(x.nome || x.id), attivo: isSi(x.attivo) })).sort((a, b) => a.nome.localeCompare(b.nome)),
+      categorie: A(catById, x => String(x.nome || '')).filter(Boolean).sort((a, b) => a.localeCompare(b)).concat(['Senza categoria'])
+    }
   };
 }
 
@@ -359,10 +481,12 @@ function adminEliminaAdmin(token, id) {
 function adminProfilo(token) {
   checkToken_(token);
   const base = urlApp();
-  if (!_ADMIN_TESSERA) return { url: base, socioUrl: '', fornitoreUrl: '' };
+  // nome: per il saluto della Home (solo il nome di battesimo)
+  const nome = _ADMIN_TESSERA ? String(_ADMIN_CORRENTE).trim().split(/\s+/)[0] : '';
+  if (!_ADMIN_TESSERA) return { url: base, socioUrl: '', fornitoreUrl: '', nome: nome };
   const r = ruoliTessera_(_ADMIN_TESSERA);
   const t = encodeURIComponent(String(token).trim());
-  return { url: base, socioUrl: base + '?socio=' + t, fornitoreUrl: r.fornitore ? (base + '?fornitore=' + t) : '' };
+  return { url: base, socioUrl: base + '?socio=' + t, fornitoreUrl: r.fornitore ? (base + '?fornitore=' + t) : '', nome: nome };
 }
 
 /** (Admin) Registro delle ultime azioni (dal Log). */
@@ -403,6 +527,8 @@ function adminModificaRiga(token, rigaId, quantita) {
   checkToken_(token);
   const r = leggiTabella(SHEETS.RIGHE).find(x => String(x.id) === String(rigaId));
   if (!r) throw new Error('Riga non trovata.');
+  const o = leggiTabella(SHEETS.ORDINI).find(x => String(x.id) === String(r.ordine_id));
+  if (o) bloccaOrdineConcluso_(o);
   const q = num(quantita);
   if (q <= 0) { eliminaRiga_(SHEETS.RIGHE, r._riga); logAdmin_('riga_rimossa', rigaId); }
   else { aggiornaCella(SHEETS.RIGHE, r._riga, 'quantita', q); logAdmin_('riga_modificata', rigaId + ' = ' + q); }
@@ -430,6 +556,7 @@ function adminDaFare(token) {
   // 1) ordini da verificare, raggruppati per raccolta
   const daVer = [];
   raccolte.forEach(r => {
+    if (raccoltaConclusa_(r)) return; // concluse: in sola lettura, non c'è più niente da fare
     const l = ordini.filter(o => String(o.raccolta_id) === String(r.id) && String(o.stato) === 'da_verificare');
     if (l.length) daVer.push({ raccoltaId: String(r.id), fornitore: nomeF(r),
       ordini: l.map(o => ({ id: String(o.id), tessera: tessKey_(o.numero_tessera), nominativo: o.nominativo_inserito || '', motivo: o.motivo_annullamento || '' })) });

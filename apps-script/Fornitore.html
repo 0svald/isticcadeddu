@@ -27,8 +27,16 @@
 <div class="wrap">
   <div id="loading" role="status" style="text-align:center"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
   <div id="app" class="hidden">
-    <section id="sez_listino">
-    <div class="secbar"><h1 style="margin:0">Il mio listino</h1><button onclick="toggleAdd()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nuovo</button></div>
+    <section id="sez_home" class="hidden"><div id="home_box"></div></section>
+    <section id="sez_notif" class="hidden">
+      <h1>Notifiche</h1>
+      <p class="muted" style="margin-top:0">Restano qui finché la cosa non cambia: un ordine verificato, un peso confermato, una consegna passata.</p>
+      <div id="notif_box"></div>
+    </section>
+    <section id="sez_listino" class="hidden">
+    <div class="sopra">Vendite</div>
+    <div class="secbar"><h1 style="margin:0">Listino</h1><button onclick="toggleAdd()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nuovo</button></div>
+    <div id="riep_listino" class="riep"></div>
     <p class="muted" style="margin-top:0">Tocca un prodotto per modificarlo. Il pulsante a destra lo rende disponibile o no.</p>
     <div id="add_prod" class="addpanel hidden">
       <div class="frow"><label>Nome</label><input type="text" id="np_nome"></div>
@@ -41,19 +49,15 @@
     <div id="listino" class="list"></div>
     </section>
     <section id="sez_raccolte" class="hidden">
-      <h1>Le mie raccolte</h1>
+      <div class="sopra">Vendite</div><h1 style="margin-top:2px">Raccolte</h1>
+      <div id="riep_raccolte" class="riep"></div>
       <div id="cicli"></div>
     </section>
-    <section id="sez_profilo" class="hidden"><div id="prof_box"></div></section>
-    <section id="sez_aiuto" class="hidden"><div id="aiuto_box"></div></section>
+    <section id="sez_profilo" class="hidden"><div class="sopra">La mia tessera</div><div id="prof_box"></div></section>
+    <section id="sez_aiuto" class="hidden"><div class="sopra">La mia tessera</div><div id="aiuto_box"></div></section>
   </div>
 </div>
-<nav class="bottomnav" aria-label="Menu">
-  <button class="navbtn active" data-s="listino" onclick="vai('listino')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11"/><path d="M9 12h11"/><path d="M9 18h11"/><path d="M4 6h.01"/><path d="M4 12h.01"/><path d="M4 18h.01"/></svg>Listino</button>
-  <button class="navbtn" data-s="raccolte" onclick="vai('raccolte')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Raccolte<span class="cnt" id="cnt_racc"></span></button>
-  <button class="navbtn" data-s="profilo" onclick="vai('profilo')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profilo</button>
-  <button class="navbtn" data-s="aiuto" onclick="vai('aiuto')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg>Aiuto</button>
-</nav>
+<nav class="barra-home" id="barra" aria-label="Menu"></nav>
 
 <script>
   const TOKEN = "<?= token ?>";
@@ -70,31 +74,89 @@
   function render(d){ DATI=d; document.getElementById('loading').classList.add('hidden'); document.getElementById('app').classList.remove('hidden');
     document.getElementById('tit').textContent=d.fornitore.nome;
     document.getElementById('sub').textContent=d.fornitore.zona?(' · '+d.fornitore.zona):'';
-    const nv=(d.cicli||[]).reduce((a,c)=>a+(+c.nDaVerificare||0),0); document.getElementById('cnt_racc').textContent=nv?String(nv):'';
-    riempiCat(); renderCicli(); renderListino(); }
+    riempiCat(); renderCicli(); renderListino(); renderRiepiloghi(); renderNotifiche();
+    if(PRIMA_VOLTA){ PRIMA_VOLTA=false; vai('home'); } }
+  let PRIMA_VOLTA=true;
+  const SEZIONI=['home','notif','listino','raccolte','profilo','aiuto'];
+  function plurale(n, uno, tanti){ return n+' '+(n===1?uno:tanti); }
+  function inCorso(){ return (DATI.cicli||[]).filter(c=>!c.conclusa); }
+  function renderRiepiloghi(){
+    const ic=inCorso(), aperte=ic.filter(c=>c.stato==='aperto'), chiuse=ic.filter(c=>c.stato!=='aperto'&&c.stato!=='bozza');
+    const nv=ic.reduce((a,c)=>a+(+c.nDaVerificare||0),0);
+    const a0=aperte[0];
+    GasUI.riep(document.getElementById('riep_raccolte'),
+      ic.length?[aperte.length?plurale(aperte.length,'raccolta aperta','raccolte aperte'):'', chiuse.length?plurale(chiuse.length,'chiusa','chiuse'):''].filter(Boolean).join(' · '):'Nessuna raccolta in corso',
+      [a0?('Aperta fino al '+a0.chiusura+' · '+plurale(a0.nValidi,'ordine','ordini')):'', nv?plurale(nv,'ordine da verificare','ordini da verificare'):''].filter(Boolean).join(' · '),
+      { icona:'racc', evid:nv>0 });
+    const pr=DATI.prodotti||[], nd=pr.filter(p=>!p.attivo).length;
+    GasUI.riep(document.getElementById('riep_listino'), plurale(pr.length,'prodotto','prodotti')+(nd?(' · '+nd+' non disponibil'+(nd===1?'e':'i')):''),
+      'Tocca "Disponibile" per togliere un prodotto finito.', { icona:'listino' });
+  }
+  // notifiche del fornitore: calcolate dai dati, restano finché l'evento non cambia stato
+  function apriRaccolta(id, azione){ vai('raccolte'); if(azione) azione(id); const el=document.getElementById('det_'+id); if(el) el.closest('.card').scrollIntoView({behavior:'smooth',block:'start'}); }
+  function notificheFornitore(){
+    const ora=new Date(), oggi=new Date(ora.getFullYear(),ora.getMonth(),ora.getDate()), tra7=new Date(oggi.getTime()+8*864e5), l=[];
+    inCorso().forEach(c=>{ const cons=c.dataConsegna?(' del '+c.dataConsegna):'';
+      if(c.nDaVerificare) l.push({ tipo:'fare', icona:'attenz', titolo:plurale(c.nDaVerificare,'ordine da verificare','ordini da verificare'),
+        testo:'Raccolta'+cons+': controlla e conferma o annulla.', azioni:[{testo:'Vedi gli ordini', fn:()=>apriRaccolta(c.id, ordiniF)}] });
+      if(c.stato!=='aperto' && c.nPesiDaConfermare) l.push({ tipo:'fare', icona:'bilancia', titolo:'Conferma i pesi',
+        testo:'Raccolta'+cons+': '+plurale(c.nPesiDaConfermare,'prodotto a peso','prodotti a peso')+' da confermare.', azioni:[{testo:'Conferma pesi', fn:()=>apriRaccolta(c.id, pesi)}] });
+      const dch=GasUI.data(c.chiusura);
+      if(c.stato==='aperto' && dch && dch>=ora && (dch-ora)<=24*3600*1000) l.push({ tipo:'info', icona:'orologio', titolo:'La raccolta chiude entro 24 ore',
+        testo:'Ordini fino al '+c.chiusura+' · '+plurale(c.nValidi,'ordine','ordini')+' finora.', azioni:[{testo:'Riepilogo', fn:()=>apriRaccolta(c.id, riepilogo)}] });
+      const dco=GasUI.data(c.dataConsegna);
+      if(dco && dco>=oggi && dco<tra7) l.push({ tipo:'info', icona:'cons', titolo:'Consegna del '+c.dataConsegna,
+        testo:plurale(c.nValidi,'ordine','ordini')+'.', azioni:[{testo:'Riepilogo', fn:()=>apriRaccolta(c.id, riepilogo)}] });
+    });
+    return l;
+  }
+  function renderNotifiche(){
+    const note=notificheFornitore();
+    GasUI.notifiche(document.getElementById('notif_box'), note);
+    const nv=inCorso().reduce((a,c)=>a+(+c.nDaVerificare||0),0);
+    GasUI.home(document.getElementById('home_box'), { nome:(String(DATI.fornitore.referente||'').trim().split(/\s+/)[0]||DATI.fornitore.nome), sotto:DATI.fornitore.nome, notifiche:note.length, vai:vai,
+      gruppi:[ { titolo:'Vendite', voci:[{k:'raccolte',nome:'Raccolte',icona:'racc',n:nv},{k:'listino',nome:'Listino'}] },
+               { titolo:'La mia tessera', voci:[{k:'profilo',nome:'Profilo'},{k:'aiuto',nome:'Aiuto'}] } ] });
+  }
 
   function riempiCat(){ const s=document.getElementById('np_cat'); s.innerHTML=''; s.appendChild(new Option('— senza categoria —','')); DATI.categorie.forEach(c=> s.appendChild(new Option((c.emoji?c.emoji+' ':'')+c.nome, c.id))); }
-  function vai(k){ if(k==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'fornitore'); if(k==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'fornitore', pagina:'portale fornitore', sezione:'aiuto' }); ['listino','raccolte','profilo','aiuto'].forEach(x=>document.getElementById('sez_'+x).classList.toggle('hidden',x!==k)); document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.s===k)); window.scrollTo({top:0}); }
+  function vai(k){ if(k==='profilo') Profilo.mostra(document.getElementById('prof_box'), TOKEN, 'fornitore'); if(k==='aiuto') Aiuto.mostra(document.getElementById('aiuto_box'), TOKEN, { profilo:'fornitore', pagina:'portale fornitore', sezione:'aiuto' });
+    SEZIONI.forEach(x=>document.getElementById('sez_'+x).classList.toggle('hidden',x!==k));
+    GasUI.barra(document.getElementById('barra'), k==='home', ()=>vai('home')); window.scrollTo({top:0}); }
   function chipStato(st){ const m={aperto:['Aperta',''],chiuso:['Chiusa',' grey'],definitivo:['Definitiva',' grey'],consegnato:['Consegnata',' grey'],archiviato:['Archiviata',' grey']}; const x=m[st]||[st,' grey']; return '<span class="badge'+x[1]+'">'+x[0]+'</span>'; }
   function toggleAdd(){ document.getElementById('add_prod').classList.toggle('hidden'); }
 
   /* raccolte */
-  function renderCicli(){ const box=document.getElementById('cicli'); box.innerHTML=''; if(!DATI.cicli.length){ box.innerHTML='<div class="muted">Nessuna raccolta.</div>'; return; }
-    DATI.cicli.forEach(c=>{ const card=document.createElement('div'); card.className='card ccard'+(c.nDaVerificare?' mine':''); const badge=chipStato(c.stato)+(c.nDaVerificare?' <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'');
-      let b='';
-      b+='<button class="sec" onclick="ordiniF(\''+c.id+'\')">Ordini</button><button class="sec" onclick="riepilogo(\''+c.id+'\')">Riepilogo</button><button class="sec" onclick="pesi(\''+c.id+'\')">Conferma pesi</button>';
-      const chiudiB = c.stato==='aperto' ? '<button class="warn block" style="margin-top:8px" onclick="chiudi(\''+c.id+'\')">Chiudi gli ordini adesso</button>' : '';
-      card.innerHTML='<div><b style="font-size:1.1rem">Raccolta'+(c.dataConsegna?(' – consegna '+c.dataConsegna):'')+'</b> '+badge+'<div class="muted">'+c.nValidi+' ordini'+(c.chiusura?(' · chiusura '+c.chiusura):'')+(c.dataConsegna?(' · consegna '+c.dataConsegna):'')+'</div></div><div class="actions">'+b+'</div>'+chiudiB+'<div id="det_'+c.id+'" style="margin-top:10px"></div>'; box.appendChild(card); }); }
+  // raccolte in corso in alto; quelle concluse (consegnate) in un riquadro chiuso in fondo, dalla più recente
+  let CONCLUSE_APERTE=false;
+  function cardCiclo(c){ const card=document.createElement('div'); card.className='card ccard'+(c.nDaVerificare?' mine':''); const badge=chipStato(c.stato)+(c.nDaVerificare?' <span class="badge warn">'+c.nDaVerificare+' da verificare</span>':'');
+    let b='';
+    // raccolta conclusa: ordini e riepilogo solo da vedere, niente "Conferma pesi"
+    b+='<button class="sec" onclick="ordiniF(\''+c.id+'\')">Ordini</button><button class="sec" onclick="riepilogo(\''+c.id+'\')">Riepilogo</button>'+(c.conclusa?'':'<button class="sec" onclick="pesi(\''+c.id+'\')">Conferma pesi</button>');
+    const chiudiB = c.stato==='aperto' ? '<button class="warn block" style="margin-top:8px" onclick="chiudi(\''+c.id+'\')">Chiudi gli ordini adesso</button>' : '';
+    card.innerHTML='<div><b style="font-size:1.1rem">Raccolta'+(c.dataConsegna?(' – consegna '+c.dataConsegna):'')+'</b> '+badge+'<div class="muted">'+c.nValidi+' ordini'+(c.chiusura?(' · chiusura '+c.chiusura):'')+(c.dataConsegna?(' · consegna '+c.dataConsegna):'')+'</div></div><div class="actions">'+b+'</div>'+chiudiB+'<div id="det_'+c.id+'" style="margin-top:10px"></div>';
+    return card; }
+  function renderCicli(){ const box=document.getElementById('cicli'); box.innerHTML='';
+    const inCorso=DATI.cicli.filter(c=>!c.conclusa), concluse=DATI.cicli.filter(c=>c.conclusa).sort((a,b)=>b.dt-a.dt);
+    if(!inCorso.length) box.innerHTML='<div class="muted">Nessuna raccolta in corso.</div>';
+    inCorso.forEach(c=>box.appendChild(cardCiclo(c)));
+    if(!concluse.length) return;
+    const det=document.createElement('details'); det.className='grp'; det.style.marginTop='18px'; det.open=CONCLUSE_APERTE;
+    det.innerHTML='<summary style="min-height:48px;display:flex;align-items:center;cursor:pointer"><b>Raccolte concluse ('+concluse.length+')</b></summary><p class="muted" style="margin:6px 0 0">Le raccolte già consegnate, dalla più recente.</p>';
+    det.addEventListener('toggle',()=>{ CONCLUSE_APERTE=det.open; });
+    concluse.forEach(c=>det.appendChild(cardCiclo(c)));
+    box.appendChild(det); }
   function chiudi(id){ chiedi('I soci non potranno più ordinare per questa raccolta.',{titolo:'Chiudere gli ordini?',ok:'Chiudi gli ordini',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>ricarica()).withFailureHandler(err).fornitoreChiudiCiclo(TOKEN,id); }); }
   function pesi(id){ const det=document.getElementById('det_'+id); det.innerHTML=SPIN; run().withSuccessHandler(l=>{ if(!l.length){ det.innerHTML='<div class="muted">Nessun prodotto a peso variabile.</div>'; return; } let h='<table><tr><th>Socio</th><th>Prodotto</th><th>Q.tà</th><th>Peso kg</th><th></th></tr>'; l.forEach(r=>{ h+='<tr><td>'+esc(r.nominativo)+'</td><td>'+esc(r.prodotto)+'</td><td>'+nfmt(r.quantita)+'</td><td><input id="pw_'+r.rigaId+'" style="width:80px" value="'+(r.pesoConfermato>0?nfmt(r.pesoConfermato):'')+'"></td><td><button class="mini" onclick="salvaPeso(\''+r.rigaId+'\')">Salva</button></td></tr>'; }); det.innerHTML=h+'</table>'; }).withFailureHandler(err).fornitoreRigheDaConfermare(TOKEN,id); }
   function salvaPeso(rid){ const val=v('pw_'+rid).replace(',','.'); run().withSuccessHandler(()=>{}).withFailureHandler(err).fornitoreConfermaPeso(TOKEN,rid,val); }
   function ordiniF(id){ const det=document.getElementById('det_'+id); det.innerHTML=SPIN;
+    const sola=!!((DATI.cicli||[]).find(c=>c.id===id)||{}).conclusa; // raccolta conclusa: sola lettura
     run().withSuccessHandler(l=>{ if(!l.length){ det.innerHTML='<div class="muted">Nessun ordine.</div>'; return; }
       let h='<b>Ordini</b>';
       l.forEach(o=>{ const badge=o.stato==='valido'?'<span class="badge">valido</span>':'<span class="badge off">da verificare</span>';
         h+='<div class="card" style="margin-top:6px"><div><b>'+esc(o.tessera)+' — '+esc(o.nominativo)+'</b> '+badge+'</div>'+(o.telefono?'<div class="li2">'+esc(o.telefono)+'</div>':'')+(o.motivo?'<div class="li2">⚠️ '+esc(o.motivo)+'</div>':'')+(o.note?'<div class="li2">✎ nota: '+esc(o.note)+'</div>':'');
-        o.righe.forEach(r=>{ h+='<div class="frow" style="margin:2px 0"><span style="flex:1;min-width:120px">'+esc(r.prodotto)+'</span><input id="rqf_'+r.rigaId+'" value="'+nfmt(r.quantita)+'" style="width:64px;flex:none"><span class="li2">'+esc(r.unita)+'</span><button class="sec mini" onclick="salvaRigaF(\''+r.rigaId+'\',\''+id+'\')">Salva</button></div>'; });
-        h+='<div class="edact">'+(o.stato!=='valido'?'<button class="mini" onclick="confOrdF(\''+o.id+'\',\''+id+'\')">Conferma</button>':'')+'<button class="warn mini" onclick="annOrdF(\''+o.id+'\',\''+id+'\')">Annulla ordine</button></div></div>';
+        o.righe.forEach(r=>{ h+='<div class="frow" style="margin:2px 0"><span style="flex:1;min-width:120px">'+esc(r.prodotto)+'</span>'+(sola?'<b style="flex:none">'+nfmt(r.quantita)+'</b>':'<input id="rqf_'+r.rigaId+'" value="'+nfmt(r.quantita)+'" style="width:64px;flex:none">')+'<span class="li2">'+esc(r.unita)+'</span>'+(sola?'':'<button class="sec mini" onclick="salvaRigaF(\''+r.rigaId+'\',\''+id+'\')">Salva</button>')+'</div>'; });
+        h+=(sola?'':'<div class="edact">'+(o.stato!=='valido'?'<button class="mini" onclick="confOrdF(\''+o.id+'\',\''+id+'\')">Conferma</button>':'')+'<button class="warn mini" onclick="annOrdF(\''+o.id+'\',\''+id+'\')">Annulla ordine</button></div>')+'</div>';
       }); det.innerHTML=h;
     }).withFailureHandler(err).fornitoreOrdini(TOKEN,id); }
   function salvaRigaF(rid,cid){ run().withSuccessHandler(()=>ordiniF(cid)).withFailureHandler(err).fornitoreModificaRiga(TOKEN,rid,document.getElementById('rqf_'+rid).value.replace(',','.')); }

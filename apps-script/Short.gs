@@ -82,26 +82,41 @@ function accorcia_(urlLungo) {
   const servizi = serviziShort_();
   if (!servizi.length) return urlLungo;
 
-  const props = PropertiesService.getScriptProperties();
+  // memoria temporanea (6 ore), NON le proprietà dello script: l'editor ne gestisce al massimo 50
+  // e salvando dall'editor quelle in più andavano perse. I link brevi restano salvati nel foglio (colonna link_breve).
+  const cache = CacheService.getScriptCache();
   const firma = Utilities.base64EncodeWebSafe(
     Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, urlLungo)
   ).substring(0, 20);
   const chiaveCache = 'short_' + firma;
-  const inCache = props.getProperty(chiaveCache);
+  const inCache = cache.get(chiaveCache);
   if (inCache) return inCache;
 
   for (let i = 0; i < servizi.length; i++) {
     const r = chiamaProvider_(servizi[i], urlLungo);
-    if (r.url) { props.setProperty(chiaveCache, r.url); return r.url; }
+    if (r.url) { try { cache.put(chiaveCache, r.url, 21600); } catch (e) {} return r.url; }
   }
   return urlLungo; // fallback: link lungo
 }
 
-/** Svuota la cache dei link corti (usala dopo aver cambiato servizio o deployment). */
+/** Toglie dalle proprietà dello script i link brevi salvati dalle versioni precedenti (nomi "short_…"). */
 function svuotaCacheLink() {
+  return pulisciProprieta();
+}
+
+/**
+ * Toglie dalle proprietà dello script i dati di servizio salvati dalle versioni precedenti dell'app:
+ * i link brevi ("short_…") e il logo ("LOGO_B64"). Erano tanti e superavano le 50 proprietà che l'editor
+ * sa gestire: salvando dall'editor, le proprietà in più (anche SPREADSHEET_ID, GUIDA_…) venivano cancellate.
+ * Non tocca le proprietà impostate a mano. Parte da sola con la chiusura automatica; si può anche eseguire dall'editor.
+ */
+function pulisciProprieta() {
   const props = PropertiesService.getScriptProperties();
-  const tutte = props.getProperties();
-  Object.keys(tutte).forEach(k => { if (k.indexOf('short_') === 0) props.deleteProperty(k); });
+  const via = Object.keys(props.getProperties()).filter(k => k.indexOf('short_') === 0 || k === 'LOGO_B64');
+  via.forEach(k => props.deleteProperty(k));
+  const resto = Object.keys(props.getProperties()).length;
+  Logger.log('Tolte ' + via.length + ' proprietà di servizio. Restano ' + resto + ' proprietà.');
+  return { tolte: via.length, restano: resto };
 }
 
 /** DIAGNOSTICA: eseguila dall'editor e apri "Esecuzioni" per leggere i Log. */
