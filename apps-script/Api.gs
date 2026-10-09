@@ -286,6 +286,7 @@ var AZIONI_API_ = {
   leggi:            apiLeggi_,
   ordiniRaccolta:   (k, d) => adminOrdiniRaccolta(k, d.raccoltaId),
   statistiche:      (k, d) => adminStatistiche(k, d),
+  pdf:              (k, d) => d.tipo === 'provvisorio' ? adminPdfStato(k, d.raccoltaId) : adminPdfDefinitivo(k, d.raccoltaId),
   // soci e fornitori
   aggiungiSocio:    apiAggiungiSocio_,
   modificaSocio:    apiModificaSocio_,
@@ -309,12 +310,13 @@ var AZIONI_API_ = {
   annullaOrdine:    (k, d) => adminAnnullaOrdine(k, d.ordineId, d.motivo),
   modificaQuantita: apiModificaQuantita_
 };
-var AZIONI_LETTURA_API_ = { azioni: true, leggi: true, ordiniRaccolta: true, statistiche: true };
+var AZIONI_LETTURA_API_ = { azioni: true, leggi: true, ordiniRaccolta: true, statistiche: true, pdf: true };
 
 var DESCRIZIONE_API_ = {
   leggi: '{ scheda, filtro?: {colonna: valore}, conToken?: false }',
   ordiniRaccolta: '{ raccoltaId }',
   statistiche: '{ mesi?: 3|6|12|"anno", fornitoreId?, categoria? }',
+  pdf: '{ raccoltaId, tipo?: "definitivo"|"provvisorio" } → { filename, base64 } (come il pulsante del pannello)',
   aggiungiSocio: '{ tessera, nominativo, telefono?, scadenza?: "GG-MM-AAAA", attiva?: true }',
   modificaSocio: '{ tessera, nuovaTessera?, nominativo?, telefono?, attiva?, scadenza? }',
   aggiungiFornitore: '{ tessera, nome, referente?, telefono?, email?, zona?, descrizione?, emoji? }',
