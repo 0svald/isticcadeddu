@@ -259,9 +259,10 @@ function apiInserisciOrdine_(chiave, d) {
   if (doppio) { stato = 'da_verificare'; motivo = (motivo ? motivo + '; ' : '') + 'ordine multiplo: il socio ha già un ordine in questa raccolta'; }
 
   const id = nuovoId(SHEETS.ORDINI, 'OR');
+  try { assicuraColonna_(SHEETS.ORDINI, 'origine'); } catch (e) {}
   aggiungiRiga(SHEETS.ORDINI, {
     id: id, raccolta_id: String(rac.id), numero_tessera: tessera, nominativo_inserito: nominativo,
-    stato: stato, motivo_annullamento: motivo, note: String(d.note || '').trim(),
+    stato: stato, motivo_annullamento: motivo, note: String(d.note || '').trim(), origine: 'api',
     timestamp: String(d.quando || '').trim() || new Date()
   });
   righe.forEach((r, i) => aggiungiRiga(SHEETS.RIGHE, {

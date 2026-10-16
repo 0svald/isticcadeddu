@@ -1,6 +1,9 @@
 /**
  * WebApp.gs — punto d'ingresso della web app.
  * Rotte:
+ *   ?ordini              -> pagina unica con tutte le raccolte aperte (link comune, tessera + nome)
+ *   ?ordini&socio=T      -> la stessa pagina con il link personale (modifica i propri ordini)
+ *   ?ordini&admin=T      -> la stessa pagina per un amministratore: ordine per conto di un socio
  *   ?form=CI01           -> form d'ordine per un ciclo (pubblico)
  *   ?form=CI01&socio=T   -> form precompilato con il link personale del socio
  *   ?socio=TOKEN         -> pagina personale del socio (anche con il token di un amministratore)
@@ -32,6 +35,20 @@ function conFavicon_(out) {
 
 function pagina_(e) {
   const p = (e && e.parameter) || {};
+
+  // pagina unica degli ordini: link comune, link personale (&socio= o &u=) o amministratore (&admin=)
+  if (p.ordini !== undefined) {
+    const adminTok = String(p.admin || ''), socioTok = String(p.socio || p.u || '');
+    try { if (adminTok) checkToken_(adminTok); else if (socioTok) socioDaToken_(socioTok); }
+    catch (err) { return HtmlService.createHtmlOutput(paginaSemplice_('Link non valido', err.message)).addMetaTag('viewport', 'width=device-width, initial-scale=1'); }
+    const t = HtmlService.createTemplateFromFile('OrdiniAperti');
+    t.socioToken = adminTok ? '' : socioTok;
+    t.adminToken = adminTok;
+    t.apri = String(p.apri || '');
+    return t.evaluate()
+      .setTitle(adminTok ? 'Ordine per un socio – GAS' : 'Ordini aperti – GAS')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
 
   // link personale unico (?u=TOKEN): apre il pannello per gli amministratori,
   // il portale per i fornitori, altrimenti la pagina del socio
@@ -85,7 +102,8 @@ function pagina_(e) {
   }
 
   return HtmlService.createHtmlOutput(paginaSemplice_('Gruppo di Acquisto Solidale',
-    'Questa pagina si apre tramite i link agli ordini pubblicati nel gruppo.'));
+    'Questa pagina si apre tramite i link agli ordini pubblicati nel gruppo.'))
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
 /** Pagina informativa minimale, coerente con lo stile del form. */

@@ -135,6 +135,7 @@
     // ordini aperti
     h+='<h2 class="sez">Ordini aperti</h2>';
     if(!d.aperte.length) h+='<div class="vuoto">In questo momento non ci sono raccolte aperte.</div>';
+    else h+='<a class="btn block" href="'+d.ordiniUrl+'" style="margin:4px 0 14px">'+(d.aperte.some(r=>r.ordine)?'Ordina o modifica i tuoi ordini':'Ordina dalle raccolte aperte')+'</a>';
     d.aperte.forEach(r=>{
       h+='<article class="card'+(r.ordine?' mine':'')+'"><div class="ct"><b>'+esc((r.emoji?r.emoji+' ':'')+r.fornitore)+'</b>'+(r.ordine?'<span class="badge full">Ordinato</span>':'<span class="badge">Aperta</span>')+'</div>'+
          '<div class="meta">'+(r.ordine?'Puoi modificarlo fino al ':'Ordini fino al ')+esc(chiusura(r.chiusura))+(r.ordine?'':' · non hai ancora ordinato')+'</div>'+

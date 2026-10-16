@@ -390,6 +390,15 @@ function adminStatistiche(token, f) {
     perC[cid].volume += imp; perC[cid].raccolte[String(o.raccolta_id)] = 1;
   });
 
+  // come arrivano gli ordini (colonna "origine"): conta gli ordini validi del periodo, mese per mese
+  const NOMI_ORIGINE = { 'amministratore': 'Inseriti da un amministratore', 'link comune': 'Pagina comune', 'link personale': 'Link personale' };
+  const perOrigine = {};
+  Object.keys(tot.ordini).forEach(oid => {
+    const o = ordini[oid], x = racc[String(o.raccolta_id)]; if (!o || !x || x.prima || !mesi[x.k]) return;
+    const nome = NOMI_ORIGINE[String(o.origine || '').trim()] || 'Prima dell\'app o da API';
+    (perOrigine[nome] = perOrigine[nome] || mesi.map(() => 0))[x.k] += 1;
+  });
+
   const n = o => Object.keys(o).length;
   const A = (obj, fn) => Object.keys(obj).map(k => fn(obj[k]));
   const nOrd = n(tot.ordini), nOrdPrima = n(prima.ordini);
@@ -401,6 +410,7 @@ function adminStatistiche(token, f) {
     mesi: mesi.map(m => ({ etichetta: m.etichetta, lungo: m.lungo, volume: m.volume, ordini: n(m.ordini), soci: n(m.soci), fornitori: n(m.fornitori),
                            prezzoMedio: n(m.ordini) ? m.volume / n(m.ordini) : 0 })),
     perCategoria: Object.keys(perCatMese).map(k => ({ nome: k, serie: perCatMese[k] })),
+    perOrigine: Object.keys(perOrigine).map(k => ({ nome: k, serie: perOrigine[k] })),
     perFornitore: A(perF, x => ({ nome: x.nome, nOrdini: n(x.ordini), volume: x.volume })).sort((a, b) => b.volume - a.volume),
     perProdotto:  A(perP, x => ({ nome: x.nome, qta: x.qta, volume: x.volume })).sort((a, b) => b.volume - a.volume).slice(0, 80),
     perSocio:     A(perS, x => ({ tessera: x.tessera, nominativo: x.nominativo, nOrdini: n(x.ordini), volume: x.volume })).sort((a, b) => b.volume - a.volume).slice(0, 80),
