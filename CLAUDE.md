@@ -113,7 +113,7 @@ Note su clasp e Claude Code:
 - Claude pubblica su Apps Script (push e deployment) **solo con l'autorizzazione esplicita** dell'utente, ogni volta.
 - Credenziali di clasp (`~/.clasprc.json`): mai in chat né nel repository. Per le sessioni cloud vanno nella variabile d'ambiente `CLASPRC_JSON` dell'ambiente, da scrivere in `~/.clasprc.json` all'avvio.
 - Le pagine si vedono dentro l'app installabile solo se il server le marca con `setXFrameOptionsMode(ALLOWALL)` (in `conFavicon_` di `WebApp.gs`): altrimenti l'app mostra "script.google.com refused to connect".
-- Ultima pubblicazione: versione **66** del deployment, 16-10-2026 (pagina "Raccolte aperte" e ordine per un socio). La 65 (09-10-2026) ha aggiunto l'azione `pdf` dell'API.
+- Ultima pubblicazione: versione **68** del deployment, 16-10-2026 (codice uguale al ramo `main`: risposta di Aiuto sull'installazione dell'app browser per browser). Lo stesso giorno: 67 nome "Raccolte aperte", 66 pagina "Raccolte aperte" e ordine per un socio; la 65 (09-10-2026) l'azione `pdf` dell'API.
 
 **Proprietà dello script: niente dati di servizio.** L'editor ne gestisce al massimo 50: salvando dall'editor, quelle oltre le 50 venivano cancellate (così si sono perse `SPREADSHEET_ID`, `GUIDA_*` e altre). Per questo link brevi e logo stanno in `CacheService` (6 ore) e non nelle proprietà; `pulisciProprieta()` (in `Short.gs`, eseguita anche dalla chiusura automatica) toglie i vecchi `short_…` e `LOGO_B64`. `diagnosiProprieta()` (in `AiutoServer.gs`) elenca dall'editor le proprietà che l'app vede, senza mostrare i valori.
 
