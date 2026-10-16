@@ -2,7 +2,8 @@
  * SocioServer.gs — Portale personale del socio (link con token, senza account).
  *   ?socio=TOKEN  -> pagina personale: raccolte aperte (ordine modificabile fino alla chiusura),
  *                    prossime consegne, storico.
- *   ?form=ID&socio=TOKEN -> form d'ordine precompilato; il salvataggio sostituisce l'ordine precedente.
+ *   ?ordini&socio=TOKEN -> pagina unica degli ordini, con i propri ordini già compilati; il salvataggio sostituisce l'ordine precedente.
+ *   ?form=ID&socio=TOKEN -> form di una sola raccolta (link vecchi): stesso comportamento.
  * Il token del socio sta nella colonna "token" della scheda Soci.
  * Gli amministratori usano il loro stesso link (token admin) anche come socio: il token admin
  * viene riconosciuto e collegato alla tessera indicata nella scheda Admin.
@@ -123,6 +124,8 @@ function socioDati(token) {
   const so = socioDaToken_(token);
   try { chiusuraAutomatica('pagina socio'); } catch (e) {}
   const base = urlApp();
+  // tutte le raccolte aperte si ordinano dalla pagina unica (?ordini), la stessa del link comune
+  const ordiniUrl = base + '?ordini=1&socio=' + encodeURIComponent(so.token);
   const cx = contestoOrdiniSocio_(so);
   const raccolte = cx.raccolte, dettOrdini = cx.dettOrdini, infoConsegna = cx.infoConsegna, nomeF = cx.nomeF, emojiF = cx.emojiF;
 
@@ -131,7 +134,7 @@ function socioDati(token) {
     const ic = infoConsegna(r);
     return { id: String(r.id), fornitore: nomeF(r), emoji: emojiF(r), chiusura: testoData_(r.chiusura),
       consegna: ic.data ? (ic.data + (ic.fascia ? (' · ' + ic.fascia) : '') + (ic.luogo ? (' · ' + ic.luogo) : '')) : '',
-      ordine: dettOrdini(r.id), formUrl: base + '?form=' + encodeURIComponent(r.id) + '&socio=' + encodeURIComponent(so.token) };
+      ordine: dettOrdini(r.id), formUrl: ordiniUrl + '&apri=' + encodeURIComponent(r.id) };
   });
 
   // consegne future (e ritiri senza data); quelle concluse sono nello Storico (socioStorico)
@@ -156,7 +159,7 @@ function socioDati(token) {
     socio: { tessera: so.tessera, nominativo: so.nominativo, attiva: so.attiva, isAdmin: so.isAdmin },
     adminUrl: so.isAdmin ? (base + '?admin=' + encodeURIComponent(so.token)) : '',
     fornitoreUrl: so.isFornitore ? (base + '?fornitore=' + encodeURIComponent(so.token)) : '',
-    aperte: aperte, consegne: consegneOut
+    aperte: aperte, consegne: consegneOut, ordiniUrl: ordiniUrl
   };
 }
 

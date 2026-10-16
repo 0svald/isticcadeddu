@@ -84,7 +84,7 @@ curl -sL -X POST "https://script.google.com/macros/s/ID-DEPLOYMENT/exec" \
 | `annullaOrdine` | `{ ordineId, motivo }` |
 | `modificaQuantita` | `{ rigaId, quantita }` – maggiore di zero |
 
-`inserisciOrdine` fa gli stessi controlli del form generico: tessera non trovata o non attiva, nome diverso, secondo ordine dello stesso socio → l'ordine entra come `da_verificare`. Si può inserire in una raccolta **aperta o chiusa** (per gli ordini arrivati su WhatsApp), non in una bozza né in una raccolta conclusa. `quando` è l'ora dell'ordine; se manca, si usa l'ora attuale.
+`inserisciOrdine` fa gli stessi controlli del form generico: tessera non trovata o non attiva, nome diverso, secondo ordine dello stesso socio → l'ordine entra come `da_verificare`. Si può inserire in una raccolta **aperta o chiusa** (per gli ordini arrivati su WhatsApp), non in una bozza né in una raccolta conclusa. `quando` è l'ora dell'ordine; se manca, si usa l'ora attuale. Gli ordini inseriti dall'API hanno `origine` = `api` (scheda `Ordini`). È l'unica via per inserire un ordine in una raccolta già chiusa: la pagina degli ordini la rifiuta a tutti, anche agli amministratori.
 
 ### Più operazioni insieme
 

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+<?!= include('Stile') ?>
+<?!= include('Aiuto') ?>
+<!--
+  OrdiniAperti.html — pagina unica con tutte le raccolte aperte (?ordini).
+  Tre modi: link comune (tessera + nome), link personale (&socio=, modifica i propri ordini),
+  amministratore (&admin=, ordine per conto di un socio). Un invio crea un ordine per ogni raccolta toccata.
+-->
+<style>
+  .wrap{ max-width:680px; margin:0 auto; padding:0 16px 140px; }
+  .topbar .name{ font-family:var(--serif); font-weight:600; color:var(--green-d); font-size:1.05rem; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  header.intro{ padding:18px 0 4px; }
+  header.intro h1{ font-size:1.9rem; margin:0 0 4px; }
+  header.intro .meta{ color:var(--muted); font-size:.98rem; }
+  .block{ margin-top:16px; }
+  .block > .lab{ font-size:.9rem; font-weight:700; color:var(--muted); margin:0 2px 8px; }
+  .idcard{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:14px; display:flex; flex-direction:column; gap:12px; }
+  .idcard.fisso{ background:var(--green-t); border-color:var(--green-l); color:var(--green-d); }
+  .idcard.admin{ border:2px solid var(--amber-line); background:var(--amber-bg); color:var(--amber-d); }
+  .idrow label{ display:block; font-size:.9rem; font-weight:700; color:var(--muted); margin-bottom:6px; }
+  .idrow input{ width:100%; font-size:1.1rem; }
+  .idcard .chi{ font-size:1.08rem; } .idcard .chi b{ font-size:1.15rem; }
+  .trovati{ display:flex; flex-direction:column; gap:6px; }
+  .trovati button{ text-align:left; justify-content:flex-start; background:var(--surface); color:var(--ink); border:1px solid var(--line); font-weight:400; }
+  .trovati button b{ margin-right:6px; }
+  .trovati button:hover{ background:var(--green-t); }
+  .linkbtn{ display:inline-flex; align-items:center; justify-content:center; min-height:var(--tap); padding:0 18px; border-radius:var(--r); border:2px solid var(--green); color:var(--green-d); background:var(--surface); font-weight:700; text-decoration:none; cursor:pointer; }
+
+  /* una scheda per raccolta: si apre toccando l'intestazione */
+  .racc{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); margin:12px 0; overflow:clip; }
+  .racc.con-scelte{ border:2px solid var(--green); }
+  .racc > .rh{ display:flex; width:100%; gap:12px; align-items:flex-start; text-align:left; background:none; color:var(--ink); border:0; border-radius:0;
+    padding:14px; min-height:auto; font-weight:400; cursor:pointer; }
+  .racc > .rh:hover{ background:var(--sub); }
+  .rh .em{ font-size:1.6rem; line-height:1; flex:0 0 auto; padding-top:2px; }
+  .rh .rt{ flex:1; min-width:0; }
+  .rh .rn{ font-family:var(--serif); font-weight:600; font-size:1.25rem; color:var(--green-d); }
+  .rh .rd{ color:var(--muted); font-size:.95rem; margin-top:4px; line-height:1.4; }
+  .rh .rd b{ color:var(--ink); }
+  .rh .rd .urg{ color:var(--amber-d); font-weight:700; }
+  .rh .rs{ margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; }
+  .rh .fr{ flex:0 0 auto; font-size:1.4rem; color:var(--green-d); transition:transform .15s; padding-top:2px; }
+  .racc.aperta > .rh .fr{ transform:rotate(90deg); }
+  .rb{ padding:0 14px 14px; border-top:1px solid var(--line-soft); }
+  .racc:not(.aperta) > .rb{ display:none; }
+  .elenco.bloccato{ opacity:.45; pointer-events:none; }
+
+  .avviso{ margin:14px 0 2px; background:var(--amber-bg); border:1px solid var(--amber-line); color:var(--amber-d); border-radius:var(--r-lg); padding:12px 14px; font-size:.98rem; }
+  .avviso b{ display:block; margin-bottom:4px; } .avviso ul{ margin:0; padding-left:20px; } .avviso li{ margin:3px 0; }
+  .cat{ margin:20px 2px 6px; } .cat h3{ font-family:var(--serif); font-size:1.15rem; color:var(--green-d); margin:0; }
+  .prod{ background:var(--paper); border:1px solid var(--line); border-radius:var(--r-lg); padding:14px; margin:10px 0; transition:border-color .15s, background .15s; }
+  .prod.on{ background:var(--green-bg); border:2px solid var(--green); padding:13px; }
+  .phead{ display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+  .pname{ font-weight:700; font-size:1.1rem; }
+  .pprice{ font-weight:700; white-space:nowrap; font-size:1.02rem; }
+  .pnote{ color:var(--muted); font-size:.92rem; margin-top:4px; white-space:pre-line; }
+  .prod select, .noteinput{ width:100%; margin-top:10px; }
+  .stepper{ display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:12px; }
+  .stepper .unit{ color:var(--muted); font-size:.92rem; margin-right:auto; }
+  .prod.on .stepper .unit{ color:var(--green-d); font-weight:700; }
+  .step{ width:var(--tap); height:var(--tap); min-width:var(--tap); padding:0; border-radius:var(--r); font-size:1.6rem; line-height:1; }
+  .step[data-d="-1"]{ background:var(--surface); color:var(--green-d); border:2px solid var(--green); }
+  .step[data-d="-1"]:hover{ background:var(--green-t); }
+  .qty{ width:78px; flex:0 0 78px; min-height:var(--tap); text-align:center; font-size:1.1rem; font-weight:700; padding:6px 4px; }
+  .notaforn{ margin-top:16px; } .notaforn label{ display:block; font-size:.9rem; font-weight:700; color:var(--muted); margin-bottom:6px; }
+  .notaforn textarea{ width:100%; }
+
+  .bar{ position:fixed; left:0; right:0; bottom:0; z-index:45; background:var(--surface); border-top:2px solid var(--green);
+    padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px)); display:flex; align-items:center; gap:14px; box-shadow:0 -6px 18px rgba(31,38,28,.1); }
+  .bar .tot{ flex:1; min-width:0; } .bar .tot small{ display:block; color:var(--muted); font-size:.85rem; } .bar .tot b{ font-size:1.4rem; }
+  .cta{ min-height:54px; padding:0 22px; font-size:1.05rem; }
+  .rsub{ color:var(--muted); font-size:.95rem; margin-bottom:10px; }
+  .rbox{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:2px 14px; margin-bottom:12px; }
+  .rbox h3{ font-family:var(--serif); color:var(--green-d); font-size:1.1rem; margin:12px 0 2px; }
+  .rrow{ display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:1.02rem; }
+  .rrow .rq{ color:var(--muted); font-size:.92rem; }
+  .rpar{ display:flex; justify-content:space-between; font-weight:700; padding:10px 0; }
+  .rtot{ display:flex; justify-content:space-between; font-weight:700; font-size:1.2rem; padding:6px 2px 4px; }
+  .done{ text-align:center; padding:36px 0 12px; }
+  .done .mark{ width:76px; height:76px; border-radius:50%; background:var(--green); color:var(--surface); display:flex; align-items:center; justify-content:center; font-size:2.4rem; margin:0 auto 18px; }
+  .done .mark.warn{ background:var(--amber); }
+  .done h2{ font-size:1.7rem; margin:0 0 8px; }
+  .esiti{ text-align:left; margin-top:18px; }
+  .esiti .e{ background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:12px 14px; margin:8px 0; }
+  .esiti .e b{ display:block; font-size:1.05rem; } .esiti .e span{ color:var(--muted); font-size:.95rem; }
+  .esiti .e.ko{ background:var(--red-bg); border-color:var(--red-line); } .esiti .e.ko span{ color:var(--red); }
+  .esiti .e.ver{ background:var(--amber-bg); border-color:var(--amber-line); } .esiti .e.ver span{ color:var(--amber-d); }
+  .azioni{ display:flex; flex-direction:column; gap:10px; margin-top:18px; align-items:center; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="gas-icon" role="img" aria-label="GAS Isticcadeddu" style="width:30px;height:30px;flex-basis:30px"></span>
+  <span class="name serif" id="tb_name">Ordini aperti</span>
+  <span class="badge" id="tb_n"></span>
+</div>
+
+<div class="wrap">
+  <div id="loading" role="status" style="text-align:center"><div class="caricamento"><div class="gas-icon lg gira" aria-hidden="true"></div>Caricamento…</div></div>
+  <div id="app" class="hidden"></div>
+  <p style="text-align:center;margin:28px 0 0"><button type="button" class="ghost" onclick="apriAiuto()">Serve aiuto?</button></p>
+</div>
+
+<div class="bar hidden" id="bar">
+  <div class="tot"><small id="tot_n">Nessun prodotto scelto</small><b id="tot">0,00 €</b></div>
+  <button class="cta" id="invia">Controlla e invia</button>
+</div>
+
+<div class="ov hidden" id="riep"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="riep_t">
+  <div class="grab"></div>
+  <h2 id="riep_t">Controlla il tuo ordine</h2>
+  <div id="riep_body"></div>
+  <div class="btns"><button id="riep_go">Conferma e invia</button><button class="sec" id="riep_back">Torna a modificare</button></div>
+</div></div>
+
+<script>
+  const SOCIO_TOKEN = "<?= socioToken ?>";
+  const ADMIN_TOKEN = "<?= adminToken ?>";
+  const APRI = "<?= apri ?>";
+  let DATI = null;          // risposta di getOrdiniAperti
+  let ESIST = {};           // ordini già presenti, per raccolta: { righe, note }
+  let FIRMA = {};           // come erano gli ordini precaricati: si inviano solo le raccolte cambiate
+  let SCELTO = null;        // modo amministratore: il socio per cui si ordina { tessera, nominativo, inElenco }
+
+  /* ---------- formati ---------- */
+  const GIORNI=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+  function nfmt(n){ return (Math.round(n*100)/100).toFixed(2).replace('.',','); }
+  function euro(n){ return nfmt(n)+' €'; }
+  function qfmt(n){ return nfmt(n).replace(',00',''); }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function el(t,c,h){ const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; }
+  function val(q){ return parseFloat((q.value||'0').replace(',','.'))||0; }
+  // "15-10-2026 13:00" -> { giorno:'giovedì 15-10', ora:'13:00', d:Date }
+  function pezziData(t){ const m=String(t||'').match(/^(\d{2})-(\d{2})-(\d{4})(?:\s+(\d{1,2})[:.](\d{2}))?/); if(!m) return null;
+    const d=new Date(+m[3],+m[2]-1,+m[1]); return { giorno:GIORNI[d.getDay()]+' '+m[1]+'-'+m[2], ora:m[4]?(('0'+m[4]).slice(-2)+':'+m[5]):'', d:d }; }
+  function testoChiusura(c){
+    const p=pezziData(c.chiusura); if(!p) return { testo:'Chiusura non ancora fissata', urg:false };
+    const oggi=new Date(); oggi.setHours(0,0,0,0); const gg=Math.round((p.d-oggi)/864e5); const alle=p.ora?(' alle '+p.ora):'';
+    if(gg===0) return { testo:'Chiude oggi'+alle, urg:true };
+    if(gg===1) return { testo:'Chiude domani'+alle, urg:true };
+    return { testo:'Chiude '+p.giorno+alle, urg:false };
+  }
+  function testoConsegna(r){ const co=r.consegna||{}; const data=co.data||r.ciclo.data_consegna, fascia=co.fascia||r.ciclo.fascia_oraria;
+    const p=pezziData(data); if(!p) return 'Consegna da definire';
+    return 'Consegna '+p.giorno+(fascia?(' · '+fascia):'')+(co.luogo?(' · '+co.luogo):''); }
+  function prezzoUnita(prezzo, unita){ unita=(unita||'').trim(); if(!unita) return euro(prezzo);
+    if(unita.indexOf('€')>=0 || unita.indexOf('/')>=0) return nfmt(prezzo)+' '+unita; return nfmt(prezzo)+' € '+unita; }
+  function unitaMisura(u){ u=(u||'').trim(); if(/^€\s*\/\s*/.test(u)) return u.replace(/^€\s*\/\s*/,'');
+    if(/l['’]un[ao]/i.test(u)) return 'pz'; if(/^a\s+/i.test(u)) return u.replace(/^a\s+/i,''); return u; }
+  function prezzoItem(p, opzId, qty){ const base=p.prezzo;
+    if(opzId){ const o=(p.opzioni||[]).find(x=>x.id===opzId);
+      if(o){ if(o.tipo==='variante'&&o.prezzo>0) return qty*o.prezzo; if(o.tipo==='formato') return qty*o.prezzo; if(o.tipo==='supplemento') return qty*base+o.prezzo; } }
+    return qty*base; }
+
+  /* ---------- avvio ---------- */
+  google.script.run.withSuccessHandler(render).withFailureHandler(bootErr).getOrdiniAperti({ socioToken:SOCIO_TOKEN, adminToken:ADMIN_TOKEN });
+  function bootErr(e){ if(window.segnaErrore) segnaErrore('Caricamento pagina ordini: '+((e&&e.message)||e));
+    document.getElementById('loading').innerHTML='Non riesco a caricare gli ordini. Riprova tra poco.<br><small>'+esc((e&&e.message)||e)+'</small>'; }
+
+  function render(d){
+    DATI=d; ESIST=d.esistenti||{};
+    document.getElementById('loading').classList.add('hidden');
+    const app=document.getElementById('app'); app.classList.remove('hidden'); app.innerHTML='';
+    const n=d.raccolte.length;
+    document.getElementById('tb_n').textContent = n ? (n===1?'1 aperta':n+' aperte') : '';
+    if(d.modo==='admin') document.getElementById('tb_name').textContent='Ordine per un socio';
+
+    const intro=el('header','intro');
+    intro.appendChild(el('h1','serif', d.modo==='admin'?'Ordine per un socio':'Ordini aperti'));
+    intro.appendChild(el('div','meta', d.modo==='admin'
+      ? 'Scegli il socio, poi i prodotti. L\'ordine viene registrato a suo nome, come se l\'avesse fatto lui.'
+      : 'Qui trovi tutte le raccolte aperte. Tocca un fornitore per vedere i prodotti: puoi ordinare da più fornitori e inviare tutto insieme.'));
+    app.appendChild(intro);
+
+    app.appendChild(bloccoIdentita(d));
+
+    const lista=el('div','elenco'); lista.id='elenco';
+    if(!n) lista.appendChild(el('div','notice','In questo momento non ci sono raccolte aperte. Le nuove raccolte vengono annunciate nella Community.'));
+    d.raccolte.forEach(r=> lista.appendChild(schedaRaccolta(r)));
+    app.appendChild(lista);
+    const esito=el('div',null,''); esito.id='esito'; app.appendChild(esito);
+    if(!n) return;
+
+    document.getElementById('bar').classList.remove('hidden');
+    document.getElementById('invia').onclick=invia;
+    document.getElementById('riep_back').onclick=()=>document.getElementById('riep').classList.add('hidden');
+    document.getElementById('riep_go').onclick=inviaConferma;
+
+    if(d.modo==='admin') lista.classList.add('bloccato');
+    precaricaTutto();
+    // si apre la raccolta indicata nel link, oppure l'unica aperta
+    const daAprire = APRI ? document.querySelector('.racc[data-rid="'+CSS.escape(APRI)+'"]') : (n===1 ? lista.querySelector('.racc') : null);
+    if(daAprire){ apriScheda(daAprire, true); }
+  }
+
+  /* ---------- chi ordina ---------- */
+  function bloccoIdentita(d){
+    const b=el('div','block'); b.id='chi';
+    if(d.modo==='socio'){
+      b.appendChild(el('div','lab','Chi ordina'));
+      const c=el('div','idcard fisso','<div class="chi">Ordini come <b>'+esc(d.socio.nominativo)+'</b> · tessera '+esc(d.socio.tessera)+'</div>'+
+        '<div>I tuoi ordini già fatti sono qui sotto: puoi cambiarli fino alla chiusura di ogni raccolta.</div>');
+      const a=el('a','linkbtn','← La mia pagina'); a.href=d.socio.portaleUrl; a.target='_top'; c.appendChild(a);
+      if(!d.socio.attiva) c.appendChild(el('div','notice warn','La tua tessera risulta non attiva: puoi ordinare, ma gli ordini verranno verificati.'));
+      b.appendChild(c); return b;
+    }
+    if(d.modo==='admin'){
+      b.appendChild(el('div','lab','Per quale socio'));
+      const c=el('div','idcard admin'); c.id='admin_chi'; b.appendChild(c); disegnaSceltaSocio(c); return b;
+    }
+    b.appendChild(el('div','lab','Chi ordina'));
+    b.appendChild(el('div','idcard',
+      '<div class="idrow"><label for="tessera">Numero tessera</label><input id="tessera" inputmode="numeric" autocomplete="off" placeholder="es. 0123"></div>'+
+      '<div class="idrow"><label for="nominativo">Nome e cognome</label><input id="nominativo" autocomplete="name" placeholder="es. Anna Rossi"></div>'));
+    return b;
+  }
+  // modo amministratore: ricerca del socio per tessera o nome
+  function disegnaSceltaSocio(c){
+    if(SCELTO){
+      c.innerHTML='<div class="chi">Ordine per <b>'+esc(SCELTO.nominativo)+'</b> · tessera '+esc(SCELTO.tessera)+'</div>'+
+        (SCELTO.inElenco?'':'<div>Questa tessera non è nell\'elenco dei soci: l\'ordine sarà da verificare.</div>')+
+        '<div>Inserito da '+esc(DATI.admin.nome)+'. Se il socio aveva già ordinato, trovi il suo ordine qui sotto: salvando lo sostituisci.</div>';
+      const cambia=el('button','sec','Cambia socio'); cambia.type='button'; cambia.onclick=cambiaSocio; c.appendChild(cambia);
+      return;
+    }
+    c.innerHTML='<div class="idrow"><label for="cerca">Tessera o nome del socio</label><input id="cerca" autocomplete="off" placeholder="es. 0123 oppure Rossi"></div><div class="trovati" id="trovati"></div>'+
+      '<details><summary>Il socio non è nell\'elenco</summary><div class="idrow" style="margin-top:10px"><label for="m_tess">Numero tessera</label><input id="m_tess" inputmode="numeric"></div>'+
+      '<div class="idrow" style="margin-top:10px"><label for="m_nome">Nome e cognome</label><input id="m_nome"></div><button type="button" class="sec" id="m_ok" style="margin-top:10px">Usa questi dati</button></details>';
+    const inp=c.querySelector('#cerca'); inp.oninput=()=>cercaSoci(inp.value); setTimeout(()=>inp.focus(),50);
+    c.querySelector('#m_ok').onclick=()=>{ const t=c.querySelector('#m_tess').value.trim(), n=c.querySelector('#m_nome').value.trim();
+      if(!t||!n){ avvisa('Scrivi tessera e nome del socio.'); return; }
+      const s=DATI.soci.find(x=>x.tessera===t); scegliSocio(s?{tessera:s.tessera,nominativo:s.nominativo,inElenco:true}:{tessera:t,nominativo:n,inElenco:false}); };
+  }
+  function normTxt(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+  function cercaSoci(q){ const box=document.getElementById('trovati'); box.innerHTML=''; q=normTxt(q).trim(); if(!q) return;
+    const parole=q.split(/\s+/);
+    const l=DATI.soci.filter(s=>s.tessera===q || s.tessera.replace(/^0+/,'')===q.replace(/^0+/,'') || parole.every(p=>normTxt(s.nominativo).indexOf(p)>=0)).slice(0,8);
+    if(!l.length){ box.appendChild(el('div','muted','Nessun socio trovato.')); return; }
+    l.forEach(s=>{ const b=el('button',null,'<b>'+esc(s.tessera)+'</b>'+esc(s.nominativo)+(s.attiva?'':' · <span class="badge warn">tessera non attiva</span>')); b.type='button';
+      b.onclick=()=>scegliSocio({tessera:s.tessera,nominativo:s.nominativo,inElenco:true}); box.appendChild(b); }); }
+  function scegliSocio(s){
+    const c=document.getElementById('admin_chi'); c.innerHTML='<div class="caricamento mini"><div class="gas-icon gira" aria-hidden="true"></div>Cerco gli ordini di '+esc(s.nominativo)+'…</div>';
+    google.script.run.withSuccessHandler(es=>{ SCELTO=s; ESIST=es||{}; azzeraTutto(); precaricaTutto(); disegnaSceltaSocio(c);
+        document.getElementById('elenco').classList.remove('bloccato'); })
+      .withFailureHandler(e=>{ disegnaSceltaSocio(c); avvisa('Non riesco a leggere gli ordini del socio: '+((e&&e.message)||e)); })
+      .ordiniApertiSocio(ADMIN_TOKEN, s.tessera);
+  }
+  async function cambiaSocio(){
+    if(cambiato() && !(await chiedi('Le scelte fatte per '+SCELTO.nominativo+' non sono ancora state inviate e andranno perse. Cambio socio?',{titolo:'Cambio socio?', ok:'Sì, cambia socio', annulla:'No'}))) return;
+    SCELTO=null; ESIST={}; azzeraTutto(); document.getElementById('elenco').classList.add('bloccato'); disegnaSceltaSocio(document.getElementById('admin_chi')); }
+
+  /* ---------- schede delle raccolte ---------- */
+  function schedaRaccolta(r){
+    const s=el('section','racc'); s.dataset.rid=r.ciclo.id; s._r=r;
+    const ch=testoChiusura(r.ciclo);
+    const h=el('button','rh'); h.type='button'; h.setAttribute('aria-expanded','false');
+    h.innerHTML='<span class="em" aria-hidden="true">'+esc(r.fornitore.emoji||'🧺')+'</span><span class="rt"><span class="rn">'+esc(r.fornitore.nome)+'</span>'+
+      '<span class="rd" style="display:block"><span class="'+(ch.urg?'urg':'')+'">'+esc(ch.testo)+'</span><br>'+esc(testoConsegna(r))+'</span>'+
+      '<span class="rs"></span></span><span class="fr" aria-hidden="true">›</span>';
+    h.onclick=()=>apriScheda(s, !s.classList.contains('aperta'));
+    s.appendChild(h);
+    const b=el('div','rb');
+    const meta=[r.fornitore.zona, r.fornitore.descrizione].filter(Boolean).join(' · ');
+    if(meta) b.appendChild(el('div','pnote',esc(meta)));
+    if(r.ciclo.avvisi){ const items=r.ciclo.avvisi.split(';').map(x=>x.trim()).filter(Boolean).map(a=>'<li>'+esc(a)+'</li>').join('');
+      b.appendChild(el('div','avviso','<b>Da sapere</b><ul>'+items+'</ul>')); }
+    const cats=DATI.categorie.filter(c=>r.prodotti.some(p=>p.categoria_id===c.id));
+    const gruppi=cats.map(c=>({nome:c.nome, emoji:c.emoji, lista:r.prodotti.filter(p=>p.categoria_id===c.id)}));
+    const fuori=r.prodotti.filter(p=>!p.categoria_id || !cats.some(c=>c.id===p.categoria_id)); if(fuori.length) gruppi.push({nome:'Altro', emoji:'', lista:fuori});
+    gruppi.forEach(g=>{ if(gruppi.length>1) b.appendChild(el('div','cat','<h3>'+esc((g.emoji?g.emoji+' ':'')+g.nome)+'</h3>')); g.lista.forEach(p=>b.appendChild(prodCard(p, r.ciclo.id))); });
+    const nb=el('div','notaforn','<label for="nota_'+esc(r.ciclo.id)+'">Nota per '+esc(r.fornitore.nome)+' (se serve)</label><textarea rows="2" id="nota_'+esc(r.ciclo.id)+'" placeholder="Es. taglio piccolo, ritira un\'altra persona…"></textarea>');
+    nb.querySelector('textarea').oninput=aggiornaTotale; b.appendChild(nb);
+    s.appendChild(b);
+    return s;
+  }
+  function apriScheda(s, apri){ s.classList.toggle('aperta', apri); s.querySelector('.rh').setAttribute('aria-expanded', apri?'true':'false');
+    if(apri) setTimeout(()=>window.scrollTo({ top:Math.max(0, s.getBoundingClientRect().top+window.scrollY-70), behavior:'smooth' }), 30); }
+
+  function prodCard(p, rid){
+    const box=el('div','prod'); box.dataset.pid=p.id;
+    let h='<div class="phead"><div class="pname">'+esc(p.nome)+'</div><div class="pprice">'+prezzoUnita(p.prezzo,p.unita)+'</div></div>';
+    if(p.note) h+='<div class="pnote">'+esc(p.note)+'</div>';
+    if(p.min_consigliato) h+='<div class="pnote">minimo consigliato '+p.min_consigliato+' '+esc(unitaMisura(p.unita))+'</div>';
+    if(p.peso_variabile) h+='<div class="pnote">Si pesa al momento: il fornitore conferma l\'importo esatto prima del ritiro.</div>';
+    box.innerHTML=h;
+    let selOpz=null;
+    if(p.opzioni && p.opzioni.length){ selOpz=document.createElement('select'); selOpz.setAttribute('aria-label','Scelta per '+p.nome); selOpz.appendChild(new Option('Scegli…',''));
+      p.opzioni.forEach(o=>{ let et=o.nome; if(o.tipo==='formato') et+=' ('+prezzoUnita(o.prezzo,o.unita)+')'; else if(o.tipo==='supplemento') et+=' (+'+nfmt(o.prezzo)+' €)';
+        else if(o.tipo==='variante' && o.prezzo>0) et+=' ('+prezzoUnita(o.prezzo,o.unita)+')'; selOpz.appendChild(new Option(et,o.id)); });
+      box.appendChild(selOpz); }
+    let notaInput=null;
+    if((p.opzioni||[]).some(o=>o.richiede_nota)){ notaInput=document.createElement('input'); notaInput.className='noteinput'; notaInput.placeholder='Specifica (es. stagionatura)'; box.appendChild(notaInput); }
+    const st=el('div','stepper'); const um=unitaMisura(p.unita); st.dataset.base=um?('quantità in '+um):'quantità';
+    st.innerHTML='<span class="unit">'+esc(st.dataset.base)+'</span><button type="button" class="step" data-d="-1" aria-label="Togli">–</button>'+
+      '<input class="qty" inputmode="decimal" value="0" aria-label="Quantità di '+esc(p.nome)+'"><button type="button" class="step" data-d="1" aria-label="Aggiungi">+</button>';
+    box.appendChild(st);
+    const q=st.querySelector('.qty'); q.dataset.pid=p.id; q.dataset.rid=rid; q._prod=p; q._sel=selOpz; q._nota=notaInput;
+    const passo=p.passo||1;
+    st.querySelectorAll('.step').forEach(b=>b.onclick=()=>{ let v=val(q); v=Math.max(0, Math.round((v+(+b.dataset.d)*passo)*100)/100); q.value=qfmt(v); syncOn(box,v); aggiornaTotale(); });
+    q.oninput=()=>{ syncOn(box,val(q)); aggiornaTotale(); };
+    if(selOpz) selOpz.onchange=()=>{ syncOn(box,val(q)); aggiornaTotale(); };
+    if(notaInput) notaInput.oninput=aggiornaTotale;
+    return box;
+  }
+  function syncOn(box, v){ box.classList.toggle('on', v>0);
+    const q=box.querySelector('.qty'), u=box.querySelector('.stepper .unit'), st=box.querySelector('.stepper'); if(!q||!u) return;
+    if(v>0){ const p=q._prod, um=unitaMisura(p.unita); u.textContent=qfmt(v)+(um?(' '+um):'')+' · '+euro(prezzoItem(p, q._sel?q._sel.value:'', v)); }
+    else u.textContent=st.dataset.base; }
+
+  /* ---------- ordini già presenti ---------- */
+  function azzeraTutto(){ document.querySelectorAll('.qty').forEach(q=>{ q.value='0'; if(q._sel) q._sel.value=''; if(q._nota) q._nota.value=''; syncOn(q.closest('.prod'),0); });
+    document.querySelectorAll('.notaforn textarea').forEach(t=>t.value=''); FIRMA={}; aggiornaTotale(); }
+  function precaricaTutto(){
+    Object.keys(ESIST).forEach(rid=>{ const es=ESIST[rid];
+      (es.righe||[]).forEach(r=>{ const q=document.querySelector('.qty[data-rid="'+CSS.escape(rid)+'"][data-pid="'+CSS.escape(r.prodottoId)+'"]'); if(!q) return;
+        const v=val(q)+r.quantita; q.value=qfmt(v); if(q._sel && r.opzioneId) q._sel.value=r.opzioneId; if(q._nota && r.notaSocio) q._nota.value=r.notaSocio; syncOn(q.closest('.prod'),v); });
+      const t=document.getElementById('nota_'+rid); if(t && es.note) t.value=es.note; });
+    FIRMA={}; Object.keys(ESIST).forEach(rid=>FIRMA[rid]=firma(rid));
+    aggiornaTotale();
+  }
+  function itemsDi(rid){ const l=[]; document.querySelectorAll('.qty[data-rid="'+CSS.escape(rid)+'"]').forEach(q=>{ const v=val(q);
+      if(v>0) l.push({ prodottoId:q.dataset.pid, opzioneId:q._sel?q._sel.value:'', quantita:v, notaSocio:q._nota?q._nota.value.trim():'' }); }); return l; }
+  function notaDi(rid){ const t=document.getElementById('nota_'+rid); return t?t.value.trim():''; }
+  function firma(rid){ return JSON.stringify([itemsDi(rid).map(i=>[i.prodottoId,i.opzioneId,i.quantita,i.notaSocio]).sort(), notaDi(rid)]); }
+  // le raccolte da inviare: con prodotti scelti, oppure con un ordine precedente da annullare; si salta quello che non è cambiato
+  function daInviare(){ const out=[];
+    DATI.raccolte.forEach(r=>{ const rid=r.ciclo.id, items=itemsDi(rid), es=ESIST[rid];
+      if(es && FIRMA[rid]===firma(rid)) return;
+      if(items.length) out.push({ cicloId:rid, items:items, note:notaDi(rid), r:r });
+      else if(es && DATI.modo!=='anonimo') out.push({ cicloId:rid, items:[], note:'', annulla:true, r:r }); });
+    return out; }
+  function cambiato(){ return daInviare().length>0; }
+
+  function aggiornaTotale(){
+    let tot=0, nProd=0; const forn={};
+    document.querySelectorAll('.qty').forEach(q=>{ const v=val(q); if(v>0){ tot+=prezzoItem(q._prod, q._sel?q._sel.value:'', v); nProd++; forn[q.dataset.rid]=(forn[q.dataset.rid]||0)+1; } });
+    document.querySelectorAll('.racc').forEach(s=>{ const rid=s.dataset.rid, k=forn[rid]||0, es=ESIST[rid], rs=s.querySelector('.rs');
+      s.classList.toggle('con-scelte', k>0);
+      let h=''; if(k) h+='<span class="badge full">'+(k===1?'1 prodotto scelto':k+' prodotti scelti')+'</span>';
+      if(es){ if(!k && DATI.modo!=='anonimo') h+='<span class="badge warn">ordine da annullare</span>'; else if(FIRMA[rid]===firma(rid)) h+='<span class="badge">già ordinato</span>'; else h+='<span class="badge warn">modifiche da inviare</span>'; }
+      rs.innerHTML=h; });
+    document.getElementById('tot').textContent=euro(tot);
+    const nf=Object.keys(forn).length;
+    document.getElementById('tot_n').textContent = nProd ? (nProd+(nProd===1?' prodotto':' prodotti')+(nf>1?(' da '+nf+' fornitori'):'')+' · indicativo') : 'Nessun prodotto scelto';
+    const btn=document.getElementById('invia'); if(btn) btn.textContent = Object.keys(ESIST).length ? 'Controlla e salva' : 'Controlla e invia';
+  }
+
+  /* ---------- invio ---------- */
+  function identita(){
+    if(DATI.modo==='socio') return { tessera:DATI.socio.tessera, nominativo:DATI.socio.nominativo };
+    if(DATI.modo==='admin') return SCELTO ? { tessera:SCELTO.tessera, nominativo:SCELTO.nominativo } : null;
+    const t=(document.getElementById('tessera').value||'').trim(), n=(document.getElementById('nominativo').value||'').trim();
+    return (t&&n) ? { tessera:t, nominativo:n } : null;
+  }
+  function invia(){
+    const id=identita();
+    if(!id){ mostra('err', DATI.modo==='admin'?'Scegli prima il socio per cui stai ordinando.':'Scrivi numero di tessera e nome e cognome, in cima alla pagina.');
+      document.getElementById('chi').scrollIntoView({behavior:'smooth',block:'start'}); const t=document.getElementById(DATI.modo==='admin'?'cerca':'tessera'); if(t) setTimeout(()=>t.focus(),400); return; }
+    const l=daInviare();
+    if(!l.length){ mostra('err', Object.keys(ESIST).length?'Non hai cambiato niente: i tuoi ordini sono già registrati.':'Scegli almeno un prodotto.'); return; }
+    let h='<div class="rsub">'+(DATI.modo==='admin'?'Ordine per conto di ':'')+esc(id.nominativo)+', tessera '+esc(id.tessera)+'</div>', tot=0, aPeso=false;
+    l.forEach(o=>{ h+='<div class="rbox"><h3>'+esc(o.r.fornitore.nome)+'</h3>';
+      if(o.annulla){ h+='<div class="rrow"><span>Il tuo ordine per questo fornitore verrà <b>annullato</b>.</span></div></div>'; return; }
+      let par=0;
+      document.querySelectorAll('.qty[data-rid="'+CSS.escape(o.cicloId)+'"]').forEach(q=>{ const v=val(q); if(v<=0) return;
+        const p=q._prod, opz=q._sel?q._sel.value:''; const imp=prezzoItem(p,opz,v); par+=imp; if(p.peso_variabile) aPeso=true;
+        let nome=p.nome; if(opz&&q._sel){ const t=q._sel.options[q._sel.selectedIndex]; if(t) nome+=' – '+t.text.replace(/\s*\(.*\)\s*$/,''); }
+        const u=String(p.unita||''); const um=u.indexOf('/')>=0?(' '+u.split('/').pop()):'';
+        const nota=q._nota&&q._nota.value.trim()?(' · '+q._nota.value.trim()):'';
+        h+='<div class="rrow"><span>'+esc(nome)+'<br><span class="rq">quantità: '+esc(qfmt(v)+um+nota)+'</span></span><span>'+euro(imp)+'</span></div>'; });
+      if(o.note) h+='<div class="rrow"><span><span class="rq">Nota per il fornitore:</span><br>'+esc(o.note)+'</span></div>';
+      h+='<div class="rpar"><span>'+(ESIST[o.cicloId]?'Ordine aggiornato':'Totale')+'</span><span>'+euro(par)+'</span></div></div>'; tot+=par; });
+    if(l.length>1 || l.some(o=>o.annulla)) h+='<div class="rtot"><span>Totale indicativo</span><span>'+euro(tot)+'</span></div>';
+    h+='<p class="muted">'+(aPeso?'Alcuni prodotti si pesano al momento: il fornitore confermerà l\'importo esatto. ':'')+'Si paga in contanti a ogni fornitore, al ritiro.</p>';
+    document.getElementById('riep_body').innerHTML=h;
+    document.getElementById('riep_go').textContent='Conferma e invia';
+    document.getElementById('riep').classList.remove('hidden');
+  }
+  function inviaConferma(){
+    const id=identita(), l=daInviare(); if(!id||!l.length) return;
+    const go=document.getElementById('riep_go'), btn=document.getElementById('invia');
+    go.disabled=true; go.textContent='Invio…'; btn.disabled=true;
+    const fine=()=>{ go.disabled=false; go.textContent='Conferma e invia'; btn.disabled=false; document.getElementById('riep').classList.add('hidden'); };
+    google.script.run.withSuccessHandler(r=>{ fine(); if(r && r.ok) successo(r, l); else mostra('err', (r&&r.esiti&&r.esiti.length)?r.esiti.map(e=>e.messaggio).join(' '):((r&&r.messaggio)||'Ordine non registrato. Riprova.')); })
+      .withFailureHandler(e=>{ fine(); mostra('err','Qualcosa è andato storto: '+((e&&e.message)||e)+'. Riprova.'); })
+      .submitOrdini({ tessera:id.tessera, nominativo:id.nominativo, socioToken:SOCIO_TOKEN, adminToken:ADMIN_TOKEN,
+        ordini:l.map(o=>({ cicloId:o.cicloId, items:o.items, note:o.note, annulla:!!o.annulla })) });
+  }
+  function mostra(cls, testo){ if(cls==='err' && window.segnaErrore) segnaErrore('Pagina ordini: '+testo); const e=document.getElementById('esito'); e.className='esito '+cls; e.textContent=testo; e.scrollIntoView({behavior:'smooth',block:'center'}); }
+
+  function successo(r, inviati){
+    document.getElementById('bar').classList.add('hidden');
+    const nomi={}; inviati.forEach(o=>nomi[o.cicloId]=o.r.fornitore.nome);
+    const ko=r.esiti.filter(e=>!e.ok), ver=r.esiti.filter(e=>e.ok && e.stato==='da_verificare');
+    let h='<div class="done"><div class="mark'+(ko.length||ver.length?' warn':'')+'">'+(ko.length?'!':'✓')+'</div><h2 class="serif">'+
+      (ko.length?'Ordine inviato in parte':(r.esiti.every(e=>e.annullato)?'Ordine annullato':'Ordine inviato'))+'</h2>'+
+      (DATI.modo==='admin'?'<p class="muted">Per '+esc(SCELTO.nominativo)+', tessera '+esc(SCELTO.tessera)+'</p>':'')+'<div class="esiti">';
+    r.esiti.forEach(e=>{ const n=esc(nomi[e.cicloId]||'');
+      if(!e.ok) h+='<div class="e ko"><b>✗ '+n+'</b><span>'+esc(e.messaggio)+'</span></div>';
+      else if(e.annullato) h+='<div class="e"><b>'+n+'</b><span>Ordine annullato.</span></div>';
+      else if(e.stato==='da_verificare') h+='<div class="e ver"><b>⚠ '+n+'</b><span>Registrato, ma da verificare: '+esc(e.motivo||'')+'. Un amministratore lo controllerà.</span></div>';
+      else h+='<div class="e"><b>✓ '+n+'</b><span>'+(e.modificato?'Ordine aggiornato.':'Ordine registrato.')+'</span></div>'; });
+    h+='</div><p class="muted" style="margin-top:14px">'+(DATI.modo==='anonimo'
+      ? 'Se devi cambiare qualcosa, contatta il fornitore o un amministratore.'
+      : (DATI.modo==='socio'?'Puoi cambiare i tuoi ordini da questa pagina fino alla chiusura di ogni raccolta.':''))+'</p><div class="azioni">';
+    if(DATI.modo==='socio') h+='<a class="linkbtn" target="_top" href="'+esc(DATI.socio.portaleUrl)+'">Torna alla mia pagina</a><span class="linkbtn" onclick="location.reload()">Rivedi i miei ordini</span>';
+    else if(DATI.modo==='admin') h+='<span class="linkbtn" onclick="location.reload()">Inserisci un altro ordine</span><a class="linkbtn" target="_top" href="'+esc(DATI.pannelloUrl)+'">Torna al pannello</a>';
+    else h+='<span class="linkbtn" onclick="location.reload()">Fai un altro ordine</span>';
+    h+='</div></div>';
+    document.getElementById('app').innerHTML=h;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function apriAiuto(){
+    const ov=document.createElement('div'); ov.className='ov';
+    ov.innerHTML='<div class="sheet" role="dialog" aria-modal="true" aria-label="Aiuto"><div class="grab"></div><div style="text-align:right"><button type="button" class="ghost mini" id="aiuto_chiudi">Chiudi</button></div><div id="aiuto_box"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',ev=>{ if(ev.target===ov) ov.remove(); });
+    ov.querySelector('#aiuto_chiudi').onclick=()=>ov.remove();
+    Aiuto.mostra(ov.querySelector('#aiuto_box'), SOCIO_TOKEN||ADMIN_TOKEN, { profilo: ADMIN_TOKEN?'admin':(SOCIO_TOKEN?'socio':'form'), pagina:'pagina ordini', sezione:'ordine' });
+  }
+</script>
+</body>
+</html>

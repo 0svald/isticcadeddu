@@ -75,3 +75,29 @@ Un mese prima della scadenza della tessera, il socio riceve una notifica. Da lì
 - Chi segna il rinnovo come pagato, e cosa succede alla tessera: si allunga di un anno da sola?
 - La "raccolta dei rinnovi" va nella sezione Raccolte del pannello o in una sezione a parte, così non si mescola con gli ordini dei fornitori?
 - Il socio che non chiede il rinnovo compare in un elenco "da contattare", con i pulsanti WhatsApp e Chiama?
+
+---
+
+## 4. Pagina unica degli ordini
+
+- **Data:** 16-10-2026
+- **Per chi:** Socio (ordina da un solo link), Amministratore (inserisce ordini per conto dei soci)
+- **Stato:** fatta, da pubblicare (ramo `pagina-ordini-unica`)
+
+**Cosa serve**
+Nella prima fase i soci non useranno l'app ma solo i form, e un form per ogni raccolta li costringe a saltare da un link all'altro. Serve una pagina sola con tutte le raccolte aperte e, per ognuna, la data di chiusura (se c'è). Nel passaggio gli amministratori inseriscono prima loro gli ordini per i soci, per valutare i benefici; poi tutti usano la pagina comune; poi l'app, per modificare gli ordini da soli.
+
+**Decisioni (16-10-2026)**
+- Gli ordini arrivati dopo la chiusura si **rifiutano**, anche dagli amministratori: senza paletti si prova a ordinare fino all'ultimo.
+- **Tessera e nome sempre in cima** alla pagina.
+- La pagina del socio usa **la stessa pagina unica** (Home › Attivi), così l'esperienza non cambia quando si passa all'app.
+
+**Realizzazione**
+Vedi `CLAUDE.md`, sezione "Ordini e raccolte": rotta `?ordini`, `OrdiniAperti.html`, `getOrdiniAperti` / `submitOrdini` in `Ordini.gs`, colonna `origine`, grafico "Come arrivano gli ordini".
+
+- Tutti i messaggi WhatsApp puntano alla pagina unica, con la raccolta del messaggio già aperta.
+- L'API resta com'è: `inserisciOrdine` può ancora inserire ordini in una raccolta chiusa (per caricare gli ordini arrivati su WhatsApp).
+
+**Da fare**
+- Aggiornare le guide PDF per soci e amministratori con la pagina unica.
+

@@ -9,7 +9,7 @@
 <meta name="referrer" content="no-referrer">
 <script>
   /* L'app si può installare solo con il link personale (?u=… adesso, o già ricordato su questo telefono).
-     Con il link generico di una raccolta (?form=… senza link personale) non si propone l'installazione:
+     Con il link generico di una raccolta (?form=… o ?ordini senza link personale) non si propone l'installazione:
      l'app installata non saprebbe chi è il socio. Senza il "manifest" il browser non la considera installabile. */
   (function(){ var q=new URLSearchParams(location.search), t=null;
     try{ t=q.has('esci')?null:(q.get('u')||localStorage.getItem('gas_link_personale')); }catch(e){ t=q.get('u'); }
@@ -93,9 +93,12 @@
 
   // parametri da passare alla web app
   const p = new URLSearchParams();
-  if (qs.get('form')) { p.set('form', qs.get('form')); if (token) p.set('socio', token); }  // link di una raccolta
+  if (qs.has('ordini')) {                    // pagina unica con tutte le raccolte aperte
+    p.set('ordini', '1'); if (qs.get('apri')) p.set('apri', qs.get('apri')); if (token) p.set('socio', token);
+  }
+  else if (qs.get('form')) { p.set('form', qs.get('form')); if (token) p.set('socio', token); }  // link di una raccolta
   else if (token) p.set('u', token);
-  if (qs.has('u') || qs.has('form')) history.replaceState(null, '', location.pathname);
+  if (qs.has('u') || qs.has('form') || qs.has('ordini')) history.replaceState(null, '', location.pathname);
 
   const frame = $('app');
   function apri(url){
