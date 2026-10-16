@@ -78,7 +78,7 @@ Un mese prima della scadenza della tessera, il socio riceve una notifica. Da lì
 
 ---
 
-## 4. Pagina unica degli ordini
+## 4. Pagina "Raccolte aperte"
 
 - **Data:** 16-10-2026
 - **Per chi:** Socio (ordina da un solo link), Amministratore (inserisce ordini per conto dei soci)
@@ -90,14 +90,14 @@ Nella prima fase i soci non useranno l'app ma solo i form, e un form per ogni ra
 **Decisioni (16-10-2026)**
 - Gli ordini arrivati dopo la chiusura si **rifiutano**, anche dagli amministratori: senza paletti si prova a ordinare fino all'ultimo.
 - **Tessera e nome sempre in cima** alla pagina.
-- La pagina del socio usa **la stessa pagina unica** (Home › Attivi), così l'esperienza non cambia quando si passa all'app.
+- La pagina del socio usa **la stessa pagina "Raccolte aperte"** (Home › Attivi), così l'esperienza non cambia quando si passa all'app.
 
 **Realizzazione**
-Vedi `CLAUDE.md`, sezione "Ordini e raccolte": rotta `?ordini`, `OrdiniAperti.html`, `getOrdiniAperti` / `submitOrdini` in `Ordini.gs`, colonna `origine`, grafico "Come arrivano gli ordini".
+Vedi `CLAUDE.md`, sezione "Ordini e raccolte": rotta `?ordini`, `RaccolteAperte.html`, `getRaccolteAperte` / `submitOrdini` in `Ordini.gs`, colonna `origine`, grafico "Come arrivano gli ordini".
 
-- Tutti i messaggi WhatsApp puntano alla pagina unica, con la raccolta del messaggio già aperta.
+- Tutti i messaggi WhatsApp puntano alla pagina "Raccolte aperte", con la raccolta del messaggio già aperta.
 - L'API resta com'è: `inserisciOrdine` può ancora inserire ordini in una raccolta chiusa (per caricare gli ordini arrivati su WhatsApp).
 
 **Da fare**
-- Aggiornare le guide PDF per soci e amministratori con la pagina unica.
+- Aggiornare le guide PDF per soci e amministratori con la pagina "Raccolte aperte".
 

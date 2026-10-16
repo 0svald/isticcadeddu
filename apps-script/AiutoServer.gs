@@ -256,16 +256,16 @@ function segnalazioniNuove_() {
 /* Le risposte si modificano nella scheda "Aiuto" del foglio. Le regole del GAS (ordini per altri,
    ritiri mancati, tempi per le modifiche) vanno aggiunte quando il comitato le avrà decise.
    Ogni domanda: [ruolo, domanda, risposta, ordine]. */
-var FAQ_VERSIONE_ = '2026.10.16'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
+var FAQ_VERSIONE_ = '2026.10.16.2'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
 function faqDefault_() {
   return [
-    ['socio', 'Come faccio un ordine?', 'Apri il link della pagina ordini (è fissato in cima alla Community): trovi tutte le raccolte aperte, ognuna con la data di chiusura. Scrivi tessera e nome, tocca un fornitore, scegli i prodotti con i tasti + e –. Puoi ordinare da più fornitori insieme: alla fine tocca "Controlla e invia" e poi "Conferma e invia". Con il tuo link personale la stessa pagina si apre dalla Home, toccando "Attivi".', 10],
+    ['socio', 'Come faccio un ordine?', 'Apri il link della pagina "Raccolte aperte" (è fissato in cima alla Community): trovi tutte le raccolte aperte, ognuna con la data di chiusura. Scrivi tessera e nome, tocca un fornitore, scegli i prodotti con i tasti + e –. Puoi ordinare da più fornitori insieme: alla fine tocca "Controlla e invia" e poi "Conferma e invia". Con il tuo link personale la stessa pagina si apre dalla Home, toccando "Attivi".', 10],
     ['socio', 'Come modifico un ordine già inviato?', 'Apri la tua pagina con il link personale e, nella Home, tocca "Attivi" e poi "Ordina o modifica i tuoi ordini": i tuoi ordini sono già compilati, cambia le quantità e salva. Per togliere un ordine porta tutte le quantità a zero. Si può fino alla chiusura di ogni raccolta. Se non hai il link personale, scrivi al fornitore o a un amministratore.', 20],
     ['socio', 'Ho perso il mio link personale: cosa faccio?', 'Chiedine uno nuovo a un amministratore. Il vecchio link smetterà di funzionare.', 30],
     ['socio', 'Perché il mio ordine è "da verificare"?', 'Succede quando la tessera non risulta attiva o quando lo stesso socio ha inviato due ordini per la stessa raccolta. L\'ordine è registrato: un amministratore o il fornitore potrebbero contattarti per chiarire.', 40],
     ['socio', 'Perché il prezzo è "indicativo"?', 'Alcuni prodotti, come formaggi o angurie, si pesano al momento. Il fornitore conferma il peso prima della consegna e l\'importo diventa quello esatto.', 50],
     ['socio', 'Quando e dove ritiro? Come pago?', 'Giorno, orario e luogo sono nel messaggio della raccolta e nella tua pagina: nella Home tocca "Attivi" e guarda "Prossime consegne". Nei giorni prima del ritiro trovi anche un promemoria in "Notifiche". Si paga in contanti direttamente al fornitore, al ritiro.', 60],
-    ['socio', 'La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura la raccolta sparisce dalla pagina ordini e non accetta più ordini né modifiche, nemmeno tramite un amministratore. Controlla sempre la data di chiusura scritta sotto il nome del fornitore.', 70],
+    ['socio', 'La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura la raccolta sparisce dalla pagina "Raccolte aperte" e non accetta più ordini né modifiche, nemmeno tramite un amministratore. Controlla sempre la data di chiusura scritta sotto il nome del fornitore.', 70],
     ['socio', 'Come cambio il mio numero di telefono o la mia email?', 'Nella Home della tua pagina tocca "Profilo": trovi i campi Telefono ed Email e il pulsante Salva.', 80],
     ['socio', 'Come metto l\'app sulla schermata Home del telefono?', 'Apri il tuo link personale. Su Android: tocca i tre puntini in alto a destra e poi "Aggiungi a schermata Home". Su iPhone: tocca il pulsante di condivisione (il quadrato con la freccia) e poi "Aggiungi alla schermata Home".', 90],
     ['socio', 'Dove trovo il regolamento e l\'elenco dei fornitori?', 'In "Aiuto" tocca "Documenti": puoi scaricare il regolamento del GAS e l\'elenco ufficiale dei fornitori, in PDF. L\'elenco dei fornitori si scarica solo con il tuo link personale.', 93],
@@ -281,7 +281,7 @@ function faqDefault_() {
     ['fornitore', 'Cosa trovo nelle notifiche?', 'Ordini da verificare, pesi da confermare, raccolte che chiudono entro 24 ore e consegne dei prossimi giorni. Ogni avviso sparisce da solo quando la cosa è fatta o passata.', 144],
     ['admin', 'Come apro una raccolta?', 'Nella Home tocca "Raccolte", poi +. Scegli il fornitore, spunta i prodotti e scrivi la data di chiusura (per esempio 10-10-2026 20:00). Poi apri la raccolta e prepara il messaggio di apertura da incollare su WhatsApp.', 150],
     ['admin', 'Come inserisco un ordine per conto di un socio?', 'Nella Home tocca "Raccolte", poi "Ordine per un socio". Cerca il socio per tessera o nome: se aveva già ordinato trovi il suo ordine compilato, e salvando lo sostituisci. L\'ordine risulta fatto dal socio; nel Log c\'è il tuo nome. Le raccolte chiuse non accettano ordini, nemmeno da qui.', 155],
-    ['admin', 'Qual è il link della pagina ordini?', 'Nella Home tocca "Raccolte", poi "Copia il link della pagina ordini". È sempre lo stesso: fissalo in cima alla Community. Chi lo apre vede tutte le raccolte aperte.', 157],
+    ['admin', 'Qual è il link della pagina "Raccolte aperte"?', 'Nella Home tocca "Raccolte", poi "Copia il link di Raccolte aperte". È sempre lo stesso: fissalo in cima alla Community. Chi lo apre vede tutte le raccolte aperte.', 157],
     ['admin', 'Come invio il link personale a un socio?', 'Nella Home tocca "Soci", poi il socio e "Invia link": si apre WhatsApp con il messaggio già scritto.', 160],
     ['admin', 'Una raccolta non si è chiusa da sola', 'Controlla in "Notifiche" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.', 170],
     ['admin', 'Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Notifiche" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.', 180],
@@ -295,8 +295,17 @@ function faqIniziali_() {
   return faqDefault_().map((r, i) => ['F' + String(i + 1).padStart(2, '0'), r[0], r[1], r[2], r[3], 'SI']);
 }
 
+/* Domande a cui è cambiato il titolo: [vecchio, nuovo]. La riga della scheda viene rinominata
+   (se il titolo non è stato cambiato a mano), così non resta un doppione. */
+var FAQ_RINOMINATE_ = [
+    ['Qual è il link della pagina ordini?', 'Qual è il link della pagina "Raccolte aperte"?']
+];
+
 /* Risposte pubblicate nelle versioni precedenti: servono a riconoscere quelle mai modificate a mano. */
 var FAQ_PRECEDENTI_ = [
+    ['Come faccio un ordine?', 'Apri il link della pagina ordini (è fissato in cima alla Community): trovi tutte le raccolte aperte, ognuna con la data di chiusura. Scrivi tessera e nome, tocca un fornitore, scegli i prodotti con i tasti + e –. Puoi ordinare da più fornitori insieme: alla fine tocca "Controlla e invia" e poi "Conferma e invia". Con il tuo link personale la stessa pagina si apre dalla Home, toccando "Attivi".'],
+    ['La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura la raccolta sparisce dalla pagina ordini e non accetta più ordini né modifiche, nemmeno tramite un amministratore. Controlla sempre la data di chiusura scritta sotto il nome del fornitore.'],
+    ['Qual è il link della pagina ordini?', 'Nella Home tocca "Raccolte", poi "Copia il link della pagina ordini". È sempre lo stesso: fissalo in cima alla Community. Chi lo apre vede tutte le raccolte aperte.'],
     ['Come faccio un ordine?', 'Quando un fornitore apre gli ordini, nella Community WhatsApp arriva un messaggio con un link. Toccalo, scegli i prodotti con i tasti + e –, controlla il riepilogo e premi "Conferma e invia". Se hai il tuo link personale, puoi ordinare anche dalla tua pagina: nella Home tocca "Attivi".'],
     ['Come modifico un ordine già inviato?', 'Apri la tua pagina con il link personale e, nella Home, tocca "Attivi": trovi il pulsante "Modifica il mio ordine", attivo fino alla chiusura della raccolta. Se non hai il link personale, scrivi al fornitore o a un amministratore.'],
     ['Come faccio un ordine?', 'Quando un fornitore apre gli ordini, nella Community WhatsApp arriva un messaggio con un link. Toccalo, scegli i prodotti con i tasti + e –, controlla il riepilogo e premi "Conferma e invia". Se hai il tuo link personale, puoi ordinare anche dalla tua pagina, in "I miei ordini".'],
@@ -340,13 +349,19 @@ function aggiornaDomandeAiuto() {
     const vecchie = {}; FAQ_PRECEDENTI_.forEach(r => { const k = chiave(r[0]); (vecchie[k] = vecchie[k] || []).push(String(r[1]).trim()); });
     const righe = leggiTabellaSafe_(SCHEDA_AIUTO_);
     let cambiate = 0, aggiunte = 0;
+    const rinominate = {}; // titolo nuovo -> risposte pubblicate con il titolo vecchio
+    FAQ_RINOMINATE_.forEach(([prima, dopo]) => {
+      rinominate[chiave(dopo)] = vecchie[chiave(prima)] || [];
+      const r = righe.find(x => chiave(x.domanda) === chiave(prima));
+      if (r && !righe.some(x => chiave(x.domanda) === chiave(dopo))) { aggiornaCella(SCHEDA_AIUTO_, r._riga, 'domanda', dopo); r.domanda = dopo; cambiate++; }
+    });
     faqDefault_().forEach(d => {
       const r = righe.find(x => chiave(x.domanda) === chiave(d[1]));
       if (!r) {
         if (vecchie[chiave(d[1])] !== undefined) return; // c'era già e un amministratore l'ha tolta: resta tolta
         aggiungiRiga(SCHEDA_AIUTO_, { id: nuovoId(SCHEDA_AIUTO_, 'F'), ruolo: d[0], domanda: d[1], risposta: d[2], ordine: d[3], attivo: 'SI' });
         aggiunte++;
-      } else if (String(r.risposta || '').trim() !== d[2] && (vecchie[chiave(d[1])] || []).indexOf(String(r.risposta || '').trim()) >= 0) {
+      } else if (String(r.risposta || '').trim() !== d[2] && (vecchie[chiave(d[1])] || []).concat(rinominate[chiave(d[1])] || []).indexOf(String(r.risposta || '').trim()) >= 0) {
         aggiornaCella(SCHEDA_AIUTO_, r._riga, 'risposta', d[2]);
         cambiate++;
       }
