@@ -1,0 +1,135 @@
+<!-- Listino.html — listino di un fornitore, uguale nel portale fornitore e nel pannello degli amministratori.
+     Si include dopo lo stile con:  <?!= include('Listino') ?>
+     Uso: Listino.mostra(contenitore, { esegui, dati, dopo, pulsanteNuovo })
+       esegui(azione, argomenti) -> Promise: chiama il server. Azioni: listino, salvaProdotto, disponibile,
+         eliminaProdotto, opzioni, salvaOpzione, eliminaOpzione (il portale usa fornitore…, il pannello admin…);
+       dati: facoltativo, { categorie, prodotti } già caricati (altrimenti si chiede 'listino' al server);
+       dopo(dati): facoltativa, dopo ogni caricamento (per aggiornare il riepilogo della pagina);
+       pulsanteNuovo: true per avere il pulsante "Nuovo prodotto" dentro il riquadro (il portale lo ha nell'intestazione).
+     Listino.nuovo() apre e chiude il riquadro per aggiungere un prodotto. -->
+<style>
+  .pillbtn{ display:inline-flex; align-items:center; cursor:pointer; font-weight:700; font-family:inherit; min-height:42px; padding:0 12px; border-radius:999px; font-size:.88rem; gap:7px; white-space:nowrap; }
+  .pillbtn::before{ content:""; flex:0 0 10px; width:10px; height:10px; border-radius:50%; box-sizing:border-box; }
+  .pillbtn.on{ background:var(--green-t); color:var(--green-d); border:1px solid var(--green-l); }
+  .pillbtn.on::before{ background:var(--green); }
+  .pillbtn.no{ background:var(--sunk); color:var(--muted); border:1px dashed #B9B09A; }
+  .pillbtn.no::before{ border:2px solid #8C8573; box-sizing:border-box; }
+  .pillbtn.on:hover{ background:#DCE8D4; } .pillbtn.no:hover{ background:#E3DDCD; }
+  .pillbtn, .litem{ transition:background .15s, color .15s, border-color .15s, opacity .15s; }
+</style>
+<script>
+  window.Listino = (function(){
+    const SPIN='<span class="spin"></span>caricamento…';
+    const MOD={ a_unita:'a unità', a_peso:'a peso (€/kg)', a_peso_pezzo:'a peso, pezzo indicativo' };
+    let BOX=null, OPZ={}, DATI=null, APERTO=null, OPZ_EDIT=null, OPZ_CUR=[];
+    function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function nfmt(n){ return (Math.round((+n||0)*100)/100).toFixed(2).replace('.',','); }
+    function val(id){ const e=document.getElementById(id); return e?e.value:''; }
+    function errore(e){ avvisa((e&&e.message)||String(e),'Qualcosa non è andato'); }
+    function el(t,c,h){ const e=document.createElement(t); if(c) e.className=c; if(h!=null) e.innerHTML=h; return e; }
+    function opzioniCategorie(sel){ let o='<option value="">— senza categoria —</option>';
+      DATI.categorie.forEach(c=>o+='<option value="'+esc(c.id)+'"'+(c.id===sel?' selected':'')+'>'+esc((c.emoji?c.emoji+' ':'')+c.nome)+'</option>'); return o; }
+    function opzioniVendita(sel){ return Object.keys(MOD).map(m=>'<option value="'+m+'"'+(m===sel?' selected':'')+'>'+MOD[m]+'</option>').join(''); }
+
+    function mostra(contenitore, opz){
+      BOX=contenitore; OPZ=opz||{}; APERTO=null;
+      BOX.innerHTML=(OPZ.pulsanteNuovo?'<div class="edact" style="margin:0 0 10px"><button type="button" class="mini" onclick="Listino.nuovo()">+ Nuovo prodotto</button></div>':'')+
+        '<div id="ls_nuovo" class="addpanel hidden"></div><p class="muted" style="margin-top:0">Tocca un prodotto per modificarlo. Il pulsante a destra lo rende disponibile o no.</p><div id="ls_lista" class="list">'+SPIN+'</div>';
+      if(OPZ.dati){ DATI=OPZ.dati; disegna(); } else ricarica();
+    }
+    function ricarica(){
+      return OPZ.esegui('listino',[]).then(d=>{ DATI=d; disegna(); if(OPZ.dopo) OPZ.dopo(d); })
+        .catch(e=>{ const l=document.getElementById('ls_lista'); if(l) l.textContent='Errore: '+((e&&e.message)||e); });
+    }
+
+    /* nuovo prodotto */
+    function nuovo(){ const p=document.getElementById('ls_nuovo'); if(!p||!DATI) return;
+      if(!p.classList.contains('hidden')){ p.classList.add('hidden'); return; }
+      p.innerHTML='<div class="frow"><label for="ls_np_nome">Nome</label><input type="text" id="ls_np_nome"></div>'+
+        '<div class="frow"><label for="ls_np_cat">Categoria</label><select id="ls_np_cat">'+opzioniCategorie('')+'</select></div>'+
+        '<div class="frow"><label for="ls_np_prezzo">Prezzo €</label><input type="text" id="ls_np_prezzo" inputmode="decimal" style="max-width:130px"><label for="ls_np_unita" style="width:auto">Unità</label><input type="text" id="ls_np_unita" placeholder="es. €/kg" style="max-width:140px"></div>'+
+        '<div class="frow"><label for="ls_np_mod">Vendita</label><select id="ls_np_mod">'+opzioniVendita('a_unita')+'</select><label style="width:auto;display:flex;gap:8px;align-items:center"><input type="checkbox" id="ls_np_peso"> si pesa al momento</label></div>'+
+        '<div class="frow"><textarea id="ls_np_note" placeholder="Note (una per riga)"></textarea></div>'+
+        '<div class="edact"><button type="button" onclick="Listino._aggiungi()">Aggiungi</button><button type="button" class="ghost" onclick="Listino.nuovo()">Chiudi</button><span id="ls_np_msg" class="ok"></span></div>';
+      p.classList.remove('hidden'); setTimeout(()=>{ const n=document.getElementById('ls_np_nome'); if(n) n.focus(); },50);
+    }
+    function aggiungi(){ const d={ categoria_id:val('ls_np_cat'), nome:val('ls_np_nome'), prezzo:val('ls_np_prezzo'), unita:val('ls_np_unita'), modalita:val('ls_np_mod'),
+        peso_variabile:document.getElementById('ls_np_peso').checked, note:val('ls_np_note'), attivo:true, passo:1, emoji:'' };
+      if(!d.nome.trim()){ avvisa('Inserisci il nome.'); return; } document.getElementById('ls_np_msg').textContent='…';
+      OPZ.esegui('salvaProdotto',[d]).then(()=>{ document.getElementById('ls_nuovo').classList.add('hidden'); ricarica(); })
+        .catch(e=>{ document.getElementById('ls_np_msg').textContent=''; errore(e); }); }
+
+    /* elenco */
+    function disegna(){ const box=document.getElementById('ls_lista'); if(!box) return; box.innerHTML=''; APERTO=null;
+      const attFirst=(a,b)=>(a.attivo===b.attivo)?0:(a.attivo?-1:1);
+      DATI.categorie.forEach(c=>{ const l=DATI.prodotti.filter(p=>p.categoria_id===c.id).sort(attFirst); if(!l.length) return;
+        box.appendChild(el('div','catlab',esc((c.emoji?c.emoji+' ':'')+c.nome))); l.forEach(p=>box.appendChild(riga(p))); });
+      const senza=DATI.prodotti.filter(p=>!p.categoria_id || !DATI.categorie.some(c=>c.id===p.categoria_id)).sort(attFirst);
+      if(senza.length){ box.appendChild(el('div','catlab','Senza categoria')); senza.forEach(p=>box.appendChild(riga(p))); }
+      if(!DATI.prodotti.length) box.innerHTML='<div class="muted">Nessun prodotto. Aggiungine uno nuovo.</div>'; }
+    function riga(p){ const row=el('div','litem rowflex'+(p.attivo?'':' off'));
+      const left=el('div','rl','<div class="li1">'+esc(p.nome)+'</div><div class="li2">'+nfmt(p.prezzo)+' '+esc(p.unita||'')+(p.nOpzioni?(' · '+p.nOpzioni+' opzioni'):'')+'</div>');
+      left.onclick=()=>apri(p,row);
+      const btn=el('button'); btn.type='button'; btn.onclick=(e)=>{ e.stopPropagation(); cambiaDisp(p,row,btn); };
+      mostraDisp(p,row,btn); row.appendChild(left); row.appendChild(btn); return row; }
+
+    /* Disponibile / Non disponibile: il colore cambia subito, il salvataggio avviene in sottofondo.
+       Se non riesce, il prodotto torna com'era e compare un avviso. L'ordine dell'elenco si aggiorna alla prossima apertura. */
+    function mostraDisp(p,row,btn){ row.classList.toggle('off',!p.attivo); btn.className='pillbtn '+(p.attivo?'on':'no'); btn.textContent=p.attivo?'Disponibile':'Non disponibile'; btn.setAttribute('aria-pressed', p.attivo?'true':'false'); }
+    function cambiaDisp(p,row,btn){ const prima=p.attivo; p.attivo=!p.attivo; mostraDisp(p,row,btn);
+      p._invio=(p._invio||0)+1; const mio=p._invio;
+      OPZ.esegui('disponibile',[p.id,p.attivo]).then(()=>{ if(OPZ.dopo) OPZ.dopo(DATI); }).catch(()=>{
+        if(mio!==p._invio) return; // nel frattempo è stato ritoccato: vale l'ultimo tocco
+        p.attivo=prima; mostraDisp(p,row,btn); avvisa('Non sono riuscito a salvare la disponibilità di "'+p.nome+'". Riprova.','Qualcosa non è andato'); }); }
+
+    /* modifica di un prodotto e delle sue opzioni */
+    function chiudi(){ if(APERTO){ APERTO.remove(); APERTO=null; } }
+    function apri(p,row){ if(APERTO){ const era=APERTO._pid; chiudi(); if(era===p.id) return; }
+      const d=el('div','ed'); d._pid=p.id; d.innerHTML=
+        '<div class="frow"><label for="ls_ep_nome">Nome</label><input type="text" id="ls_ep_nome" value="'+esc(p.nome)+'"></div>'+
+        '<div class="frow"><label for="ls_ep_cat">Categoria</label><select id="ls_ep_cat">'+opzioniCategorie(p.categoria_id)+'</select></div>'+
+        '<div class="frow"><label for="ls_ep_prezzo">Prezzo</label><input type="text" id="ls_ep_prezzo" inputmode="decimal" value="'+nfmt(p.prezzo)+'" style="max-width:120px"><label for="ls_ep_unita" style="width:auto">Unità</label><input type="text" id="ls_ep_unita" value="'+esc(p.unita||'')+'" style="max-width:130px"></div>'+
+        '<div class="frow"><label for="ls_ep_mod">Vendita</label><select id="ls_ep_mod">'+opzioniVendita(p.modalita)+'</select><label style="width:auto"><input type="checkbox" id="ls_ep_peso" '+(p.peso_variabile?'checked':'')+'> peso variabile</label></div>'+
+        '<div class="frow"><textarea id="ls_ep_note">'+esc(p.note||'')+'</textarea></div>'+
+        '<div class="edact"><button type="button" class="mini" onclick="Listino._salva()">Salva</button><button type="button" class="sec mini" onclick="Listino._chiudi()">Annulla</button><button type="button" class="warn mini" onclick="Listino._elimina()">Elimina prodotto</button><span id="ls_ep_msg" class="ok"></span></div>'+
+        '<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px"><b>Opzioni</b> <span class="muted">(varianti e supplementi — es. gusti, tanica)</span>'+
+        '<div id="ls_opz" style="margin:6px 0">'+SPIN+'</div>'+
+        '<div class="frow"><input type="text" id="ls_oz_nome" placeholder="Nome opzione (es. Fragola)" aria-label="Nome opzione"></div>'+
+        '<div class="frow"><select id="ls_oz_tipo" aria-label="Tipo di opzione" onchange="Listino._tipo()"><option value="variante">variante (stesso prezzo del prodotto)</option><option value="supplemento">supplemento (si somma, es. tanica)</option></select><input type="text" id="ls_oz_prezzo" inputmode="decimal" placeholder="+ € supplemento" aria-label="Prezzo del supplemento" style="max-width:150px"></div>'+
+        '<div class="frow"><label style="width:auto"><input type="checkbox" id="ls_oz_nota"> chiede una nota al socio</label></div>'+
+        '<button type="button" class="mini" onclick="Listino._salvaOpz()">Aggiungi opzione</button> <button type="button" class="sec mini" onclick="Listino._pulisciOpz()">Pulisci</button> <span id="ls_oz_msg" class="ok"></span></div>';
+      row.after(d); APERTO=d; OPZ_EDIT=null; caricaOpz(); tipo(); }
+    function corrente(){ return APERTO ? DATI.prodotti.find(x=>x.id===APERTO._pid) : null; }
+    function salva(){ const p=corrente(); if(!p) return;
+      const d={ id:p.id, categoria_id:val('ls_ep_cat'), nome:val('ls_ep_nome'), prezzo:val('ls_ep_prezzo'), unita:val('ls_ep_unita'), modalita:val('ls_ep_mod'),
+        peso_variabile:document.getElementById('ls_ep_peso').checked, attivo:p.attivo, note:val('ls_ep_note'), passo:p.passo, emoji:'' };
+      if(!d.nome.trim()){ avvisa('Il nome è obbligatorio.'); return; }
+      document.getElementById('ls_ep_msg').textContent='…';
+      OPZ.esegui('salvaProdotto',[d]).then(()=>ricarica()).catch(e=>{ const m=document.getElementById('ls_ep_msg'); if(m) m.textContent=''; errore(e); }); }
+    function elimina(){ const p=corrente(); if(!p) return;
+      chiedi('Verranno eliminate anche le sue scelte. Non si può tornare indietro: se è solo finito, meglio renderlo non disponibile.',{titolo:'Eliminare "'+p.nome+'"?',ok:'Elimina',pericolo:true})
+        .then(ok=>{ if(ok) OPZ.esegui('eliminaProdotto',[p.id]).then(()=>ricarica()).catch(errore); }); }
+    function tipo(){ const t=document.getElementById('ls_oz_tipo'), p=document.getElementById('ls_oz_prezzo'); if(t&&p) p.style.display=(t.value==='supplemento')?'':'none'; }
+    function caricaOpz(){ const p=corrente(), box=document.getElementById('ls_opz'); if(!p||!box) return; box.innerHTML=SPIN;
+      OPZ.esegui('opzioni',[p.id]).then(l=>{ OPZ_CUR=l; if(!l.length){ box.innerHTML='<div class="muted">Nessuna opzione.</div>'; return; }
+        box.innerHTML=l.map(o=>{ const det=o.tipo+(o.prezzo?(' '+nfmt(o.prezzo)+' €'+(o.unita?(' '+o.unita):'')):'')+(o.richiede_nota?' · con nota':'');
+          return '<div class="li"><div class="li1">'+esc(o.nome)+' <span class="li2">('+esc(det)+')</span></div><div class="edact"><button type="button" class="sec mini" onclick="Listino._modOpz(\''+esc(o.id)+'\')">Modifica</button><button type="button" class="warn mini" onclick="Listino._elimOpz(\''+esc(o.id)+'\')">Elimina</button></div></div>'; }).join('');
+      }).catch(e=>{ box.textContent='Errore: '+((e&&e.message)||e); }); }
+    function modOpz(id){ const o=OPZ_CUR.find(x=>x.id===id); if(!o) return; OPZ_EDIT=id;
+      document.getElementById('ls_oz_nome').value=o.nome; document.getElementById('ls_oz_tipo').value=(o.tipo==='formato'?'supplemento':o.tipo);
+      document.getElementById('ls_oz_prezzo').value=o.prezzo?nfmt(o.prezzo):''; document.getElementById('ls_oz_nota').checked=o.richiede_nota; tipo();
+      document.getElementById('ls_oz_msg').textContent='(modifica)'; }
+    function pulisciOpz(){ OPZ_EDIT=null; ['ls_oz_nome','ls_oz_prezzo'].forEach(i=>document.getElementById(i).value=''); document.getElementById('ls_oz_nota').checked=false;
+      document.getElementById('ls_oz_tipo').value='variante'; tipo(); document.getElementById('ls_oz_msg').textContent=''; }
+    function salvaOpz(){ const p=corrente(); if(!p) return; const t=val('ls_oz_tipo');
+      const d={ id:OPZ_EDIT||'', prodottoId:p.id, nome:val('ls_oz_nome'), tipo:t, prezzo:(t==='supplemento'?val('ls_oz_prezzo'):0), unita:'', richiede_nota:document.getElementById('ls_oz_nota').checked };
+      if(!d.nome.trim()){ avvisa('Inserisci il nome dell\'opzione.'); return; } document.getElementById('ls_oz_msg').textContent='…';
+      OPZ.esegui('salvaOpzione',[d]).then(()=>{ pulisciOpz(); caricaOpz(); }).catch(e=>{ document.getElementById('ls_oz_msg').textContent=''; errore(e); }); }
+    function elimOpz(id){ chiedi('La scelta verrà tolta dal prodotto.',{titolo:'Eliminare la scelta?',ok:'Elimina',pericolo:true})
+      .then(ok=>{ if(ok) OPZ.esegui('eliminaOpzione',[id]).then(()=>caricaOpz()).catch(errore); }); }
+
+    return { mostra:mostra, nuovo:nuovo, ricarica:ricarica,
+      _aggiungi:aggiungi, _salva:salva, _chiudi:chiudi, _elimina:elimina, _tipo:tipo,
+      _modOpz:modOpz, _pulisciOpz:pulisciOpz, _salvaOpz:salvaOpz, _elimOpz:elimOpz };
+  })();
+</script>

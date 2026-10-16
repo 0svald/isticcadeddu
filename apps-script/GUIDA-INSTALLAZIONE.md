@@ -48,6 +48,7 @@ Crea nel progetto (pulsante **+** accanto a "File") un file per ciascuno, con **
 | `Stile` | stile comune a tutte le pagine (colori, caratteri, pulsanti, finestre di conferma) |
 | `Profilo` | schermata "Profilo", comune a pagina del socio, portale fornitore e pannello |
 | `Aiuto` | sezione "Aiuto", comune a tutte le pagine (nel form d'ordine si apre da "Serve aiuto?") |
+| `Listino` | listino di un fornitore, comune a portale fornitore e pannello |
 | `RaccolteAperte` | pagina "Raccolte aperte": tutte le raccolte aperte in una pagina (link comune, link personale, ordine per un socio) |
 | `Form` | form d'ordine di una sola raccolta (link vecchi) |
 | `Socio` | pagina personale del socio |
