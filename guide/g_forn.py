@@ -52,13 +52,14 @@ body=f'''
 <li><b>Si pesa al momento:</b> sceglilo per i prodotti venduti a pezzo ma pagati a peso. Il peso vero lo confermi tu prima della consegna.</li>
 <li><b>Nuovo prodotto:</b> tocca <span class="k">+ Nuovo</span> in alto.</li>
 <li><b>Eliminare:</b> <span class="k">Elimina</span> lo toglie per sempre. Se è solo finito, meglio "Non disponibile".</li></ul>
+<p>Il listino lo possono cambiare anche gli <b>amministratori</b>, dal loro pannello: se non riesci, chiedi a loro.</p>
 <h3>Le opzioni di un prodotto</h3>
 <p>In fondo alla scheda del prodotto ci sono le opzioni, di due tipi:</p>
 <ul><li><b>Variante:</b> una scelta allo stesso prezzo, come i gusti dello yogurt.</li><li><b>Supplemento:</b> un costo in più che si somma, come la tanica per olio o vino.</li></ul>
 {phones([(listino,'Il listino'),(prodotto,'la scheda di un prodotto con le opzioni')])}
 
 <h2>Le raccolte</h2>
-<p>Ogni giro di ordini aperto per te è una <b>raccolta</b>. In alto trovi quelle <b>in corso</b>; quelle già consegnate sono in fondo, nel riquadro <b>Raccolte concluse</b>: toccalo per aprirlo. Una raccolta ci passa da sola il giorno dopo la consegna. Per ognuna ci sono tre pulsanti:</p>
+<p>Ogni giro di ordini aperto per te è una <b>raccolta</b>. I soci ordinano dalla pagina <b>Raccolte aperte</b>, dove ogni fornitore ha la sua scheda: per ogni raccolta ricevi un ordine per socio. Con il link personale un socio può cambiare o cancellare il suo ordine fino alla chiusura. In alto trovi quelle <b>in corso</b>; quelle già consegnate sono in fondo, nel riquadro <b>Raccolte concluse</b>: toccalo per aprirlo. Una raccolta ci passa da sola il giorno dopo la consegna. Per ognuna ci sono tre pulsanti:</p>
 <ul><li><span class="k">Ordini</span>: l'ordine di ogni socio con tessera, telefono ed eventuale nota. Puoi <b>correggere le quantità</b> o <b>annullare un ordine</b>, per esempio se il socio ti chiama per cambiare.</li>
 <li><span class="k">Riepilogo</span>: il totale di ogni prodotto da preparare e l'incasso previsto.</li>
 <li><span class="k">Conferma pesi</span>: per i prodotti che si pesano, scrivi il peso reale di ogni pezzo. Gli importi dei soci si aggiornano da soli.</li></ul>
@@ -73,4 +74,4 @@ body=f'''
 <p>Nel <b>Profilo</b> vedi la tua tessera e la scadenza, cambi telefono ed email e passi alla tua pagina di socio (o al pannello, se sei anche amministratore).</p>
 <p>In <b>Aiuto</b> trovi le domande frequenti, i contatti del comitato, in <b>Documenti</b> il regolamento del GAS, l'elenco dei fornitori e questa guida da scaricare, e <span class="k">Segnala</span> per un problema dell'app: la segnalazione arriva agli amministratori.</p>
 '''
-open('guida-fornitori.html','w',encoding='utf-8').write(page('Il portale del fornitore','Guida per i fornitori',body))
+open('guida-fornitori.html','w',encoding='utf-8').write(page('Il portale del fornitore','Guida per i fornitori',body,'17-10-2026'))

@@ -1,7 +1,7 @@
 from build_guide import *
 home_socio = top('GAS Isticcadeddu','La mia pagina · tessera 0123')+home('Anna',GRUPPI_SOCIO,2)
-pagina_socio = top('GAS Isticcadeddu','La mia pagina · tessera 0123')+'''<div class="body">'''+testa('ORDINI','Attivi')+riep('1 ordine aperto · 1 raccolta da ordinare','Prossimo ritiro: giovedì 12 ottobre, dalle 18:00 · Piazza del mercato · circa 36,00 € in contanti.')+'''
-<div class="h" style="font-size:15px;margin-top:8px">Ordini aperti</div><div class="btn">Ordina o modifica i tuoi ordini</div>
+pagina_socio = top('GAS Isticcadeddu','La mia pagina · tessera 0123')+'''<div class="body">'''+testa('ORDINI','Attivi')+riep('1 ordine in corso · 1 raccolta da ordinare','Prossimo ritiro: giovedì 12 ottobre, dalle 18:00 · Piazza del mercato · circa 36,00 € in contanti.')+'''
+<div class="h" style="font-size:15px;margin-top:8px">Raccolte aperte</div><div class="btn">Ordina o modifica i tuoi ordini</div>
 <div class="card mine"><div class="row"><b>Caseificio La Collina</b><span class="badge full">Ordinato</span></div><div class="sub">Puoi modificarlo fino al 10-10 alle 20:00</div>
 <div class="li"><span>Formaggio fresco · 1 kg</span><span>15,00 €</span></div><div class="li"><span>Yogurt alla frutta – Fragola · 4</span><span>6,00 €</span></div>
 <div class="row" style="font-weight:700;padding-top:4px"><span>Totale indicativo</span><span>21,00 €</span></div><div class="btn sec">Modifica il mio ordine</div></div>
@@ -18,17 +18,30 @@ form = top('GAS Isticcadeddu','Raccolte aperte')+'''<div class="body">
 <div class="h">Raccolte aperte</div>
 <div class="card" style="background:var(--green-t);border-color:var(--green-l)">Ordini come <b>Anna Rossi</b> · tessera 0123</div>
 <div class="card mine"><div class="row"><b style="font-family:Georgia,serif;color:var(--green-d);font-size:14px">Caseificio La Collina</b><span>⌄</span></div>
-<div class="sub" style="color:#5E3908;font-weight:700">Chiude oggi alle 20:00</div><div class="sub">Consegna lunedì 12-10 · dalle 18:00</div><span class="badge full">2 prodotti scelti</span>
+<div class="sub" style="color:#5E3908;font-weight:700">Chiude oggi alle 20:00</div><div class="sub">Consegna lunedì 12-10 · dalle 18:00</div><span class="badge warn">2 prodotti scelti</span>
 <div class="prod on"><div class="row"><b>Formaggio fresco</b><b>15,00 €/kg</b></div><div class="sub">Si pesa al momento: il fornitore conferma l'importo esatto prima del ritiro.</div>
 <div class="st"><span class="u">1 kg · 15,00 €</span><span class="sb m">–</span><span class="q">1</span><span class="sb">+</span></div></div>
 <div class="prod on"><div class="row"><b>Yogurt alla frutta</b><b>1,50 € l'uno</b></div><div class="in">Fragola ▾</div>
-<div class="st"><span class="u">4 · 6,00 €</span><span class="sb m">–</span><span class="q">4</span><span class="sb">+</span></div></div></div>
+<div class="st"><span class="u">4 · 6,00 €</span><span class="sb m">–</span><span class="q">4</span><span class="sb">+</span></div></div>
+<div class="row" style="font-weight:700;border-top:1px solid var(--line);padding-top:6px;margin-top:6px"><span>Totale <span class="sub">indicativo</span></span><span>21,00 €</span></div><div class="btn">Controlla e invia</div></div>
 <div class="card"><div class="row"><b style="font-family:Georgia,serif;color:var(--green-d);font-size:14px">Orto del Sole</b><span>›</span></div><div class="sub">Chiude domani alle 13:00</div><div class="sub">Consegna lunedì 12-10 · dalle 18:00</div></div>
-</div><div class="totbar"><div><span class="sub">2 prodotti · indicativo</span><br><b style="font-size:15px">21,00 €</b></div><span class="btn" style="margin:0">Controlla e invia</span></div>'''
+</div>'''
+ordinato = top('GAS Isticcadeddu','Raccolte aperte')+'''<div class="body">
+<div class="card mine"><div class="row"><b style="font-family:Georgia,serif;color:var(--green-d);font-size:14px">Caseificio La Collina</b><span>⌄</span></div>
+<div class="sub">Chiude lunedì 12-10 alle 20:00</div><span class="badge full">Ordinato</span>
+<div class="card" style="background:var(--green-t);border-color:var(--green-l)"><b style="font-family:Georgia,serif;color:var(--green-d)">Il tuo ordine</b>
+<div class="li"><span>Formaggio fresco · 1 kg</span><span>15,00 €</span></div><div class="li"><span>Yogurt alla frutta – Fragola · 4</span><span>6,00 €</span></div>
+<div class="row" style="font-weight:700;padding-top:4px"><span>Totale indicativo</span><span>21,00 €</span></div></div>
+<div class="btn">Modifica l'ordine</div></div>
+<div class="card mine"><div class="row"><b style="font-family:Georgia,serif;color:var(--green-d);font-size:14px">… in modifica</b></div>
+<div class="prod on"><div class="row"><b>Formaggio fresco</b><b>15,00 €/kg</b></div><div class="st"><span class="u">1,5 kg · 22,50 €</span><span class="sb m">–</span><span class="q">1,5</span><span class="sb">+</span></div></div>
+<div class="row" style="font-weight:700;padding-top:6px"><span>Totale <span class="sub">indicativo</span></span><span>28,50 €</span></div>
+<div class="btn">Controlla e salva</div><div class="btn sec">Annulla le modifiche</div><div class="btn red">Cancella l'ordine</div></div>
+</div>'''
 riep = '''<div class="body" style="background:#7C7E74;padding-top:110px"><div style="background:var(--paper);border-radius:16px 16px 0 0;padding:10px 12px;margin:0 -11px -12px">
 <div class="h">Controlla il tuo ordine</div><div class="sub">Anna Rossi, tessera 0123</div>
 <div class="card"><b style="font-family:Georgia,serif;color:var(--green-d)">Caseificio La Collina</b><div class="li"><span><b>Formaggio fresco</b><br><span class="sub">1 kg</span></span><span>15,00 €</span></div><div class="li"><span><b>Yogurt alla frutta – Fragola</b><br><span class="sub">4</span></span><span>6,00 €</span></div>
-<div class="row" style="font-weight:700;padding-top:6px"><span>Totale</span><span>21,00 €</span></div></div>
+<div class="row" style="font-weight:700;padding-top:6px"><span>Totale indicativo</span><span>21,00 €</span></div></div>
 <div class="btn">Conferma e invia</div><div class="btn sec">Torna a modificare</div></div></div>'''
 profilo = top('GAS Isticcadeddu','La mia pagina · tessera 0123')+'''<div class="body">
 <div class="row" style="justify-content:flex-start;gap:9px"><div style="width:38px;height:38px;border-radius:50%;background:var(--green-t);color:var(--green-d);display:flex;align-items:center;justify-content:center;font-weight:700">AR</div><div><div class="h" style="margin:0">Anna Rossi</div><div class="sub">Tessera 0123</div></div></div>
@@ -45,7 +58,7 @@ foglio='''<div class="body"><div class="h" style="font-size:14px">Ordine definit
 
 body=f'''
 <p class="lead">Con l'app del Gruppo di Acquisto ordini dal telefono, vedi i tuoi ordini e sai quando e dove ritirare. Funziona nel browser del telefono, e puoi metterla sulla schermata Home come le altre app. Non ci sono password da ricordare.</p>
-<div class="box"><b>In poche parole:</b> apri il tuo link personale, tocca <span class="k">Ordina dalle raccolte aperte</span>, scegli i prodotti, controlla e premi <span class="k">Conferma e invia</span>. Il giorno del ritiro paghi in contanti al fornitore.</div>
+<div class="box"><b>In poche parole:</b> apri il tuo link personale, tocca <span class="k">Ordina dalle raccolte aperte</span>, tocca un fornitore, scegli i prodotti, poi <span class="k">Controlla e invia</span> e <span class="k">Conferma e invia</span>. Un ordine per ogni fornitore. Il giorno del ritiro paghi in contanti al fornitore.</div>
 
 <h2>Il tuo link personale</h2>
 <p>Un amministratore ti manda, in privato su WhatsApp, un <b>link personale</b>: un indirizzo che inizia con <i>https://</i>. È la tua chiave per entrare nella tua pagina.</p>
@@ -86,7 +99,7 @@ body=f'''
 {phones([(home_socio,'La Home'),(pagina_socio,'Ordini › Attivi')])}
 <p>In <b>Attivi</b> trovi, dall'alto:</p>
 <ul><li>il pulsante <span class="k">Ordina dalle raccolte aperte</span> (o <span class="k">Ordina o modifica i tuoi ordini</span>, se hai già ordinato): apre la pagina con tutte le raccolte aperte;</li>
-<li>gli <b>ordini aperti</b>, fornitore per fornitore, con quello che hai già ordinato;</li>
+<li>le <b>raccolte aperte</b>, fornitore per fornitore, con quello che hai già ordinato;</li>
 <li>le <b>prossime consegne</b>, con i fornitori presenti e quello che ritiri tu.</li></ul>
 
 <h2>Notifiche</h2>
@@ -101,20 +114,26 @@ body=f'''
 {phone(storico_socio,'Lo Storico degli ordini.')}
 
 <h2>Fare un ordine</h2>
-<p>Tutte le raccolte aperte sono in <b>una sola pagina</b>, "Raccolte aperte": puoi ordinare da più fornitori e inviare tutto insieme.</p>
+<p>Tutte le raccolte aperte sono in <b>una sola pagina</b>, "Raccolte aperte", con una scheda per ogni fornitore. <b>Ogni fornitore ha il suo ordine</b>: lo compili e lo invii dalla sua scheda, uno per volta.</p>
 <div class="step"><div class="n">1</div><div>In <b>Attivi</b> tocca <span class="k">Ordina dalle raccolte aperte</span> (oppure <span class="k">Ordina</span> in una notifica, o il link nel messaggio della Community WhatsApp).</div></div>
-<div class="step"><div class="n">2</div><div>In alto c'è <b>chi ordina</b>: con il tuo link personale nome e tessera sono già scritti. Sotto c'è una <b>scheda per ogni fornitore</b>, prima quelle che chiudono prima. Sotto il nome leggi <b>fino a quando</b> puoi ordinare (in arancione se chiude oggi o domani) e <b>quando si ritira</b>.</div></div>
-<div class="step"><div class="n">3</div><div>Tocca un fornitore per vedere i prodotti. Usa <b>+</b> e <b>–</b> per la quantità: il prodotto scelto diventa verde e mostra quanto spendi. Se c'è una scelta, come il gusto, tocca il riquadro e scegli.</div></div>
-<div class="step"><div class="n">4</div><div>In fondo a ogni fornitore puoi scrivere una <b>nota per il fornitore</b> (per esempio "taglio piccolo"). Poi, se vuoi, apri un altro fornitore e continua.</div></div>
-<div class="step"><div class="n">5</div><div>Tocca <span class="k">Controlla e invia</span>: compare il riepilogo, diviso per fornitore. Se è tutto giusto tocca <span class="k">Conferma e invia</span>, altrimenti <span class="k">Torna a modificare</span>.</div></div>
+<div class="step"><div class="n">2</div><div>In alto c'è <b>chi ordina</b>: con il tuo link personale nome e tessera sono già scritti. Sotto ci sono i fornitori, prima quelli che chiudono prima. Sotto il nome leggi <b>fino a quando</b> puoi ordinare (in arancione se chiude oggi o domani) e <b>quando si ritira</b>.</div></div>
+<div class="step"><div class="n">3</div><div>Tocca un fornitore: si apre la sua scheda e le altre restano chiuse. Usa <b>+</b> e <b>–</b> per la quantità: il prodotto scelto diventa verde e mostra quanto spendi. Se c'è una scelta, come il gusto, tocca il riquadro e scegli.</div></div>
+<div class="step"><div class="n">4</div><div>In fondo alla scheda puoi scrivere una <b>nota per il fornitore</b> (per esempio "taglio piccolo") e vedi il <b>totale</b>.</div></div>
+<div class="step"><div class="n">5</div><div>Tocca <span class="k">Controlla e invia</span>, in fondo alla scheda: compare il riepilogo di quel fornitore. Se è tutto giusto tocca <span class="k">Conferma e invia</span>, altrimenti <span class="k">Torna a modificare</span>.</div></div>
+<div class="step"><div class="n">6</div><div>Per un altro fornitore, tocca il suo nome e ripeti. Se avevi scelto dei prodotti senza inviarli, l'app ti chiede prima se vuoi lasciarli.</div></div>
 {phones([(form,"La pagina Raccolte aperte"),(riep,"il riepilogo prima dell'invio")])}
-<p>Dopo l'invio vedi l'esito <b>per ogni fornitore</b>. Se nel frattempo una raccolta si è chiusa, quell'ordine non viene registrato e lo leggi scritto in rosso: gli altri sì.</p>
+<p>Dopo l'invio l'esito compare <b>dentro la scheda</b>: "Ordine inviato", oppure "da verificare" con il motivo. Se nel frattempo la raccolta si è chiusa, l'ordine non viene registrato e lo leggi scritto in rosso.</p>
 <div class="box"><b>"Si pesa al momento"</b>: prodotti come formaggi o angurie hanno un prezzo indicativo. Il fornitore pesa e conferma l'importo esatto prima del ritiro.</div>
 
-<h2>Cambiare un ordine</h2>
-<p>In <b>Attivi</b> tocca <span class="k">Ordina o modifica i tuoi ordini</span>: trovi i tuoi ordini già compilati. Cambia le quantità e tocca <span class="k">Controlla e salva</span>. Il nuovo ordine <b>sostituisce</b> il precedente. Per <b>togliere</b> un ordine porta tutte le sue quantità a zero.</p>
+<h2>Cambiare o cancellare un ordine</h2>
+<p>Con il tuo link personale, in <b>Attivi</b> tocca <span class="k">Ordina o modifica i tuoi ordini</span>. I fornitori dove hai già ordinato hanno l'etichetta <b>Ordinato</b>: tocca il fornitore e vedi il tuo ordine.</p>
+<div class="step"><div class="n">1</div><div>Tocca <span class="k">Modifica l'ordine</span>: tornano i tasti + e –, con le quantità che avevi scelto.</div></div>
+<div class="step"><div class="n">2</div><div>Cambia quello che serve e tocca <span class="k">Controlla e salva</span>, poi <span class="k">Conferma e salva</span>. Il nuovo ordine <b>prende il posto</b> di quello di prima.</div></div>
+<div class="step"><div class="n">3</div><div>Per <b>togliere</b> l'ordine del tutto, in modifica tocca <span class="k">Cancella l'ordine</span> (il pulsante rosso in fondo) e conferma. Finché la raccolta è aperta puoi farne uno nuovo.</div></div>
+<p>Se cambi idea mentre modifichi, tocca <span class="k">Annulla le modifiche</span>: l'ordine resta com'era.</p>
+{phones([(ordinato,"Un ordine già fatto e la stessa scheda in modifica")])}
 <div class="box warn"><b>Dopo la chiusura non si cambia più niente</b>, nemmeno chiedendo a un amministratore: controlla sempre la data di chiusura scritta sotto il nome del fornitore.</div>
-<div class="box warn">Se ordini dal link della Community, senza il tuo link personale, scrivi in cima numero di tessera e nome. In questo caso un secondo ordine <b>non sostituisce</b> il primo: restano tutti e due e vengono controllati da un amministratore o dal fornitore, che ti contatteranno.</div>
+<div class="box warn">Se ordini dal link della Community, senza il tuo link personale, scrivi in cima numero di tessera e nome. In questo caso non c'è "Modifica l'ordine": per cambiare un ordine scrivi al fornitore o a un amministratore. Un secondo ordine allo stesso fornitore <b>non sostituisce</b> il primo: restano tutti e due e vengono controllati.</div>
 
 <h2>Il giorno del ritiro</h2>
 <p>Prima della consegna viene pubblicato un <b>foglio con tutti gli ordini</b>: cerca la riga con la tua tessera, controlla i prodotti e l'importo. Si paga <b>in contanti al fornitore</b>, possibilmente con i soldi giusti. Porta cassette o contenitori se il fornitore lo chiede.</p>
@@ -134,4 +153,4 @@ body=f'''
 <h2>Ordine "da verificare"</h2>
 <p>Succede quando la tessera non risulta attiva o scaduta, oppure quando lo stesso socio ha inviato due ordini senza il link personale. L'ordine <b>è registrato</b>: un amministratore o il fornitore potrebbero contattarti. Per rinnovare la tessera rivolgiti al comitato.</p>
 '''
-open('guida-soci.html','w',encoding='utf-8').write(page('Come usare l\'app del GAS','Guida per i soci',body,'16-10-2026'))
+open('guida-soci.html','w',encoding='utf-8').write(page('Come usare l\'app del GAS','Guida per i soci',body,'17-10-2026'))
