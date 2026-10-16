@@ -98,6 +98,9 @@ Vedi `CLAUDE.md`, sezione "Ordini e raccolte": rotta `?ordini`, `RaccolteAperte.
 - Tutti i messaggi WhatsApp puntano alla pagina "Raccolte aperte", con la raccolta del messaggio già aperta.
 - L'API resta com'è: `inserisciOrdine` può ancora inserire ordini in una raccolta chiusa (per caricare gli ordini arrivati su WhatsApp).
 
+**Cambio del 17-10-2026: un ordine per volta**
+Gli ordini devono essere separati e compilati singolarmente: una scheda aperta per volta, il pulsante di invio dentro la scheda della raccolta. Una raccolta già ordinata mostra l'ordine con "Modifica l'ordine"; in modifica, in fondo, c'è anche "Cancella l'ordine" (solo finché la raccolta è aperta). Il riepilogo prima dell'invio resta.
+
 **Da fare**
 - Aggiornare le guide PDF per soci e amministratori con la pagina "Raccolte aperte".
 
