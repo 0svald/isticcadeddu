@@ -75,8 +75,8 @@ h2,h3{break-after:avoid} .box,.step{break-inside:avoid}
 .m .seg{display:flex;gap:3px;padding:3px;background:var(--sunk);border-radius:10px;margin:4px 0 8px}.m .seg span{flex:1;text-align:center;font-weight:700;font-size:11px;padding:5px;border-radius:8px}.m .seg span.on{background:var(--surface);color:var(--green-d)}
 .m .side .sn .sg{font-size:8.5px;letter-spacing:.08em;color:var(--muted);padding:8px 8px 2px;font-weight:700}
 '''.replace('ICON',ICON)
-def page(title,tag,body):
-    return f'<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>{title}</title><style>{CSS}</style></head><body><div class="wrap"><div class="cover"><div class="ic"></div><div><span class="tag">{tag}</span><h1>{title}</h1></div></div>{body}<div class="foot">Gruppo di Acquisto Solidale – Comitato di quartiere Isticcadeddu · guida aggiornata al 25-09-2026.<br>Nomi, tessere, telefoni e prodotti nelle immagini sono <b>inventati</b>, solo come esempio.</div></div></body></html>'
+def page(title,tag,body,data='25-09-2026'):
+    return f'<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>{title}</title><style>{CSS}</style></head><body><div class="wrap"><div class="cover"><div class="ic"></div><div><span class="tag">{tag}</span><h1>{title}</h1></div></div>{body}<div class="foot">Gruppo di Acquisto Solidale – Comitato di quartiere Isticcadeddu · guida aggiornata al {data}.<br>Nomi, tessere, telefoni e prodotti nelle immagini sono <b>inventati</b>, solo come esempio.</div></div></body></html>'
 def phone(inner,cap): return f'<figure><div class="phone"><div class="scr m">{inner}</div></div><figcaption>{cap}</figcaption></figure>'
 def phones(items): return '<figure><div class="duo">'+''.join(f'<div><div class="phone"><div class="scr m">{i}</div></div></div>' for i,_ in items)+'</div><figcaption>'+' · '.join(c for _,c in items)+'</figcaption></figure>'
 def browser(inner,cap,url='pannello amministratori'): return f'<figure><div class="browser"><div class="bar"><i></i><i></i><i></i><span>{url}</span></div><div class="m">{inner}</div></div><figcaption>{cap}</figcaption></figure>'

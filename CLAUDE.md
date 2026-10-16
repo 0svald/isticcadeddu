@@ -13,6 +13,7 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - Codice: **Google Apps Script** pubblicato come web app (`apps-script/`), *Esegui come: Me*, *Chi ha accesso: Chiunque*.
 - App installabile: contenitore su **GitHub Pages** (`docs/`) che mostra le pagine di Apps Script a schermo intero.
   Si propone di installarla solo con il link personale (`?u=` o già ricordato sul telefono): con il link generico (`?form=` o `?ordini`) il manifest non viene inserito e il browser non la considera installabile. Il contenitore passa `?ordini` (e `&apri=`) alla web app, con il link personale ricordato se c'è.
+  Installazione: Chrome, Edge e Samsung Internet mandano `beforeinstallprompt` e compare il riquadro "Installa l'app GAS". Gli altri browser (Firefox, Safari su iPhone, Chrome su iPhone) non lo mandano: dopo 4 secondi lo stesso riquadro mostra i passi da fare a mano per quel browser ("Ho capito" lo nasconde per sempre su quel telefono). Su **iPhone** non si aggiunge il manifest e l'indirizzo resta `?u=TOKEN`: l'app sulla schermata Home non vede i dati di Safari e parte dall'indirizzo della pagina, così si apre già con il link personale. Le stesse istruzioni, browser per browser, sono nella guida dei soci e nella domanda frequente.
 - La comunicazione con i soci resta su una **Community WhatsApp** (gruppi di annuncio dove solo gli amministratori scrivono). L'app non scrive su WhatsApp: prepara i testi da copiare, e usa link `wa.me` per aprire le chat.
 
 ## Lingua e tono
@@ -137,4 +138,5 @@ Le idee di nuove funzioni dell'utente sono in **`RICHIESTE.md`** (una sezione pe
 - **Referenti** del comitato e **regole del GAS** (ordini per altri, ritiri mancati, tempi per le modifiche): da definire, poi da aggiungere alle domande frequenti (scheda `Aiuto`).
 - **`LINK_BASE_URL`**: da impostare a `https://0svald.github.io/isticcadeddu/` perché i nuovi link personali aprano l'app installabile; dopo, eseguire una volta `azzeraLinkBrevi()`.
 - Fornitori del foglio senza tessera: vanno collegati a un socio, altrimenti non entrano nel portale.
+- Guida dei soci rigenerata il 16-10-2026 (pagina "Raccolte aperte", installazione browser per browser): va ricaricata su Drive con "Gestisci versioni". Guide di fornitori e amministratori ancora da aggiornare con la pagina "Raccolte aperte".
 - Guide PDF (`guide/`): rigenerate il 26-09-2026 (raccolte concluse in sola lettura, scheda Documenti di Aiuto) e caricate su Drive. Anche regolamento ed elenco dei fornitori sono su Drive, con `DOC_REGOLAMENTO_ID` e `DOC_FORNITORI_ID` impostate. Quando cambiano: stesso file, "Gestisci versioni", così l'ID in `GUIDA_*_ID` non cambia.
