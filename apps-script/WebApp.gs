@@ -1,6 +1,9 @@
 /**
  * WebApp.gs — punto d'ingresso della web app.
  * Rotte:
+ *   ?ordini              -> pagina "Raccolte aperte": tutte le raccolte aperte in una pagina (link comune, tessera + nome)
+ *   ?ordini&socio=T      -> la stessa pagina con il link personale (modifica i propri ordini)
+ *   ?ordini&admin=T      -> la stessa pagina per un amministratore: ordine per conto di un socio
  *   ?form=CI01           -> form d'ordine per un ciclo (pubblico)
  *   ?form=CI01&socio=T   -> form precompilato con il link personale del socio
  *   ?socio=TOKEN         -> pagina personale del socio (anche con il token di un amministratore)
@@ -32,6 +35,20 @@ function conFavicon_(out) {
 
 function pagina_(e) {
   const p = (e && e.parameter) || {};
+
+  // pagina "Raccolte aperte": link comune, link personale (&socio= o &u=) o amministratore (&admin=)
+  if (p.ordini !== undefined) {
+    const adminTok = String(p.admin || ''), socioTok = String(p.socio || p.u || '');
+    try { if (adminTok) checkToken_(adminTok); else if (socioTok) socioDaToken_(socioTok); }
+    catch (err) { return HtmlService.createHtmlOutput(paginaSemplice_('Link non valido', err.message)).addMetaTag('viewport', 'width=device-width, initial-scale=1'); }
+    const t = HtmlService.createTemplateFromFile('RaccolteAperte');
+    t.socioToken = adminTok ? '' : socioTok;
+    t.adminToken = adminTok;
+    t.apri = String(p.apri || '');
+    return t.evaluate()
+      .setTitle(adminTok ? 'Ordine per un socio – GAS' : 'Raccolte aperte – GAS')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
 
   // link personale unico (?u=TOKEN): apre il pannello per gli amministratori,
   // il portale per i fornitori, altrimenti la pagina del socio
@@ -85,7 +102,8 @@ function pagina_(e) {
   }
 
   return HtmlService.createHtmlOutput(paginaSemplice_('Gruppo di Acquisto Solidale',
-    'Questa pagina si apre tramite i link agli ordini pubblicati nel gruppo.'));
+    'Questa pagina si apre tramite i link agli ordini pubblicati nel gruppo.'))
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
 /** Pagina informativa minimale, coerente con lo stile del form. */
@@ -112,17 +130,22 @@ function salvaUrlApp() {
   return url;
 }
 
-/** Link al form di un ciclo (accorciato, se lo shortener è attivo). */
+/**
+ * Link da mettere nei messaggi WhatsApp di una raccolta: la pagina "Raccolte aperte"
+ * con quella raccolta già aperta (?ordini=1&apri=ID), accorciato se lo shortener è attivo.
+ * Il link breve si salva nella colonna "link_ordini" della scheda Raccolte (creata da sola).
+ * La vecchia colonna "link_breve" punta al form della singola raccolta: quei link continuano
+ * a funzionare, ma non si usano più nei messaggi nuovi.
+ */
 function linkForm(cicloId) {
-  const lungo = urlLink_() + '?form=' + encodeURIComponent(cicloId);
-  // il link breve di ogni raccolta è salvato nella colonna "link_breve" della scheda Raccolte
+  const lungo = urlLink_() + '?ordini=1&apri=' + encodeURIComponent(cicloId);
   try {
     const r = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
     if (r) {
-      const salvato = String(r.link_breve || '').trim();
+      const salvato = String(r.link_ordini || '').trim();
       if (salvato) return salvato;
       const breve = accorciaSenzaCache_(lungo);
-      if (breve && breve !== lungo) { assicuraColonna_(SHEETS.RACCOLTE, 'link_breve'); aggiornaCella(SHEETS.RACCOLTE, r._riga, 'link_breve', breve); }
+      if (breve && breve !== lungo) { assicuraColonna_(SHEETS.RACCOLTE, 'link_ordini'); aggiornaCella(SHEETS.RACCOLTE, r._riga, 'link_ordini', breve); }
       return breve || lungo;
     }
   } catch (e) {}
@@ -151,8 +174,8 @@ function urlLink_() {
  */
 function azzeraLinkBrevi() {
   let n = 0;
-  [SHEETS.SOCI, SHEETS.RACCOLTE].forEach(nome => {
-    leggiTabella(nome).forEach(r => { if (String(r.link_breve || '').trim()) { aggiornaCella(nome, r._riga, 'link_breve', ''); n++; } });
+  [[SHEETS.SOCI, 'link_breve'], [SHEETS.RACCOLTE, 'link_breve'], [SHEETS.RACCOLTE, 'link_ordini']].forEach(([nome, col]) => {
+    leggiTabella(nome).forEach(r => { if (String(r[col] || '').trim()) { aggiornaCella(nome, r._riga, col, ''); n++; } });
   });
   log_('sistema', 'link_brevi_azzerati', String(n));
   Logger.log('Link brevi azzerati: ' + n);

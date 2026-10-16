@@ -57,14 +57,44 @@ figcaption{color:var(--muted);font-size:.86rem;margin-top:6px;text-align:center}
 .m .det{border:1px solid var(--line);border-radius:10px;padding:6px 9px;background:var(--surface);margin:5px 0;font-weight:700;color:var(--green-d)}
 .foot{margin-top:34px;color:var(--muted);font-size:.84rem;border-top:1px solid var(--line);padding-top:10px}
 h2,h3{break-after:avoid} .box,.step{break-inside:avoid}
+.m .hs{display:flex;align-items:center;gap:8px;margin:2px 0 8px}.m .hs .mk{width:34px;height:34px;flex:0 0 34px}
+.m .hg{font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin:9px 2px 4px}
+.m .hl{background:var(--surface);border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.m .hv{display:flex;align-items:center;gap:8px;padding:7px 9px;border-top:1px solid #ECE7DA;font-weight:700;font-size:12px}.m .hv:first-child{border-top:none}
+.m .hv i{width:24px;height:24px;flex:0 0 24px;border-radius:7px;background:var(--green-t);color:var(--green-d);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px}
+.m .hv span{flex:1}.m .hv .num{flex:0 0 auto}.m .hv em{font-style:normal;color:var(--muted)}
+.browser .m .mn{font-size:13px}.browser .m .mn .nt b,.browser .m .mn .card b{font-size:14px}
+.m .hv.ev{background:var(--amber-bg)}.m .hv.ev i{background:#F6DFB0;color:#5E3908}
+.m .num{min-width:18px;height:18px;border-radius:999px;background:var(--amber);color:#fff;font-size:9.5px;line-height:18px;text-align:center;padding:0 5px;font-weight:700}
+.m .sopra{font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.m .rp{background:var(--green-t);border:1px solid var(--green-l);border-radius:11px;padding:7px 9px;margin:5px 0 8px;font-size:11px}.m .rp b{display:block;font-size:12px}.m .rp.ev{background:var(--amber-bg);border-color:var(--amber-line)}
+.m .nt{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:10px;padding:7px 9px;margin:6px 0}.m .nt.fare{border-left-color:var(--amber)}.m .nt.urg{border-left-color:var(--red)}
+.m .nt b{display:block}.m .et{display:inline-block;font-size:8.5px;font-weight:700;letter-spacing:.06em;padding:1px 6px;border-radius:999px;background:var(--green-t);color:var(--green-d)}.m .nt.fare .et{background:var(--amber-bg);color:#5E3908}.m .nt.urg .et{background:var(--red-bg);color:var(--red)}
+.m .ng{font-family:Georgia,"DejaVu Serif",serif;color:var(--green-d);font-weight:600;font-size:13px;margin:8px 0 2px}
+.m .bh{padding:6px 10px;border-top:1px solid var(--line);background:var(--surface);display:flex;justify-content:center}.m .bh span{width:70%;text-align:center;border-radius:10px;padding:7px;font-weight:700;font-size:11.5px;background:var(--green);color:#fff}.m .bh span.su{background:var(--green-t);color:var(--green-d)}
+.m .seg{display:flex;gap:3px;padding:3px;background:var(--sunk);border-radius:10px;margin:4px 0 8px}.m .seg span{flex:1;text-align:center;font-weight:700;font-size:11px;padding:5px;border-radius:8px}.m .seg span.on{background:var(--surface);color:var(--green-d)}
+.m .side .sn .sg{font-size:8.5px;letter-spacing:.08em;color:var(--muted);padding:8px 8px 2px;font-weight:700}
 '''.replace('ICON',ICON)
 def page(title,tag,body):
-    return f'<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>{title}</title><style>{CSS}</style></head><body><div class="wrap"><div class="cover"><div class="ic"></div><div><span class="tag">{tag}</span><h1>{title}</h1></div></div>{body}<div class="foot">Gruppo di Acquisto Solidale – Comitato di quartiere Isticcadeddu · guida aggiornata al 24-09-2026.<br>Nomi, tessere, telefoni e prodotti nelle immagini sono <b>inventati</b>, solo come esempio.</div></div></body></html>'
+    return f'<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><title>{title}</title><style>{CSS}</style></head><body><div class="wrap"><div class="cover"><div class="ic"></div><div><span class="tag">{tag}</span><h1>{title}</h1></div></div>{body}<div class="foot">Gruppo di Acquisto Solidale – Comitato di quartiere Isticcadeddu · guida aggiornata al 25-09-2026.<br>Nomi, tessere, telefoni e prodotti nelle immagini sono <b>inventati</b>, solo come esempio.</div></div></body></html>'
 def phone(inner,cap): return f'<figure><div class="phone"><div class="scr m">{inner}</div></div><figcaption>{cap}</figcaption></figure>'
 def phones(items): return '<figure><div class="duo">'+''.join(f'<div><div class="phone"><div class="scr m">{i}</div></div></div>' for i,_ in items)+'</div><figcaption>'+' · '.join(c for _,c in items)+'</figcaption></figure>'
 def browser(inner,cap,url='pannello amministratori'): return f'<figure><div class="browser"><div class="bar"><i></i><i></i><i></i><span>{url}</span></div><div class="m">{inner}</div></div><figcaption>{cap}</figcaption></figure>'
 def top(t,s): return f'<div class="top"><div class="mk"></div><div><b>{t}</b><small>{s}</small></div></div>'
 def nav(items,on): return '<div class="nav">'+''.join(f'<span class="{"on" if i==on else ""}"><i>{ic}</i>{i}</span>' for i,ic in items)+'</div>'
-NAV_SOCIO=[('I miei ordini','◧'),('Profilo','◯'),('Aiuto','?')]
-NAV_FORN=[('Listino','☰'),('Raccolte','▣'),('Profilo','◯'),('Aiuto','?')]
-NAV_ADM=[('Da fare','✓'),('Raccolte','▣'),('Consegne','⛟'),('Profilo','◯'),('Altro','…')]
+# icone semplici per gli schemi (non sono quelle vere dell'app)
+IC={'Notifiche':'!','Attivi':'◧','Storico':'↺','Profilo':'◯','Aiuto':'?','Raccolte':'▣','Listino':'☰','Consegne':'⛟','Soci':'◉','Fornitori':'⌂','Amministratori':'◈','Categorie':'◇','Statistiche':'▥','Segnalazioni':'⚑','Home':'⌂'}
+GRUPPI_SOCIO=[('ORDINI',['Attivi','Storico']),('LA MIA TESSERA',['Profilo','Aiuto'])]
+GRUPPI_FORN=[('VENDITE',['Raccolte','Listino']),('LA MIA TESSERA',['Profilo','Aiuto'])]
+GRUPPI_ADM=[('ORDINI',['Raccolte','Consegne']),('PERSONE',['Soci','Fornitori','Amministratori']),('GESTIONE',['Categorie','Statistiche','Segnalazioni']),('LA MIA TESSERA',['Profilo','Aiuto'])]
+def barra(su_home=False): return f'<div class="bh"><span class="{"su" if su_home else ""}">⌂ Home</span></div>'
+def voce(nome,n=0,ev=False): return f'<div class="hv{" ev" if ev else ""}"><i>{IC.get(nome,"•")}</i><span>{nome}</span>'+(f'<span class="num">{n}</span>' if n else '')+'<em>›</em></div>'
+def home(nome,gruppi,notifiche=0,numeri=None):
+    numeri=numeri or {}
+    h=f'<div class="body"><div class="hs"><div class="mk"></div><div><div class="h" style="margin:0">Ciao {nome}</div><div class="sub">Cosa vuoi fare?</div></div></div>'
+    h+='<div class="hl">'+voce('Notifiche',notifiche,bool(notifiche))+'</div>'
+    for g,voci in gruppi: h+=f'<div class="hg">{g}</div><div class="hl">'+''.join(voce(v,numeri.get(v,0)) for v in voci)+'</div>'
+    return h+'</div>'+barra(True)
+def testa(gruppo,titolo): return f'<div class="sopra">{gruppo}</div><div class="h">{titolo}</div>'
+def riep(titolo,testo,ev=False): return f'<div class="rp{" ev" if ev else ""}"><b>{titolo}</b>{testo}</div>'
+def nota(tipo,etich,titolo,testo,btn=''): return f'<div class="nt {tipo}"><span class="et">{etich}</span><b>{titolo}</b><span class="sub">{testo}</span>'+(f'<div class="btn sec" style="width:60%">{btn}</div>' if btn else '')+'</div>'

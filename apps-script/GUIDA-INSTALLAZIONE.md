@@ -27,8 +27,8 @@ Crea nel progetto (pulsante **+** accanto a "File") un file per ciascuno, con **
 | File | Contenuto |
 |---|---|
 | `Dati` | lettura e scrittura del foglio, date, utilità |
-| `WebApp` | indirizzi della web app (`?u=`, `?form=`, `?socio=`, `?fornitore=`, `?admin=`), stile condiviso, link delle raccolte |
-| `Ordini` | dati del form e salvataggio degli ordini |
+| `WebApp` | indirizzi della web app (`?u=`, `?ordini`, `?form=`, `?socio=`, `?fornitore=`, `?admin=`), stile condiviso, link delle raccolte |
+| `Ordini` | dati del form e della pagina "Raccolte aperte", salvataggio degli ordini |
 | `Messaggi` | testi per WhatsApp |
 | `Pdf` | foglio di consegna in PDF (A4 verticale, con logo in filigrana) |
 | `Short` | accorciatore dei link (is.gd, spoo.me) |
@@ -48,7 +48,8 @@ Crea nel progetto (pulsante **+** accanto a "File") un file per ciascuno, con **
 | `Stile` | stile comune a tutte le pagine (colori, caratteri, pulsanti, finestre di conferma) |
 | `Profilo` | schermata "Profilo", comune a pagina del socio, portale fornitore e pannello |
 | `Aiuto` | sezione "Aiuto", comune a tutte le pagine (nel form d'ordine si apre da "Serve aiuto?") |
-| `Form` | form d'ordine |
+| `RaccolteAperte` | pagina "Raccolte aperte": tutte le raccolte aperte in una pagina (link comune, link personale, ordine per un socio) |
+| `Form` | form d'ordine di una sola raccolta (link vecchi) |
 | `Socio` | pagina personale del socio |
 | `Fornitore` | portale del fornitore |
 | `Admin` | pannello amministratori |

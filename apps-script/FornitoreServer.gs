@@ -30,12 +30,22 @@ function linkFornitore_(f, breve) {
 function fornitoreDati(token) {
   const f = fornitoreDaToken_(token);
   const ordini = leggiTabella(SHEETS.ORDINI);
+  const consegne = {}; leggiTabellaSafe_(SHEETS.CONSEGNE).forEach(co => consegne[String(co.id)] = co);
+  // pesi ancora da confermare, per raccolta (solo ordini validi e prodotti a peso variabile): servono alle notifiche
+  const aPeso = {}; leggiTabella(SHEETS.PRODOTTI).forEach(p => { if (isSi(p.peso_variabile)) aPeso[String(p.id)] = true; });
+  const racDiOrdine = {}; ordini.forEach(o => { if (String(o.stato) === 'valido') racDiOrdine[String(o.id)] = String(o.raccolta_id); });
+  const pesiDa = {};
+  leggiTabella(SHEETS.RIGHE).forEach(r => { const rid = racDiOrdine[String(r.ordine_id)];
+    if (rid && aPeso[String(r.prodotto_id)] && !num(r.peso_confermato)) pesiDa[rid] = (pesiDa[rid] || 0) + 1; });
   const cicli = leggiTabella(SHEETS.RACCOLTE)
     .filter(c => String(c.fornitore_id) === String(f.id))
     .map(c => {
       const suoi = ordini.filter(o => String(o.raccolta_id) === String(c.id));
+      const dt = dataConsegnaRaccolta_(c, consegne) || parseChiusura_(c.chiusura);
       return {
-        id: String(c.id), stato: c.stato,
+        id: String(c.id), stato: String(c.stato || '').trim().toLowerCase(),
+        conclusa: raccoltaConclusa_(c), dt: dt ? dt.getTime() : 0, // le concluse vanno in "Raccolte concluse"
+        nPesiDaConfermare: pesiDa[String(c.id)] || 0,
         chiusura: testoData_(c.chiusura),
         dataConsegna: consegnaDiRaccolta_(c).data,
         nValidi: suoi.filter(o => String(o.stato) === 'valido').length,
@@ -92,17 +102,18 @@ function fornitoreSalvaDati(token, d) {
   return { ok: true };
 }
 
-/** Verifica che un ciclo appartenga al fornitore. */
-function cicloDelFornitore_(f, cicloId) {
+/** Verifica che un ciclo appartenga al fornitore. Con modifica=true lo vuole anche non concluso. */
+function cicloDelFornitore_(f, cicloId, modifica) {
   const c = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
   if (!c || String(c.fornitore_id) !== String(f.id)) throw new Error('Ciclo non valido.');
+  if (modifica) bloccaSeConclusa_(c);
   return c;
 }
 
 /** Il fornitore chiude i propri ordini. */
 function fornitoreChiudiCiclo(token, cicloId) {
   const f = fornitoreDaToken_(token);
-  const c = cicloDelFornitore_(f, cicloId);
+  const c = cicloDelFornitore_(f, cicloId, true);
   aggiornaCella(SHEETS.RACCOLTE, c._riga, 'stato', 'chiuso');
   log_('fornitore:' + f.id, 'ciclo_chiuso', String(cicloId));
   return true;
@@ -141,7 +152,7 @@ function fornitoreConfermaPeso(token, rigaId, peso) {
   if (!riga) throw new Error('Riga non trovata.');
   const ordine = leggiTabella(SHEETS.ORDINI).find(o => String(o.id) === String(riga.ordine_id));
   if (!ordine) throw new Error('Ordine non trovato.');
-  cicloDelFornitore_(f, ordine.raccolta_id); // verifica appartenenza
+  cicloDelFornitore_(f, ordine.raccolta_id, true); // verifica appartenenza, e che la raccolta non sia conclusa
   aggiornaCella(SHEETS.RIGHE, riga._riga, 'peso_confermato', num(peso) > 0 ? num(peso) : '');
   log_('fornitore:' + f.id, 'peso_confermato', rigaId + ' = ' + peso);
   return true;
@@ -318,7 +329,7 @@ function fornitoreRiepilogoRaccolta(token, cicloId) {
 function ordineDelFornitore_(f, ordineId) {
   const o = leggiTabella(SHEETS.ORDINI).find(x => String(x.id) === String(ordineId));
   if (!o) throw new Error('Ordine non trovato.');
-  cicloDelFornitore_(f, o.raccolta_id); // lancia se non è del fornitore
+  cicloDelFornitore_(f, o.raccolta_id, true); // lancia se non è del fornitore o se la raccolta è conclusa
   return o;
 }
 /** (Fornitore) Tutti gli ordini di una sua raccolta, con le righe (per gestirli con il socio). */

@@ -2,7 +2,8 @@
  * SocioServer.gs — Portale personale del socio (link con token, senza account).
  *   ?socio=TOKEN  -> pagina personale: raccolte aperte (ordine modificabile fino alla chiusura),
  *                    prossime consegne, storico.
- *   ?form=ID&socio=TOKEN -> form d'ordine precompilato; il salvataggio sostituisce l'ordine precedente.
+ *   ?ordini&socio=TOKEN -> pagina "Raccolte aperte", con i propri ordini già compilati; il salvataggio sostituisce l'ordine precedente.
+ *   ?form=ID&socio=TOKEN -> form di una sola raccolta (link vecchi): stesso comportamento.
  * Il token del socio sta nella colonna "token" della scheda Soci.
  * Gli amministratori usano il loro stesso link (token admin) anche come socio: il token admin
  * viene riconosciuto e collegato alla tessera indicata nella scheda Admin.
@@ -68,12 +69,11 @@ function socioDaToken_(token) {
 }
 
 /** Pagina personale: dati completi. */
-function socioDati(token) {
-  const so = socioDaToken_(token);
-  try { chiusuraAutomatica('pagina socio'); } catch (e) {}
-  const base = urlApp();
-  const ora = new Date(); const oggi0 = new Date(ora.getFullYear(), ora.getMonth(), ora.getDate());
-
+/**
+ * Dati comuni per la pagina del socio e il suo storico: tabelle lette una volta
+ * e funzioni per ricostruire i suoi ordini e le consegne.
+ */
+function contestoOrdiniSocio_(so) {
   const fornitori = {}; leggiTabella(SHEETS.FORNITORI).forEach(f => fornitori[String(f.id)] = f);
   const prodById = {}; leggiTabella(SHEETS.PRODOTTI).forEach(p => prodById[String(p.id)] = p);
   const opz = {}; leggiTabella(SHEETS.OPZIONI).forEach(o => opz[String(o.id)] = o);
@@ -86,7 +86,7 @@ function socioDati(token) {
   function dettOrdini(racId) {
     const lista = mieiOrdini.filter(o => String(o.raccolta_id) === String(racId));
     if (!lista.length) return null;
-    const righe = []; let tot = 0, daConf = false, stato = 'valido', note = [];
+    const righe = []; let tot = 0, daConf = false, aPeso = false, stato = 'valido', note = [];
     lista.forEach(o => {
       if (String(o.stato) !== 'valido') stato = 'da_verificare';
       if (o.note) note.push(String(o.note));
@@ -95,12 +95,12 @@ function socioDati(token) {
         const op = r.opzione_id ? opz[String(r.opzione_id)] : null;
         const q = num(r.quantita), pc = num(r.peso_confermato);
         const imp = prezzoRiga_(p, op, q, pc); tot += imp;
-        if (isSi(p.peso_variabile) && !pc) daConf = true;
+        if (isSi(p.peso_variabile)) { aPeso = true; if (!pc) daConf = true; }
         const u = String(p.unita || ''); const um = u.indexOf('/') >= 0 ? (' ' + u.split('/').pop()) : '';
         righe.push({ nome: p.nome + (op ? (' – ' + op.nome) : ''), quantita: (Math.round(q * 100) / 100).toString().replace('.', ',') + um, importo: imp });
       });
     });
-    return { stato: stato, righe: righe, totale: tot, definitivo: !daConf, note: note.join(' · '), nOrdini: lista.length };
+    return { stato: stato, righe: righe, totale: tot, definitivo: !daConf, aPeso: aPeso, note: note.join(' · '), nOrdini: lista.length };
   }
   function infoConsegna(r) {
     const cid = String(r.consegna_id || '');
@@ -111,26 +111,40 @@ function socioDati(token) {
     return { chiave: d ? ('D:' + testoData_(r.data_consegna) + '|' + (r.luogo_id || '')) : ('R:' + r.id),
       data: d ? testoData_(r.data_consegna) : '', dt: d ? parseChiusura_(r.data_consegna) : null, fascia: r.fascia_oraria || '', luogo: lu.nome || '', indirizzo: lu.indirizzo || '' };
   }
-  const nomeF = r => (fornitori[String(r.fornitore_id)] || {}).nome || String(r.fornitore_id);
-  const emojiF = r => (fornitori[String(r.fornitore_id)] || {}).emoji || '';
+  // una raccolta è "passata" per il socio quando è conclusa o il giorno della consegna è finito
+  function passata(r, ic) { return raccoltaConclusa_(r) || consegnaPassata_(ic.dt); }
+  return {
+    raccolte: raccolte, dettOrdini: dettOrdini, infoConsegna: infoConsegna, passata: passata,
+    nomeF: r => (fornitori[String(r.fornitore_id)] || {}).nome || String(r.fornitore_id),
+    emojiF: r => (fornitori[String(r.fornitore_id)] || {}).emoji || ''
+  };
+}
+
+function socioDati(token) {
+  const so = socioDaToken_(token);
+  try { chiusuraAutomatica('pagina socio'); } catch (e) {}
+  const base = urlApp();
+  // tutte le raccolte aperte si ordinano dalla pagina "Raccolte aperte" (?ordini), la stessa del link comune
+  const ordiniUrl = base + '?ordini=1&socio=' + encodeURIComponent(so.token);
+  const cx = contestoOrdiniSocio_(so);
+  const raccolte = cx.raccolte, dettOrdini = cx.dettOrdini, infoConsegna = cx.infoConsegna, nomeF = cx.nomeF, emojiF = cx.emojiF;
 
   // raccolte aperte
   const aperte = raccolte.filter(r => raccoltaAperta_(r)).map(r => {
     const ic = infoConsegna(r);
     return { id: String(r.id), fornitore: nomeF(r), emoji: emojiF(r), chiusura: testoData_(r.chiusura),
       consegna: ic.data ? (ic.data + (ic.fascia ? (' · ' + ic.fascia) : '') + (ic.luogo ? (' · ' + ic.luogo) : '')) : '',
-      ordine: dettOrdini(r.id), formUrl: base + '?form=' + encodeURIComponent(r.id) + '&socio=' + encodeURIComponent(so.token) };
+      ordine: dettOrdini(r.id), formUrl: ordiniUrl + '&apri=' + encodeURIComponent(r.id) };
   });
 
-  // consegne future (e ritiri senza data) + storico
-  const gruppi = {}; const storico = [];
+  // consegne future (e ritiri senza data); quelle concluse sono nello Storico (socioStorico)
+  const gruppi = {};
   raccolte.forEach(r => {
     const st = String(r.stato).trim().toLowerCase();
     const ic = infoConsegna(r);
-    const passata = (ic.dt && ic.dt < oggi0) || st === 'consegnato' || st === 'archiviato';
-    const ord = dettOrdini(r.id);
-    if (passata) { if (ord && st !== 'bozza') storico.push({ fornitore: nomeF(r), data: ic.data, dt: ic.dt, ordine: ord }); return; }
+    if (cx.passata(r, ic)) return;
     if (st === 'bozza') return;
+    const ord = dettOrdini(r.id);
     if (!ic.dt && !ord) return; // raccolta senza data e senza miei ordini: non interessa
     if (!ic.dt && raccoltaAperta_(r)) return; // aperta senza data: già mostrata tra le aperte
     const g = gruppi[ic.chiave] = gruppi[ic.chiave] || { data: ic.data || 'data da definire', dt: ic.dt, fascia: ic.fascia, luogo: ic.luogo, indirizzo: ic.indirizzo, fornitori: [], ritiri: [] };
@@ -140,15 +154,38 @@ function socioDati(token) {
   const lontano = new Date(2999, 0, 1);
   const consegneOut = Object.keys(gruppi).map(k => gruppi[k]).sort((a, b) => (a.dt || lontano) - (b.dt || lontano))
     .map(g => ({ data: g.data, fascia: g.fascia, luogo: g.luogo, indirizzo: g.indirizzo, fornitori: g.fornitori, ritiri: g.ritiri }));
-  storico.sort((a, b) => (b.dt || 0) - (a.dt || 0));
 
   return {
     socio: { tessera: so.tessera, nominativo: so.nominativo, attiva: so.attiva, isAdmin: so.isAdmin },
     adminUrl: so.isAdmin ? (base + '?admin=' + encodeURIComponent(so.token)) : '',
     fornitoreUrl: so.isFornitore ? (base + '?fornitore=' + encodeURIComponent(so.token)) : '',
-    aperte: aperte, consegne: consegneOut,
-    storico: storico.slice(0, 20).map(s => ({ fornitore: s.fornitore, data: s.data, ordine: s.ordine }))
+    aperte: aperte, consegne: consegneOut, ordiniUrl: ordiniUrl
   };
+}
+
+/**
+ * Storico del socio: i suoi ordini delle consegne concluse, dal più recente.
+ * Si carica a pagine: da = quanti ne sono già stati mostrati. Ritorna { voci, altri }.
+ */
+function socioStorico(token, da) {
+  const so = socioDaToken_(token);
+  const cx = contestoOrdiniSocio_(so);
+  const PAGINA = 20;
+  const tutte = [];
+  cx.raccolte.forEach(r => {
+    if (String(r.stato).trim().toLowerCase() === 'bozza') return;
+    const ic = cx.infoConsegna(r);
+    if (!cx.passata(r, ic)) return;
+    const ord = cx.dettOrdini(r.id);
+    if (!ord) return;
+    const dt = ic.dt || parseChiusura_(r.chiusura);
+    tutte.push({ fornitore: cx.nomeF(r), emoji: cx.emojiF(r), data: ic.data || testoData_(r.chiusura).substring(0, 10),
+      anno: dt ? dt.getFullYear() : '', dt: dt ? dt.getTime() : 0, ordine: ord });
+  });
+  tutte.sort((a, b) => b.dt - a.dt);
+  const inizio = Math.max(0, Math.floor(num(da)));
+  return { voci: tutte.slice(inizio, inizio + PAGINA).map(x => ({ fornitore: x.fornitore, emoji: x.emoji, data: x.data, anno: x.anno, ordine: x.ordine })),
+    altri: tutte.length > inizio + PAGINA, totale: tutte.length };
 }
 
 /** Dati del form in modalità socio: form normale + identità + ordine esistente da precompilare. */

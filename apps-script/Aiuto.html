@@ -2,8 +2,8 @@
      Si include dopo lo stile con:  <?!= include('Aiuto') ?>
      Uso: Aiuto.mostra(contenitore, token, { profilo:'socio'|'fornitore'|'admin'|'form', pagina, sezione, raccoltaId }) -->
 <style>
-  .aiuto-tabs{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin:6px 0 14px; }
-  .aiuto-tabs button{ min-height:46px; padding:0 4px; font-size:.9rem; background:var(--surface); color:var(--ink); border:1px solid var(--line); }
+  .aiuto-tabs{ display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 14px; } /* sui telefoni stretti va a capo invece di tagliare le parole */
+  .aiuto-tabs button{ flex:1 1 auto; min-height:46px; padding:0 8px; font-size:.9rem; background:var(--surface); color:var(--ink); border:1px solid var(--line); }
   .aiuto-tabs button:hover{ background:var(--sub); }
   .aiuto-tabs button.on{ background:var(--green); color:var(--surface); border-color:var(--green); }
   .faq-gruppo{ font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:16px 2px 6px; }
@@ -29,7 +29,7 @@
     let D=null, TOK='', CTX={}, BOX=null, SCHEDA='domande';
 
     function tabs(){
-      const t=[['domande','Domande'],['segnala','Segnala'],['contatti','Contatti'],['guide','Guide']];
+      const t=[['domande','Domande'],['segnala','Segnala'],['contatti','Contatti'],['guide','Documenti']];
       return '<div class="aiuto-tabs" role="tablist">'+t.map(x=>'<button type="button" role="tab" aria-selected="'+(SCHEDA===x[0])+'" class="'+(SCHEDA===x[0]?'on':'')+'" data-t="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
     }
     function disegna(){
@@ -99,17 +99,23 @@
       c.innerHTML=h;
     }
 
+    // scheda "Documenti": documenti del GAS (per tutti) e guide dei propri profili, tutti in PDF
     function guide(c){
-      let h='<div class="card"><div class="grpt">Guide da scaricare<small>Trovi le guide dei tuoi profili.</small></div>';
+      let h='<div class="card"><div class="grpt">Documenti del GAS</div>';
+      (D.documenti||[]).forEach(d=>{ h+='<div class="contatto"><div><b>'+e(d.titolo)+'</b><div class="muted">'+e(d.nota)+' · PDF</div></div><div class="az">'+
+        (!d.disponibile?'<span class="muted">presto disponibile</span>':d.serveLink?'<span class="muted">con il tuo link personale</span>':'<button class="sec mini" data-d="'+e(d.id)+'">Scarica</button>')+'</div></div>'; });
+      h+='</div><div class="card"><div class="grpt">Guide da scaricare<small>Trovi le guide dei tuoi profili.</small></div>';
       D.guide.forEach(g=>{ h+='<div class="contatto"><div><b>'+e(g.titolo)+'</b><div class="muted">PDF</div></div><div class="az">'+
         (g.disponibile?'<button class="sec mini" data-g="'+e(g.ruolo)+'">Scarica</button>':'<span class="muted">presto disponibile</span>')+'</div></div>'; });
       c.innerHTML=h+'</div>';
-      c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{ b.disabled=true; b.textContent='…';
-        google.script.run.withSuccessHandler(r=>{ b.disabled=false; b.textContent='Scarica';
-          const bytes=Uint8Array.from(atob(r.base64),ch=>ch.charCodeAt(0)); const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-          const a=document.createElement('a'); a.href=url; a.download=r.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000);
-        }).withFailureHandler(err=>{ b.disabled=false; b.textContent='Scarica'; avvisa(err.message||String(err),'Non scaricata'); }).aiutoGuida(TOK,b.dataset.g); });
+      c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>scarica(b,'aiutoGuida',b.dataset.g));
+      c.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>scarica(b,'aiutoDocumento',b.dataset.d));
     }
+    function scarica(b, fn, id){ b.disabled=true; b.textContent='…';
+      google.script.run.withSuccessHandler(r=>{ b.disabled=false; b.textContent='Scarica';
+        const bytes=Uint8Array.from(atob(r.base64),ch=>ch.charCodeAt(0)); const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+        const a=document.createElement('a'); a.href=url; a.download=r.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000);
+      }).withFailureHandler(err=>{ b.disabled=false; b.textContent='Scarica'; avvisa(err.message||String(err),'Non scaricato'); })[fn](TOK,id); }
 
     return {
       mostra: function(box, token, ctx){
