@@ -256,7 +256,7 @@ function segnalazioniNuove_() {
 /* Le risposte si modificano nella scheda "Aiuto" del foglio. Le regole del GAS (ordini per altri,
    ritiri mancati, tempi per le modifiche) vanno aggiunte quando il comitato le avrà decise.
    Ogni domanda: [ruolo, domanda, risposta, ordine]. */
-var FAQ_VERSIONE_ = '2026.10.16.3'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
+var FAQ_VERSIONE_ = '2026.10.16.4'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
 function faqDefault_() {
   return [
     ['socio', 'Come faccio un ordine?', 'Apri il link della pagina "Raccolte aperte" (è fissato in cima alla Community): trovi tutte le raccolte aperte, ognuna con la data di chiusura. Scrivi tessera e nome, tocca un fornitore, scegli i prodotti con i tasti + e –. Puoi ordinare da più fornitori insieme: alla fine tocca "Controlla e invia" e poi "Conferma e invia". Con il tuo link personale la stessa pagina si apre dalla Home, toccando "Attivi".', 10],
@@ -271,6 +271,7 @@ function faqDefault_() {
     ['socio', 'Dove trovo il regolamento e l\'elenco dei fornitori?', 'In "Aiuto" tocca "Documenti": puoi scaricare il regolamento del GAS e l\'elenco ufficiale dei fornitori, in PDF. L\'elenco dei fornitori si scarica solo con il tuo link personale.', 93],
     ['socio', 'Dove trovo i miei ordini passati?', 'Nella Home tocca "Storico": trovi gli ordini delle consegne già fatte, dal più recente. Tocca un ordine per vedere i prodotti.', 92],
     ['socio', 'Cosa sono le notifiche?', 'In cima alla Home c\'è "Notifiche": ti avvisa di una raccolta che sta per chiudere, di un ordine da verificare, dell\'importo confermato dopo la pesatura e del prossimo ritiro. Ogni avviso sparisce da solo quando la cosa è fatta o passata.', 94],
+    ['socio', 'L\'app mi chiede quale link usare: cosa faccio?', 'Succede quando apri un link personale diverso da quello che l\'app ricorda. Se è il tuo link nuovo (per esempio dopo che un amministratore l\'ha rigenerato), tocca "Usa il link nuovo". Se è il link di un\'altra persona, tocca "Tieni il link di prima": l\'app resta tua.', 97],
     ['socio', 'Come torno alla pagina iniziale?', 'Tocca il pulsante verde "Home" in basso: da lì raggiungi tutte le sezioni.', 96],
     ['fornitore', 'Come aggiungo o nascondo un prodotto?', 'Nella Home tocca "Listino", poi "Nuovo" per aggiungerlo. Per nasconderlo per un po\', tocca "Disponibile": diventa "Non disponibile" e i soci non lo vedono più nel modulo.', 100],
     ['fornitore', 'Come imposto i gusti o un supplemento?', 'Apri il prodotto: in fondo trovi le opzioni. "Variante" è una scelta allo stesso prezzo (per esempio i gusti); "Supplemento" aggiunge un costo (per esempio la tanica).', 110],
@@ -282,6 +283,7 @@ function faqDefault_() {
     ['admin', 'Come apro una raccolta?', 'Nella Home tocca "Raccolte", poi +. Scegli il fornitore, spunta i prodotti e scrivi la data di chiusura (per esempio 10-10-2026 20:00). Poi apri la raccolta e prepara il messaggio di apertura da incollare su WhatsApp.', 150],
     ['admin', 'Come inserisco un ordine per conto di un socio?', 'Nella Home tocca "Raccolte", poi "Ordine per un socio". Cerca il socio per tessera o nome: se aveva già ordinato trovi il suo ordine compilato, e salvando lo sostituisci. L\'ordine risulta fatto dal socio; nel Log c\'è il tuo nome. Le raccolte chiuse non accettano ordini, nemmeno da qui.', 155],
     ['admin', 'Qual è il link della pagina "Raccolte aperte"?', 'Nella Home tocca "Raccolte", poi "Copia il link di Raccolte aperte". È sempre lo stesso: fissalo in cima alla Community. Chi lo apre vede tutte le raccolte aperte.', 157],
+    ['admin', 'Come modifico il listino di un fornitore?', 'Nella Home tocca "Fornitori", poi il fornitore: in fondo trovi il suo "Listino". Puoi aggiungere prodotti, renderli disponibili o no, cambiarli ed eliminarli, con le loro opzioni, come il fornitore dal suo portale. Lo fai con il tuo link: nel Log c\'è il tuo nome. Non serve, e non va fatto, entrare con il link del fornitore.', 158],
     ['admin', 'Come invio il link personale a un socio?', 'Nella Home tocca "Soci", poi il socio e "Invia link": si apre WhatsApp con il messaggio già scritto.', 160],
     ['admin', 'Una raccolta non si è chiusa da sola', 'Controlla in "Notifiche" se ci sono avvisi sulla chiusura automatica o su una data non leggibile. Chi cura la parte tecnica può eseguire "diagnosiChiusura" dall\'editor.', 170],
     ['admin', 'Come gestisco le segnalazioni?', 'Le nuove segnalazioni compaiono in "Notifiche" e in "Segnalazioni". Quelle segnate come tecniche le segue il referente tecnico; per le altre contatta il socio e aggiorna lo stato.', 180],

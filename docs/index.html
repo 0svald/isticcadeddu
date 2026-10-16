@@ -50,6 +50,8 @@
   #installa .t{ flex:1; font-size:.98rem; } #installa b{ display:block; }
   button{ font:inherit; font-weight:700; min-height:44px; padding:0 16px; border-radius:12px; border:none; background:var(--green); color:#fff; cursor:pointer; }
   button.x{ background:transparent; color:var(--muted); padding:0 10px; }
+  button.sec{ background:#fff; color:var(--green-d); border:2px solid var(--green); }
+  #scegli .btns{ display:flex; flex-direction:column; gap:10px; width:100%; max-width:340px; margin-top:8px; }
 </style>
 </head>
 <body>
@@ -67,6 +69,14 @@
   <h1>Sei offline</h1>
   <p>Per usare l'app serve la connessione a internet. Controlla la rete e riprova.</p>
   <button onclick="location.reload()">Riprova</button>
+</div>
+
+<div id="scegli" class="schermo" hidden role="dialog" aria-modal="true" aria-labelledby="scegli_t">
+  <div class="ic" aria-hidden="true"></div>
+  <h1 id="scegli_t">Hai aperto un altro link</h1>
+  <p>Su questo telefono l'app ricorda già un <b>link personale</b>, diverso da quello che hai appena aperto.</p>
+  <p class="muted">Se è il tuo link nuovo, usa quello nuovo. Se è il link di un'altra persona, tieni quello di prima.</p>
+  <div class="btns"><button id="scegli_nuovo">Usa il link nuovo</button><button class="sec" id="scegli_prima">Tieni il link di prima</button></div>
 </div>
 
 <div id="installa" hidden role="dialog" aria-label="Installa l'app">
@@ -91,19 +101,41 @@
   // ?esci: dimentica il link personale su questo telefono
   if (qs.has('esci')) { salva(CHIAVE, null); history.replaceState(null, '', location.pathname); }
 
-  // il link personale (?u=) viene ricordato e tolto dalla barra degli indirizzi
-  let token = qs.get('u');
-  if (token) salva(CHIAVE, token); else token = leggi(CHIAVE);
-
-  // parametri da passare alla web app
-  const p = new URLSearchParams();
-  if (qs.has('ordini')) {                    // pagina "Raccolte aperte"
-    p.set('ordini', '1'); if (qs.get('apri')) p.set('apri', qs.get('apri')); if (token) p.set('socio', token);
+  /* Un link personale diverso da quello già ricordato non lo sostituisce da solo: prima si chiede.
+     Così un link di un'altra persona aperto per sbaglio (per esempio quello di un fornitore) non prende il posto del tuo.
+     Risponde con il link da usare: quello nuovo (che viene ricordato) o quello di prima. */
+  function scegliLink(nuovo) {
+    const prima = leggi(CHIAVE);
+    if (!nuovo || nuovo === prima) return Promise.resolve(nuovo || prima);
+    if (!prima) { salva(CHIAVE, nuovo); return Promise.resolve(nuovo); }
+    return new Promise(fine => {
+      $('attesa').hidden = true; $('scegli').hidden = false;
+      $('scegli_nuovo').onclick = () => { $('scegli').hidden = true; salva(CHIAVE, nuovo); fine(nuovo); };
+      $('scegli_prima').onclick = () => { $('scegli').hidden = true; fine(prima); };
+    });
   }
-  else if (qs.get('form')) { p.set('form', qs.get('form')); if (token) p.set('socio', token); }  // link di una raccolta
-  else if (token) p.set('u', token);
-  if (window.GAS_IOS && token) history.replaceState(null, '', location.pathname + '?u=' + encodeURIComponent(token)); // su iPhone "Aggiungi alla schermata Home" usa questo indirizzo
-  else if (qs.has('u') || qs.has('form') || qs.has('ordini')) history.replaceState(null, '', location.pathname);
+
+  // il link personale (?u=) viene ricordato e tolto dalla barra degli indirizzi
+  let token = null;
+  scegliLink(qs.get('u')).then(avvia);
+
+  function avvia(t) {
+    token = t;
+    // parametri da passare alla web app
+    const p = new URLSearchParams();
+    if (qs.has('ordini')) {                    // pagina "Raccolte aperte"
+      p.set('ordini', '1'); if (qs.get('apri')) p.set('apri', qs.get('apri')); if (token) p.set('socio', token);
+    }
+    else if (qs.get('form')) { p.set('form', qs.get('form')); if (token) p.set('socio', token); }  // link di una raccolta
+    else if (token) p.set('u', token);
+    if (window.GAS_IOS && token) history.replaceState(null, '', location.pathname + '?u=' + encodeURIComponent(token)); // su iPhone "Aggiungi alla schermata Home" usa questo indirizzo
+    else if (qs.has('u') || qs.has('form') || qs.has('ordini')) history.replaceState(null, '', location.pathname);
+
+    if (!navigator.onLine) { $('attesa').hidden = true; $('offline').hidden = false; }
+    else if (!APP || APP.indexOf('INSERISCI') >= 0) { $('attesa').hidden = true; $('benvenuto').hidden = false; $('benvenuto').querySelector('p').textContent = 'App non ancora configurata: manca l\'indirizzo della web app in config.js.'; }
+    else if (!p.toString()) { $('attesa').hidden = true; $('benvenuto').hidden = false; }
+    else apri(APP + '?' + p.toString());
+  }
 
   const frame = $('app');
   function apri(url){
@@ -112,19 +144,14 @@
   }
   frame.addEventListener('load', () => { $('attesa').hidden = true; });
 
-  if (!navigator.onLine) { $('attesa').hidden = true; $('offline').hidden = false; }
-  else if (!APP || APP.indexOf('INSERISCI') >= 0) { $('attesa').hidden = true; $('benvenuto').hidden = false; $('benvenuto').querySelector('p').textContent = 'App non ancora configurata: manca l\'indirizzo della web app in config.js.'; }
-  else if (!p.toString()) { $('attesa').hidden = true; $('benvenuto').hidden = false; }
-  else apri(APP + '?' + p.toString());
-
   // le pagine dell'app chiedono di cambiare pagina restando dentro l'app
   window.addEventListener('message', ev => {
     const d = ev.data;
     if (!d || d.tipo !== 'gas-vai' || typeof d.url !== 'string') return;
     if (!/^https:\/\/script\.google\.com\//.test(d.url)) return;
     const nuovo = new URL(d.url).searchParams.get('u');
-    if (nuovo) salva(CHIAVE, nuovo);
-    apri(d.url);
+    if (!nuovo) { apri(d.url); return; }
+    scegliLink(nuovo).then(t => { if (t === nuovo) { token = t; apri(d.url); } else { $('attesa').hidden = true; frame.hidden = false; } });
   });
 
   // invito a installare l'app (Chrome e browser compatibili)

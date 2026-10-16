@@ -14,6 +14,7 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - App installabile: contenitore su **GitHub Pages** (`docs/`) che mostra le pagine di Apps Script a schermo intero.
   Si propone di installarla solo con il link personale (`?u=` o già ricordato sul telefono): con il link generico (`?form=` o `?ordini`) il manifest non viene inserito e il browser non la considera installabile. Il contenitore passa `?ordini` (e `&apri=`) alla web app, con il link personale ricordato se c'è.
   Installazione: Chrome, Edge e Samsung Internet mandano `beforeinstallprompt` e compare il riquadro "Installa l'app GAS". Gli altri browser (Firefox, Safari su iPhone, Chrome su iPhone) non lo mandano: dopo 4 secondi lo stesso riquadro mostra i passi da fare a mano per quel browser ("Ho capito" lo nasconde per sempre su quel telefono). Su **iPhone** non si aggiunge il manifest e l'indirizzo resta `?u=TOKEN`: l'app sulla schermata Home non vede i dati di Safari e parte dall'indirizzo della pagina, così si apre già con il link personale. Le stesse istruzioni, browser per browser, sono nella guida dei soci e nella domanda frequente.
+  **Un link personale diverso da quello ricordato non lo sostituisce da solo** (`scegliLink` in `docs/index.html`): l'app chiede "Usa il link nuovo" / "Tieni il link di prima". Vale anche per i cambi di pagina chiesti dalle pagine (`gas-vai`). Così un link di un'altra persona aperto per sbaglio non prende il posto del tuo.
 - La comunicazione con i soci resta su una **Community WhatsApp** (gruppi di annuncio dove solo gli amministratori scrivono). L'app non scrive su WhatsApp: prepara i testi da copiare, e usa link `wa.me` per aprire le chat.
 
 ## Lingua e tono
@@ -44,6 +45,7 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - Se un socio viene **disattivato**, i suoi ruoli di amministratore e fornitore **decadono** (segnati come non attivi). Riattivando il socio **non tornano da soli**. Non si può disattivare la propria tessera né l'ultimo amministratore attivo.
 - **Rigenera link** invalida il vecchio link per tutti i profili della persona. Il link breve (is.gd / spoo.me) è salvato nella colonna `link_breve` di `Soci`.
 - Ogni azione degli amministratori finisce nella scheda `Log` con il loro nome.
+- **Un amministratore lavora sempre con il proprio link**, mai con quello di un'altra persona. Il **listino** di un fornitore si modifica dal pannello (Fornitori › fornitore › *Listino*) con le stesse azioni del fornitore, eliminazioni comprese, e il nome dell'amministratore nel `Log`. Server: funzioni comuni in `FornitoreServer.gs` (`listinoDi_`, `salvaProdottoListino_`, `disponibilitaProdotto_`, `eliminaProdottoListino_`, `opzioniProdotto_`, `salvaOpzioneListino_`, `eliminaOpzioneListino_`) con due ingressi: `fornitore…(token, …)` e `admin…(token, fornitoreId, …)`. Il link del fornitore non arriva al pannello: si manda con "Invia link" (WhatsApp), come per i soci; "Apri portale" non c'è più (nell'app installata faceva entrare l'amministratore come fornitore).
 
 ## Ordini e raccolte
 
@@ -84,7 +86,7 @@ A4 **verticale**, una riga per tessera, una colonna per prodotto (nomi ruotati, 
 - **Notifiche** (prima "Da fare"), per tutti i profili: divise in *Da fare* e *Per sapere*, con colore e parola (Importante, Da fare, Novità, Promemoria) e un pulsante che porta dove serve. Si **calcolano dai dati** a ogni apertura: restano finché l'evento che le ha generate non cambia stato, non si chiudono a mano. Socio e fornitore le calcolano nella pagina dai dati già caricati; il pannello usa `adminDaFare`.
 - Componenti comuni in `Stile.html`: `GasUI.home`, `GasUI.riep`, `GasUI.notifiche`, `GasUI.barra`, `GasUI.icona`, `GasUI.data`.
 - Selettore a due voci (es. In corso | Storico): classe `.seg` di `Stile.html`, pulsanti con `aria-pressed`.
-- `Profilo.html` e `Aiuto.html` sono condivisi da pagina socio, portale fornitore e pannello.
+- `Profilo.html` e `Aiuto.html` sono condivisi da pagina socio, portale fornitore e pannello. `Listino.html` (`Listino.mostra(box, {esegui, dati, dopo, pulsanteNuovo})`) è condiviso da portale fornitore e pannello: cambia solo quali funzioni del server chiama.
 - **Domande frequenti** (scheda `Aiuto`): i testi predefiniti sono in `faqDefault_()` di `AiutoServer.gs`. Quando cambiano, aumentare `FAQ_VERSIONE_` e aggiungere le risposte superate in `FAQ_PRECEDENTI_`: alla prima apertura di Aiuto `aggiornaDomandeAiuto()` aggiorna solo le risposte mai modificate a mano e aggiunge le domande nuove (quelle tolte a mano restano tolte). La versione applicata è nella proprietà `AIUTO_FAQ_VERSIONE` (la scrive il codice).
 - **Guide PDF**: gli script `guide/g_soci.py`, `g_forn.py`, `g_adm.py` (con `build_guide.py`) scrivono l'HTML; il PDF si stampa con Chromium (A4, sfondi attivi). Schemi disegnati a mano con dati inventati, non schermate vere.
 - Nessuna emoji sui singoli prodotti: resta solo quella della categoria.
@@ -113,7 +115,7 @@ Note su clasp e Claude Code:
 - Claude pubblica su Apps Script (push e deployment) **solo con l'autorizzazione esplicita** dell'utente, ogni volta.
 - Credenziali di clasp (`~/.clasprc.json`): mai in chat né nel repository. Per le sessioni cloud vanno nella variabile d'ambiente `CLASPRC_JSON` dell'ambiente, da scrivere in `~/.clasprc.json` all'avvio.
 - Le pagine si vedono dentro l'app installabile solo se il server le marca con `setXFrameOptionsMode(ALLOWALL)` (in `conFavicon_` di `WebApp.gs`): altrimenti l'app mostra "script.google.com refused to connect".
-- Ultima pubblicazione: versione **66** del deployment, 16-10-2026 (pagina "Raccolte aperte" e ordine per un socio). La 65 (09-10-2026) ha aggiunto l'azione `pdf` dell'API.
+- Ultima pubblicazione: versione **68** del deployment, 16-10-2026 (codice uguale al ramo `main`: risposta di Aiuto sull'installazione dell'app browser per browser). Lo stesso giorno: 67 nome "Raccolte aperte", 66 pagina "Raccolte aperte" e ordine per un socio; la 65 (09-10-2026) l'azione `pdf` dell'API.
 
 **Proprietà dello script: niente dati di servizio.** L'editor ne gestisce al massimo 50: salvando dall'editor, quelle oltre le 50 venivano cancellate (così si sono perse `SPREADSHEET_ID`, `GUIDA_*` e altre). Per questo link brevi e logo stanno in `CacheService` (6 ore) e non nelle proprietà; `pulisciProprieta()` (in `Short.gs`, eseguita anche dalla chiusura automatica) toglie i vecchi `short_…` e `LOGO_B64`. `diagnosiProprieta()` (in `AiutoServer.gs`) elenca dall'editor le proprietà che l'app vede, senza mostrare i valori.
 
@@ -138,5 +140,5 @@ Le idee di nuove funzioni dell'utente sono in **`RICHIESTE.md`** (una sezione pe
 - **Referenti** del comitato e **regole del GAS** (ordini per altri, ritiri mancati, tempi per le modifiche): da definire, poi da aggiungere alle domande frequenti (scheda `Aiuto`).
 - **`LINK_BASE_URL`**: da impostare a `https://0svald.github.io/isticcadeddu/` perché i nuovi link personali aprano l'app installabile; dopo, eseguire una volta `azzeraLinkBrevi()`.
 - Fornitori del foglio senza tessera: vanno collegati a un socio, altrimenti non entrano nel portale.
-- Guida dei soci rigenerata il 16-10-2026 (pagina "Raccolte aperte", installazione browser per browser): va ricaricata su Drive con "Gestisci versioni". Guide di fornitori e amministratori ancora da aggiornare con la pagina "Raccolte aperte".
+- Guida dei soci rigenerata il 16-10-2026 (pagina "Raccolte aperte", installazione browser per browser): va ricaricata su Drive con "Gestisci versioni". Guide di fornitori e amministratori ancora da aggiornare con la pagina "Raccolte aperte" e, per gli amministratori, il listino dal pannello (Fornitori › fornitore › Listino) e "Invia link" al posto di "Apri portale".
 - Guide PDF (`guide/`): rigenerate il 26-09-2026 (raccolte concluse in sola lettura, scheda Documenti di Aiuto) e caricate su Drive. Anche regolamento ed elenco dei fornitori sono su Drive, con `DOC_REGOLAMENTO_ID` e `DOC_FORNITORI_ID` impostate. Quando cambiano: stesso file, "Gestisci versioni", così l'ID in `GUIDA_*_ID` non cambia.

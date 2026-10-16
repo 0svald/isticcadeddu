@@ -8,6 +8,7 @@
 <?!= include('Stile') ?>
 <?!= include('Profilo') ?>
 <?!= include('Aiuto') ?>
+<?!= include('Listino') ?>
 <?!= include('Grafici') ?>
 <style>
   .layout{ display:flex; min-height:100vh; }
@@ -89,7 +90,7 @@
     <div class="secbar"><h2>Fornitori</h2><button class="addbtn" onclick="toggleAdd('forn')">+</button></div>
     <div id="riep_forn" class="riep"></div>
     <div id="add_forn" class="addpanel hidden">
-      <p class="muted" style="margin-top:0">Ogni fornitore è un socio: indica la sua tessera. Entrerà nel portale con il suo link personale.</p>
+      <p class="muted" style="margin-top:0">Ogni fornitore è un socio: indica la sua tessera. Entrerà nel portale con il suo link personale. Il listino lo puoi modificare anche tu, da qui.</p>
       <div class="frow"><label for="nf_tess">Tessera del socio</label><input type="text" id="nf_tess" inputmode="numeric"></div>
       <div class="frow"><label>Nome azienda</label><input type="text" id="nf_nome"></div>
       <div class="frow"><label>Referente</label><input type="text" id="nf_ref"></div>
@@ -424,12 +425,25 @@
       '<div class="frow"><label>N. tessera</label><input type="text" id="ef_tess" value="'+esc(f.tessera)+'"></div>'+
       '<div class="frow"><label>Attivo</label><input type="checkbox" id="ef_att" '+(f.attivo?'checked':'')+' style="flex:none;width:auto"></div>'+
       '<div class="edact"><button class="mini" onclick="salvaForn(\''+id+'\')">Salva</button><button class="sec mini" onclick="closeAllEd()">Annulla</button>'+
-      '<a class="btnlink" target="_blank" href="'+f.link+'">Apri portale</a><button class="sec mini" onclick="rigeneraForn(\''+id+'\')">Rigenera link</button><span id="ef_msg" class="muted"></span></div>';
+      '<span id="ef_msg" class="muted"></span></div>'+
+      // il link del fornitore non si apre dal pannello (nell'app installata prenderebbe il posto del tuo): si manda al fornitore
+      (f.tessera?'<div class="edact" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><b style="font-size:.85rem">Link personale</b>'+
+        '<button class="mini" onclick="linkSocioEsegui(\''+esc(f.tessera)+'\',false,\'ef_link\')">Invia link</button><button class="sec mini" onclick="rigeneraForn(\''+esc(f.tessera)+'\')">Rigenera link</button></div>'+
+        '<div id="ef_link" class="muted" style="margin-top:6px"></div>':'')+
+      '<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:8px"><h3 style="margin:4px 0 8px">Listino</h3><div id="ef_listino"></div></div>';
+      mostraListinoForn(id);
     }).withFailureHandler(err).adminFornitore(TOKEN,id); }
+  // listino del fornitore modificato dal pannello: stesso componente del portale, con il tuo nome nel Log
+  const AZIONI_LISTINO={ listino:'adminListino', salvaProdotto:'adminSalvaProdotto', disponibile:'adminToggleProdotto', eliminaProdotto:'adminEliminaProdotto',
+    opzioni:'adminOpzioni', salvaOpzione:'adminSalvaOpzione', eliminaOpzione:'adminEliminaOpzione' };
+  function mostraListinoForn(fornitoreId){ const box=document.getElementById('ef_listino'); if(!box) return;
+    Listino.mostra(box, { pulsanteNuovo:true,
+      esegui:(azione,args)=>new Promise((ok,ko)=>{ const r=run().withSuccessHandler(ok).withFailureHandler(ko); r[AZIONI_LISTINO[azione]].apply(r,[TOKEN,fornitoreId].concat(args)); }) }); }
   function salvaForn(id){ const d={ nome:v('ef_nome'),referente:v('ef_ref'),telefono:v('ef_tel'),email:v('ef_email'),zona:v('ef_zona'),emoji:v('ef_emoji'),descrizione:v('ef_desc'),tessera:v('ef_tess'),attivo:document.getElementById('ef_att').checked };
     if(!d.nome.trim()){ avvisa('Il nome è obbligatorio.'); return; } document.getElementById('ef_msg').textContent='…';
     run().withSuccessHandler(()=>{ LOAD.forn=false; caricaFornitori(); }).withFailureHandler(err).adminModificaFornitore(TOKEN,id,d); }
-  function rigeneraForn(id){ chiedi('Il link vecchio smetterà di funzionare.',{titolo:'Rigenerare il link?',ok:'Rigenera'}).then(ok=>{ if(!ok)return; run().withSuccessHandler(()=>{ LOAD.forn=false; caricaFornitori(); }).withFailureHandler(err).adminRigeneraTokenFornitore(TOKEN,id); }); }
+  // un solo link per persona: rigenerarlo vale anche per la pagina socio del fornitore
+  function rigeneraForn(tessera){ chiedi('Il link vecchio smetterà di funzionare, anche per la pagina socio di questa persona.',{titolo:'Rigenerare il link?',ok:'Rigenera'}).then(ok=>{ if(ok) linkSocioEsegui(tessera,true,'ef_link'); }); }
   function aggiungiFornitore(){ const d={ nome:v('nf_nome'),referente:v('nf_ref'),telefono:v('nf_tel'),email:v('nf_email'),zona:v('nf_zona'),emoji:v('nf_emoji'),descrizione:v('nf_desc'),tessera:v('nf_tess') };
     if(!d.tessera.trim()){ avvisa('Inserisci la tessera del socio.'); return; } if(!d.nome.trim()){ avvisa('Inserisci il nome.'); return; } document.getElementById('nf_msg').textContent='…';
     run().withSuccessHandler(()=>{ ['nf_nome','nf_ref','nf_tel','nf_email','nf_zona','nf_emoji','nf_desc','nf_tess'].forEach(i=>document.getElementById(i).value=''); document.getElementById('nf_msg').textContent=''; hideAdd('forn'); LOAD.forn=false; caricaFornitori(); }).withFailureHandler(e=>{document.getElementById('nf_msg').textContent='Errore: '+e.message;}).adminAggiungiFornitore(TOKEN,d); }

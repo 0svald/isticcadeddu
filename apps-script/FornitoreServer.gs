@@ -53,23 +53,8 @@ function fornitoreDati(token) {
       };
     });
 
-  const categorie = leggiTabella(SHEETS.CATEGORIE)
-    .sort((a, b) => num(a.ordine) - num(b.ordine))
-    .map(c => ({ id: String(c.id), nome: c.nome, emoji: c.emoji || '' }));  // categorie globali
-
-  const opzioni = leggiTabella(SHEETS.OPZIONI);
-  const prodotti = leggiTabella(SHEETS.PRODOTTI)
-    .filter(p => String(p.fornitore_id) === String(f.id))
-    .map(p => ({
-      id: String(p.id), categoria_id: String(p.categoria_id || ''),
-      nome: p.nome, emoji: p.emoji || '', note: p.note || '',
-      prezzo: num(p.prezzo), unita: p.unita || '',
-      modalita: p.modalita_vendita || 'a_unita',
-      peso_variabile: isSi(p.peso_variabile),
-      passo: num(p.passo_minimo) || 1,
-      attivo: isSi(p.attivo),
-      nOpzioni: opzioni.filter(o => String(o.prodotto_id) === String(p.id)).length
-    }));
+  const listino = listinoDi_(f);
+  const categorie = listino.categorie, prodotti = listino.prodotti;
 
   return {
     fornitore: {
@@ -158,47 +143,6 @@ function fornitoreConfermaPeso(token, rigaId, peso) {
   return true;
 }
 
-/** Crea o aggiorna un prodotto del fornitore. */
-function fornitoreSalvaProdotto(token, p) {
-  const f = fornitoreDaToken_(token);
-  const campi = {
-    fornitore_id: f.id,
-    categoria_id: String(p.categoria_id || ''),
-    nome: String(p.nome || '').trim(),
-    emoji: String(p.emoji || '').trim(),
-    note: String(p.note || '').trim(),
-    prezzo: num(p.prezzo),
-    unita: String(p.unita || '').trim(),
-    modalita_vendita: String(p.modalita || 'a_unita'),
-    peso_variabile: p.peso_variabile ? 'SI' : 'NO',
-    passo_minimo: num(p.passo) || 1,
-    attivo: (p.attivo === false) ? 'NO' : 'SI'
-  };
-  if (!campi.nome) throw new Error('Il nome del prodotto è obbligatorio.');
-
-  if (p.id) {
-    const es = leggiTabella(SHEETS.PRODOTTI).find(x => String(x.id) === String(p.id));
-    if (!es || String(es.fornitore_id) !== String(f.id)) throw new Error('Prodotto non valido.');
-    Object.keys(campi).forEach(k => aggiornaCella(SHEETS.PRODOTTI, es._riga, k, campi[k]));
-    log_('fornitore:' + f.id, 'prodotto_modificato', String(p.id));
-    return { ok: true, id: String(p.id) };
-  } else {
-    const id = nuovoId(SHEETS.PRODOTTI, 'P');
-    aggiungiRiga(SHEETS.PRODOTTI, Object.assign({ id: id }, campi));
-    log_('fornitore:' + f.id, 'prodotto_creato', id);
-    return { ok: true, id: id };
-  }
-}
-
-/** Attiva/disattiva un prodotto. */
-function fornitoreToggleProdotto(token, prodottoId, attivo) {
-  const f = fornitoreDaToken_(token);
-  const es = leggiTabella(SHEETS.PRODOTTI).find(x => String(x.id) === String(prodottoId));
-  if (!es || String(es.fornitore_id) !== String(f.id)) throw new Error('Prodotto non valido.');
-  aggiornaCella(SHEETS.PRODOTTI, es._riga, 'attivo', attivo ? 'SI' : 'NO');
-  return true;
-}
-
 /** (Admin) Link personale del fornitore, per consegnarlo. */
 function adminLinkFornitore(token, fornitoreId) {
   checkToken_(token);
@@ -207,13 +151,11 @@ function adminLinkFornitore(token, fornitoreId) {
   return linkFornitore_(f, true);
 }
 
-/** (Admin) Elenco fornitori con il link al loro portale (non accorciato, è un link privato). */
+/** (Admin) Elenco fornitori. Il link del fornitore non va al pannello: si manda con "Invia link" (link personale del socio). */
 function adminListaFornitori(token) {
   checkToken_(token);
-  const base = urlApp();
   return leggiTabella(SHEETS.FORNITORI).map(f => ({
-    id: String(f.id), nome: f.nome, attivo: isSi(f.attivo), tessera: tessKey_(f.numero_tessera),
-    link: linkFornitore_(f, false)
+    id: String(f.id), nome: f.nome, attivo: isSi(f.attivo), tessera: tessKey_(f.numero_tessera)
   }));
 }
 
@@ -269,8 +211,7 @@ function adminFornitore(token, id) {
   return {
     id: String(f.id), nome: f.nome || '', referente: f.referente || '', telefono: f.telefono || '',
     email: f.email || '', zona: f.zona || '', descrizione: f.descrizione || '', emoji: f.emoji || '',
-    attivo: isSi(f.attivo), tessera: tessKey_(f.numero_tessera),
-    link: linkFornitore_(f, false)
+    attivo: isSi(f.attivo), tessera: tessKey_(f.numero_tessera)
   };
 }
 
@@ -374,35 +315,97 @@ function fornitoreModificaRiga(token, rigaId, quantita) {
   return { ok: true };
 }
 
-/* ===================== LISTINO: elimina prodotto e opzioni ===================== */
+/* ===================== LISTINO (portale fornitore e pannello) =====================
+   Le stesse funzioni servono al fornitore (dal suo link) e agli amministratori (dal pannello,
+   senza entrare con il link del fornitore): i controlli sono gli stessi e nel Log c'è chi ha fatto la modifica.
+   f = riga del fornitore; autore = chi compare nel Log ('fornitore:F0001' oppure il nome dell'amministratore). */
+
+/** Prodotti del fornitore e categorie, come li mostrano portale e pannello. */
+function listinoDi_(f) {
+  const opzioni = leggiTabella(SHEETS.OPZIONI);
+  const categorie = leggiTabella(SHEETS.CATEGORIE)
+    .sort((a, b) => num(a.ordine) - num(b.ordine))
+    .map(c => ({ id: String(c.id), nome: c.nome, emoji: c.emoji || '' }));  // categorie globali
+  const prodotti = leggiTabella(SHEETS.PRODOTTI)
+    .filter(p => String(p.fornitore_id) === String(f.id))
+    .map(p => ({
+      id: String(p.id), categoria_id: String(p.categoria_id || ''),
+      nome: p.nome, emoji: p.emoji || '', note: p.note || '',
+      prezzo: num(p.prezzo), unita: p.unita || '',
+      modalita: p.modalita_vendita || 'a_unita',
+      peso_variabile: isSi(p.peso_variabile),
+      passo: num(p.passo_minimo) || 1,
+      attivo: isSi(p.attivo),
+      nOpzioni: opzioni.filter(o => String(o.prodotto_id) === String(p.id)).length
+    }));
+  return { fornitore: { id: String(f.id), nome: f.nome || '' }, categorie: categorie, prodotti: prodotti };
+}
+
+/** Verifica che il prodotto sia del fornitore; ritorna la riga. */
 function prodottoDelFornitore_(f, prodottoId) {
   const p = leggiTabella(SHEETS.PRODOTTI).find(x => String(x.id) === String(prodottoId));
   if (!p || String(p.fornitore_id) !== String(f.id)) throw new Error('Prodotto non valido.');
   return p;
 }
-/** (Fornitore) Elimina un prodotto e le sue opzioni. */
-function fornitoreEliminaProdotto(token, prodottoId) {
-  const f = fornitoreDaToken_(token);
+
+/** Crea o aggiorna un prodotto del fornitore. */
+function salvaProdottoListino_(f, p, autore) {
+  const campi = {
+    fornitore_id: f.id,
+    categoria_id: String(p.categoria_id || ''),
+    nome: String(p.nome || '').trim(),
+    emoji: String(p.emoji || '').trim(),
+    note: String(p.note || '').trim(),
+    prezzo: num(p.prezzo),
+    unita: String(p.unita || '').trim(),
+    modalita_vendita: String(p.modalita || 'a_unita'),
+    peso_variabile: p.peso_variabile ? 'SI' : 'NO',
+    passo_minimo: num(p.passo) || 1,
+    attivo: (p.attivo === false) ? 'NO' : 'SI'
+  };
+  if (!campi.nome) throw new Error('Il nome del prodotto è obbligatorio.');
+  if (p.id) {
+    const es = prodottoDelFornitore_(f, p.id);
+    Object.keys(campi).forEach(k => aggiornaCella(SHEETS.PRODOTTI, es._riga, k, campi[k]));
+    log_(autore, 'prodotto_modificato', String(p.id) + ' (' + (f.nome || f.id) + ')');
+    return { ok: true, id: String(p.id) };
+  }
+  const id = nuovoId(SHEETS.PRODOTTI, 'P');
+  aggiungiRiga(SHEETS.PRODOTTI, Object.assign({ id: id }, campi));
+  log_(autore, 'prodotto_creato', id + ' (' + (f.nome || f.id) + ')');
+  return { ok: true, id: id };
+}
+
+/** Rende un prodotto disponibile o no. */
+function disponibilitaProdotto_(f, prodottoId, attivo, autore) {
+  const es = prodottoDelFornitore_(f, prodottoId);
+  aggiornaCella(SHEETS.PRODOTTI, es._riga, 'attivo', attivo ? 'SI' : 'NO');
+  log_(autore, attivo ? 'prodotto_disponibile' : 'prodotto_non_disponibile', String(prodottoId) + ' (' + (f.nome || f.id) + ')');
+  return true;
+}
+
+/** Elimina un prodotto e le sue opzioni. */
+function eliminaProdottoListino_(f, prodottoId, autore) {
   prodottoDelFornitore_(f, prodottoId);
   leggiTabella(SHEETS.OPZIONI).filter(o => String(o.prodotto_id) === String(prodottoId))
     .sort((a, b) => b._riga - a._riga).forEach(o => eliminaRiga_(SHEETS.OPZIONI, o._riga));
   const p2 = leggiTabella(SHEETS.PRODOTTI).find(x => String(x.id) === String(prodottoId));
   if (p2) eliminaRiga_(SHEETS.PRODOTTI, p2._riga);
-  log_('fornitore:' + f.id, 'prodotto_eliminato', String(prodottoId));
+  log_(autore, 'prodotto_eliminato', String(prodottoId) + ' (' + (f.nome || f.id) + ')');
   return { ok: true };
 }
-/** (Fornitore) Opzioni di un prodotto. */
-function fornitoreOpzioni(token, prodottoId) {
-  const f = fornitoreDaToken_(token);
+
+/** Opzioni di un prodotto. */
+function opzioniProdotto_(f, prodottoId) {
   prodottoDelFornitore_(f, prodottoId);
   return leggiTabella(SHEETS.OPZIONI).filter(o => String(o.prodotto_id) === String(prodottoId)).map(o => ({
     id: String(o.id), nome: o.nome || '', tipo: o.tipo || 'variante', prezzo: num(o.prezzo),
     unita: o.unita || '', note: o.note || '', richiede_nota: isSi(o.richiede_nota_socio)
   }));
 }
-/** (Fornitore) Crea o modifica un'opzione. */
-function fornitoreSalvaOpzione(token, d) {
-  const f = fornitoreDaToken_(token);
+
+/** Crea o modifica un'opzione (solo "variante" o "supplemento"). */
+function salvaOpzioneListino_(f, d, autore) {
   prodottoDelFornitore_(f, d.prodottoId);
   const campi = {
     prodotto_id: String(d.prodottoId), nome: String(d.nome || '').trim(), tipo: String(d.tipo || 'variante'),
@@ -410,25 +413,52 @@ function fornitoreSalvaOpzione(token, d) {
     richiede_nota_socio: d.richiede_nota ? 'SI' : 'NO'
   };
   if (!campi.nome) throw new Error('Il nome dell\'opzione è obbligatorio.');
+  if (campi.tipo !== 'variante' && campi.tipo !== 'supplemento') throw new Error('Tipo di opzione non valido: variante o supplemento.');
   if (d.id) {
     const es = leggiTabella(SHEETS.OPZIONI).find(x => String(x.id) === String(d.id));
-    if (!es) throw new Error('Opzione non trovata.');
+    if (!es || String(es.prodotto_id) !== String(d.prodottoId)) throw new Error('Opzione non trovata.');
     Object.keys(campi).forEach(k => aggiornaCella(SHEETS.OPZIONI, es._riga, k, campi[k]));
-    log_('fornitore:' + f.id, 'opzione_modificata', String(d.id));
+    log_(autore, 'opzione_modificata', String(d.id) + ' (' + (f.nome || f.id) + ')');
     return { ok: true, id: String(d.id) };
   }
   const id = nuovoId(SHEETS.OPZIONI, 'OP');
   aggiungiRiga(SHEETS.OPZIONI, Object.assign({ id: id }, campi));
-  log_('fornitore:' + f.id, 'opzione_creata', id);
+  log_(autore, 'opzione_creata', id + ' (' + (f.nome || f.id) + ')');
   return { ok: true, id: id };
 }
-/** (Fornitore) Elimina un'opzione. */
-function fornitoreEliminaOpzione(token, opzioneId) {
-  const f = fornitoreDaToken_(token);
+
+/** Elimina un'opzione. */
+function eliminaOpzioneListino_(f, opzioneId, autore) {
   const o = leggiTabella(SHEETS.OPZIONI).find(x => String(x.id) === String(opzioneId));
   if (!o) throw new Error('Opzione non trovata.');
   prodottoDelFornitore_(f, o.prodotto_id);
   eliminaRiga_(SHEETS.OPZIONI, o._riga);
-  log_('fornitore:' + f.id, 'opzione_eliminata', String(opzioneId));
+  log_(autore, 'opzione_eliminata', String(opzioneId) + ' (' + (f.nome || f.id) + ')');
   return { ok: true };
 }
+
+/* --- dal portale: il fornitore del link --- */
+function autoreFornitore_(f) { return 'fornitore:' + f.id; }
+function fornitoreListino(token) { return listinoDi_(fornitoreDaToken_(token)); }
+function fornitoreSalvaProdotto(token, p) { const f = fornitoreDaToken_(token); return salvaProdottoListino_(f, p, autoreFornitore_(f)); }
+function fornitoreToggleProdotto(token, prodottoId, attivo) { const f = fornitoreDaToken_(token); return disponibilitaProdotto_(f, prodottoId, attivo, autoreFornitore_(f)); }
+function fornitoreEliminaProdotto(token, prodottoId) { const f = fornitoreDaToken_(token); return eliminaProdottoListino_(f, prodottoId, autoreFornitore_(f)); }
+function fornitoreOpzioni(token, prodottoId) { return opzioniProdotto_(fornitoreDaToken_(token), prodottoId); }
+function fornitoreSalvaOpzione(token, d) { const f = fornitoreDaToken_(token); return salvaOpzioneListino_(f, d, autoreFornitore_(f)); }
+function fornitoreEliminaOpzione(token, opzioneId) { const f = fornitoreDaToken_(token); return eliminaOpzioneListino_(f, opzioneId, autoreFornitore_(f)); }
+
+/* --- dal pannello: l'amministratore con il suo link, sul fornitore scelto --- */
+function fornitorePerAdmin_(token, fornitoreId) {
+  checkToken_(token);
+  const f = leggiTabella(SHEETS.FORNITORI).find(x => String(x.id) === String(fornitoreId));
+  if (!f) throw new Error('Fornitore non trovato.');
+  return f;
+}
+function autoreAdmin_() { return _ADMIN_CORRENTE || 'admin'; }
+function adminListino(token, fornitoreId) { return listinoDi_(fornitorePerAdmin_(token, fornitoreId)); }
+function adminSalvaProdotto(token, fornitoreId, p) { return salvaProdottoListino_(fornitorePerAdmin_(token, fornitoreId), p, autoreAdmin_()); }
+function adminToggleProdotto(token, fornitoreId, prodottoId, attivo) { return disponibilitaProdotto_(fornitorePerAdmin_(token, fornitoreId), prodottoId, attivo, autoreAdmin_()); }
+function adminEliminaProdotto(token, fornitoreId, prodottoId) { return eliminaProdottoListino_(fornitorePerAdmin_(token, fornitoreId), prodottoId, autoreAdmin_()); }
+function adminOpzioni(token, fornitoreId, prodottoId) { return opzioniProdotto_(fornitorePerAdmin_(token, fornitoreId), prodottoId); }
+function adminSalvaOpzione(token, fornitoreId, d) { return salvaOpzioneListino_(fornitorePerAdmin_(token, fornitoreId), d, autoreAdmin_()); }
+function adminEliminaOpzione(token, fornitoreId, opzioneId) { return eliminaOpzioneListino_(fornitorePerAdmin_(token, fornitoreId), opzioneId, autoreAdmin_()); }
