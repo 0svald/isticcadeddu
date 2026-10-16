@@ -95,7 +95,9 @@ Nella prima fase i soci non useranno l'app ma solo i form, e un form per ogni ra
 **Realizzazione**
 Vedi `CLAUDE.md`, sezione "Ordini e raccolte": rotta `?ordini`, `OrdiniAperti.html`, `getOrdiniAperti` / `submitOrdini` in `Ordini.gs`, colonna `origine`, grafico "Come arrivano gli ordini".
 
-**Da decidere**
-- I messaggi di apertura su WhatsApp hanno ancora il link del form della singola raccolta: si può far puntare alla pagina unica con quella raccolta già aperta (`?ordini=1&apri=ID`).
-- Le guide PDF per soci e amministratori vanno aggiornate con la pagina unica.
+- Tutti i messaggi WhatsApp puntano alla pagina unica, con la raccolta del messaggio già aperta.
+- L'API resta com'è: `inserisciOrdine` può ancora inserire ordini in una raccolta chiusa (per caricare gli ordini arrivati su WhatsApp).
+
+**Da fare**
+- Aggiornare le guide PDF per soci e amministratori con la pagina unica.
 

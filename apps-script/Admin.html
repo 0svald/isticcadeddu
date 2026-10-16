@@ -311,7 +311,7 @@
       const row=document.createElement('div'); row.className='litem rowflex'; row.dataset.id=c.id; row.dataset.nome=c.fornitore;
       const left=document.createElement('div'); left.className='rl'; left.innerHTML='<div class="li1">'+esc(c.fornitore)+' '+badge+'</div><div class="li2">'+c.nValidi+' ordini'+dav+' · chiusura '+(c.chiusura||'—')+'</div>';
       left.onclick=()=>openRacc(c.id, c.fornitore, row);
-      const af=document.createElement('a'); af.className='btnlink'; af.target='_blank'; af.rel='noopener'; af.textContent='Apri form'; af.href=(APP_URL||'')+'?form='+encodeURIComponent(c.id);
+      const af=document.createElement('a'); af.className='btnlink'; af.target='_blank'; af.rel='noopener'; af.textContent='Apri pagina ordini'; af.href=(APP_URL||'')+'?ordini=1&apri='+encodeURIComponent(c.id);
       row.appendChild(left); row.appendChild(af); box.appendChild(row); }); }
   // storico: dalla più recente, divise per mese della consegna
   function renderStoricoRacc(cicli){ const box=document.getElementById('lista'); box.innerHTML='';
@@ -335,7 +335,7 @@
     const html=
       '<button class="backlink" onclick="chiudiRacc()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Raccolte</button>'+
       '<div class="ptitle"><div><h1>'+esc(c.fornitore)+'</h1><div>'+chipStato(c.stato)+' <span class="muted">chiusura '+esc(c.chiusura||'—')+'</span></div></div>'+
-      (conclusa?'':'<a class="btnlink" target="_blank" rel="noopener" href="'+(APP_URL||'')+'?form='+encodeURIComponent(id)+'">Apri form</a>')+'</div>'+
+      (conclusa?'':'<a class="btnlink" target="_blank" rel="noopener" href="'+(APP_URL||'')+'?ordini=1&amp;apri='+encodeURIComponent(id)+'">Apri pagina ordini</a>')+'</div>'+
       (conclusa?'<p class="notice">Raccolta conclusa: è nello storico. Gli ordini si possono solo vedere, non modificare. Puoi scaricare il foglio definitivo.</p>':'')+
       '<div class="kpis"><div class="kpi"><b>'+c.nValidi+'</b><span>ordini</span></div><div class="kpi'+(c.nDaVerificare?' warn':'')+'"><b>'+c.nDaVerificare+'</b><span>da verificare</span></div><div class="kpi"><b id="kpi_cons">—</b><span>consegna</span></div></div>'+
       '<div id="verifica"></div>'+

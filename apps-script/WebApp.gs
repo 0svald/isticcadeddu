@@ -130,17 +130,22 @@ function salvaUrlApp() {
   return url;
 }
 
-/** Link al form di un ciclo (accorciato, se lo shortener è attivo). */
+/**
+ * Link da mettere nei messaggi WhatsApp di una raccolta: la pagina unica degli ordini
+ * con quella raccolta già aperta (?ordini=1&apri=ID), accorciato se lo shortener è attivo.
+ * Il link breve si salva nella colonna "link_ordini" della scheda Raccolte (creata da sola).
+ * La vecchia colonna "link_breve" punta al form della singola raccolta: quei link continuano
+ * a funzionare, ma non si usano più nei messaggi nuovi.
+ */
 function linkForm(cicloId) {
-  const lungo = urlLink_() + '?form=' + encodeURIComponent(cicloId);
-  // il link breve di ogni raccolta è salvato nella colonna "link_breve" della scheda Raccolte
+  const lungo = urlLink_() + '?ordini=1&apri=' + encodeURIComponent(cicloId);
   try {
     const r = leggiTabella(SHEETS.RACCOLTE).find(x => String(x.id) === String(cicloId));
     if (r) {
-      const salvato = String(r.link_breve || '').trim();
+      const salvato = String(r.link_ordini || '').trim();
       if (salvato) return salvato;
       const breve = accorciaSenzaCache_(lungo);
-      if (breve && breve !== lungo) { assicuraColonna_(SHEETS.RACCOLTE, 'link_breve'); aggiornaCella(SHEETS.RACCOLTE, r._riga, 'link_breve', breve); }
+      if (breve && breve !== lungo) { assicuraColonna_(SHEETS.RACCOLTE, 'link_ordini'); aggiornaCella(SHEETS.RACCOLTE, r._riga, 'link_ordini', breve); }
       return breve || lungo;
     }
   } catch (e) {}
@@ -169,8 +174,8 @@ function urlLink_() {
  */
 function azzeraLinkBrevi() {
   let n = 0;
-  [SHEETS.SOCI, SHEETS.RACCOLTE].forEach(nome => {
-    leggiTabella(nome).forEach(r => { if (String(r.link_breve || '').trim()) { aggiornaCella(nome, r._riga, 'link_breve', ''); n++; } });
+  [[SHEETS.SOCI, 'link_breve'], [SHEETS.RACCOLTE, 'link_breve'], [SHEETS.RACCOLTE, 'link_ordini']].forEach(([nome, col]) => {
+    leggiTabella(nome).forEach(r => { if (String(r[col] || '').trim()) { aggiornaCella(nome, r._riga, col, ''); n++; } });
   });
   log_('sistema', 'link_brevi_azzerati', String(n));
   Logger.log('Link brevi azzerati: ' + n);

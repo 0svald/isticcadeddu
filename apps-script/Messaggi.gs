@@ -107,6 +107,7 @@ function msgApertura(cicloId) {
   if (cons.referente) out += 'Info: ' + cons.referente + (cons.telefono ? (' – ' + cons.telefono) : '') + '\n';
 
   out += '\n👉 Ordina' + (ciclo.chiusura ? (' entro ' + testoData_(ciclo.chiusura)) : '') + ': ' + linkForm(cicloId);
+  out += '\n(nella stessa pagina trovi tutte le raccolte aperte)';
   return out;
 }
 

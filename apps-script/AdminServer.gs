@@ -92,7 +92,7 @@ function adminRiportaInCorso(token, cicloId) {
   return true;
 }
 
-/** Restituisce il link (accorciato) al form del ciclo. */
+/** Restituisce il link (accorciato) della raccolta: la pagina unica degli ordini con la raccolta già aperta. */
 function adminLinkForm(token, cicloId) {
   checkToken_(token);
   return linkForm(cicloId);
