@@ -256,7 +256,7 @@ function segnalazioniNuove_() {
 /* Le risposte si modificano nella scheda "Aiuto" del foglio. Le regole del GAS (ordini per altri,
    ritiri mancati, tempi per le modifiche) vanno aggiunte quando il comitato le avrà decise.
    Ogni domanda: [ruolo, domanda, risposta, ordine]. */
-var FAQ_VERSIONE_ = '2026.10.16.2'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
+var FAQ_VERSIONE_ = '2026.10.16.3'; // aumentala quando cambi le domande qui sotto: la scheda si aggiorna da sola
 function faqDefault_() {
   return [
     ['socio', 'Come faccio un ordine?', 'Apri il link della pagina "Raccolte aperte" (è fissato in cima alla Community): trovi tutte le raccolte aperte, ognuna con la data di chiusura. Scrivi tessera e nome, tocca un fornitore, scegli i prodotti con i tasti + e –. Puoi ordinare da più fornitori insieme: alla fine tocca "Controlla e invia" e poi "Conferma e invia". Con il tuo link personale la stessa pagina si apre dalla Home, toccando "Attivi".', 10],
@@ -267,7 +267,7 @@ function faqDefault_() {
     ['socio', 'Quando e dove ritiro? Come pago?', 'Giorno, orario e luogo sono nel messaggio della raccolta e nella tua pagina: nella Home tocca "Attivi" e guarda "Prossime consegne". Nei giorni prima del ritiro trovi anche un promemoria in "Notifiche". Si paga in contanti direttamente al fornitore, al ritiro.', 60],
     ['socio', 'La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura la raccolta sparisce dalla pagina "Raccolte aperte" e non accetta più ordini né modifiche, nemmeno tramite un amministratore. Controlla sempre la data di chiusura scritta sotto il nome del fornitore.', 70],
     ['socio', 'Come cambio il mio numero di telefono o la mia email?', 'Nella Home della tua pagina tocca "Profilo": trovi i campi Telefono ed Email e il pulsante Salva.', 80],
-    ['socio', 'Come metto l\'app sulla schermata Home del telefono?', 'Apri il tuo link personale. Su Android: tocca i tre puntini in alto a destra e poi "Aggiungi a schermata Home". Su iPhone: tocca il pulsante di condivisione (il quadrato con la freccia) e poi "Aggiungi alla schermata Home".', 90],
+    ['socio', 'Come metto l\'app sulla schermata Home del telefono?', 'Apri il tuo link personale. Se compare il riquadro "Installa l\'app GAS", tocca Installa. Altrimenti: su Android con Chrome tocca i tre puntini in alto a destra e poi "Installa app" o "Aggiungi a schermata Home"; con Samsung Internet tocca le tre lineette in basso, poi "Aggiungi pagina a" e "Schermata Home"; con Firefox tocca i tre puntini e poi "Installa" o "Aggiungi alla schermata Home". Su iPhone usa Safari: tocca il quadrato con la freccia e poi "Aggiungi alla schermata Home". Se il link si apre dentro WhatsApp, prima tocca i tre puntini e "Apri in Chrome" (su iPhone "Apri in Safari"). Trovi tutti i passi, browser per browser, nella guida per i soci (Aiuto › Documenti).', 90],
     ['socio', 'Dove trovo il regolamento e l\'elenco dei fornitori?', 'In "Aiuto" tocca "Documenti": puoi scaricare il regolamento del GAS e l\'elenco ufficiale dei fornitori, in PDF. L\'elenco dei fornitori si scarica solo con il tuo link personale.', 93],
     ['socio', 'Dove trovo i miei ordini passati?', 'Nella Home tocca "Storico": trovi gli ordini delle consegne già fatte, dal più recente. Tocca un ordine per vedere i prodotti.', 92],
     ['socio', 'Cosa sono le notifiche?', 'In cima alla Home c\'è "Notifiche": ti avvisa di una raccolta che sta per chiudere, di un ordine da verificare, dell\'importo confermato dopo la pesatura e del prossimo ritiro. Ogni avviso sparisce da solo quando la cosa è fatta o passata.', 94],
@@ -303,6 +303,7 @@ var FAQ_RINOMINATE_ = [
 
 /* Risposte pubblicate nelle versioni precedenti: servono a riconoscere quelle mai modificate a mano. */
 var FAQ_PRECEDENTI_ = [
+    ['Come metto l\'app sulla schermata Home del telefono?', 'Apri il tuo link personale. Su Android: tocca i tre puntini in alto a destra e poi "Aggiungi a schermata Home". Su iPhone: tocca il pulsante di condivisione (il quadrato con la freccia) e poi "Aggiungi alla schermata Home".'],
     ['Come faccio un ordine?', 'Apri il link della pagina ordini (è fissato in cima alla Community): trovi tutte le raccolte aperte, ognuna con la data di chiusura. Scrivi tessera e nome, tocca un fornitore, scegli i prodotti con i tasti + e –. Puoi ordinare da più fornitori insieme: alla fine tocca "Controlla e invia" e poi "Conferma e invia". Con il tuo link personale la stessa pagina si apre dalla Home, toccando "Attivi".'],
     ['La raccolta è chiusa: posso ancora ordinare?', 'No, dopo la chiusura la raccolta sparisce dalla pagina ordini e non accetta più ordini né modifiche, nemmeno tramite un amministratore. Controlla sempre la data di chiusura scritta sotto il nome del fornitore.'],
     ['Qual è il link della pagina ordini?', 'Nella Home tocca "Raccolte", poi "Copia il link della pagina ordini". È sempre lo stesso: fissalo in cima alla Community. Chi lo apre vede tutte le raccolte aperte.'],

@@ -14,7 +14,11 @@
   (function(){ var q=new URLSearchParams(location.search), t=null;
     try{ t=q.has('esci')?null:(q.get('u')||localStorage.getItem('gas_link_personale')); }catch(e){ t=q.get('u'); }
     window.GAS_CON_LINK=!!t;
-    if(t){ var l=document.createElement('link'); l.rel='manifest'; l.href='manifest.webmanifest'; document.head.appendChild(l); }
+    // su iPhone niente manifest: l'icona sulla schermata Home si aprirebbe da "./" senza il link personale,
+    // e l'app installata non vede i dati salvati da Safari. Lì bastano apple-touch-icon e il titolo.
+    var ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    window.GAS_IOS=ios;
+    if(t && !ios){ var l=document.createElement('link'); l.rel='manifest'; l.href='manifest.webmanifest'; document.head.appendChild(l); }
   })();
 </script>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -67,7 +71,7 @@
 
 <div id="installa" hidden role="dialog" aria-label="Installa l'app">
   <div class="ic" style="width:40px;height:40px" aria-hidden="true"></div>
-  <div class="t"><b>Installa l'app GAS</b>La trovi sulla schermata Home, come le altre app.</div>
+  <div class="t" id="installa_t"><b>Installa l'app GAS</b>La trovi sulla schermata Home, come le altre app.</div>
   <button id="installa_si">Installa</button><button class="x" id="installa_no" aria-label="Non ora">✕</button>
 </div>
 
@@ -98,7 +102,8 @@
   }
   else if (qs.get('form')) { p.set('form', qs.get('form')); if (token) p.set('socio', token); }  // link di una raccolta
   else if (token) p.set('u', token);
-  if (qs.has('u') || qs.has('form') || qs.has('ordini')) history.replaceState(null, '', location.pathname);
+  if (window.GAS_IOS && token) history.replaceState(null, '', location.pathname + '?u=' + encodeURIComponent(token)); // su iPhone "Aggiungi alla schermata Home" usa questo indirizzo
+  else if (qs.has('u') || qs.has('form') || qs.has('ordini')) history.replaceState(null, '', location.pathname);
 
   const frame = $('app');
   function apri(url){
@@ -126,9 +131,34 @@
   let richiesta = null;
   window.addEventListener('beforeinstallprompt', ev => {
     ev.preventDefault(); richiesta = ev;
+    $('installa_t').innerHTML = '<b>Installa l\'app GAS</b>La trovi sulla schermata Home, come le altre app.'; $('installa_si').textContent = 'Installa';
     if (leggi('gas_installa_no') !== '1' && token) $('installa').hidden = false; // solo con il link personale
   });
-  $('installa_si').onclick = async () => { $('installa').hidden = true; if (richiesta) { richiesta.prompt(); await richiesta.userChoice; richiesta = null; } };
+  $('installa_si').onclick = async () => { $('installa').hidden = true;
+    if (richiesta) { richiesta.prompt(); await richiesta.userChoice; richiesta = null; } else salva('gas_installa_no', '1'); };
+
+  // browser che non propongono l'installazione da soli (Firefox, Safari su iPhone…): dopo qualche secondo
+  // si mostrano i passi da fare a mano, scritti per quel browser. Solo con il link personale e se l'app non è già installata.
+  const giaInstallata = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  function passiInstallazione() {
+    const ua = navigator.userAgent || '';
+    if (window.GAS_IOS) return /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)
+      ? 'Su iPhone si installa solo con Safari: apri il tuo link personale con Safari, poi tocca Condividi (il quadrato con la freccia) e «Aggiungi alla schermata Home».'
+      : 'Tocca Condividi (il quadrato con la freccia), poi «Aggiungi alla schermata Home» e «Aggiungi».';
+    if (/Android/.test(ua)) {
+      if (/Firefox/.test(ua)) return 'Tocca i tre puntini ⋮, poi «Installa» o «Aggiungi alla schermata Home».';
+      if (/SamsungBrowser/.test(ua)) return 'Tocca le tre lineette ☰ in basso, poi «Aggiungi pagina a» e «Schermata Home».';
+      return 'Tocca i tre puntini ⋮ in alto a destra, poi «Installa app» o «Aggiungi a schermata Home».';
+    }
+    return ''; // computer: Chrome ed Edge propongono già l'installazione; Firefox e Safari non installano le app
+  }
+  setTimeout(() => {
+    if (richiesta || giaInstallata || !token || leggi('gas_installa_no') === '1') return;
+    const passi = passiInstallazione(); if (!passi) return;
+    $('installa_t').innerHTML = '<b>Metti l\'app sulla schermata Home</b>' + passi;
+    $('installa_si').textContent = 'Ho capito';
+    $('installa').hidden = false;
+  }, 4000);
   $('installa_no').onclick = () => { $('installa').hidden = true; salva('gas_installa_no', '1'); };
   window.addEventListener('appinstalled', () => { $('installa').hidden = true; });
 })();
