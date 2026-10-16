@@ -9,7 +9,7 @@
 <?!= include('Stile') ?>
 <?!= include('Aiuto') ?>
 <!--
-  OrdiniAperti.html — pagina unica con tutte le raccolte aperte (?ordini).
+  RaccolteAperte.html — pagina "Raccolte aperte": tutte le raccolte aperte in una pagina sola (?ordini).
   Tre modi: link comune (tessera + nome), link personale (&socio=, modifica i propri ordini),
   amministratore (&admin=, ordine per conto di un socio). Un invio crea un ordine per ogni raccolta toccata.
 -->
@@ -98,7 +98,7 @@
 <body>
 <div class="topbar">
   <span class="gas-icon" role="img" aria-label="GAS Isticcadeddu" style="width:30px;height:30px;flex-basis:30px"></span>
-  <span class="name serif" id="tb_name">Ordini aperti</span>
+  <span class="name serif" id="tb_name">Raccolte aperte</span>
   <span class="badge" id="tb_n"></span>
 </div>
 
@@ -124,7 +124,7 @@
   const SOCIO_TOKEN = "<?= socioToken ?>";
   const ADMIN_TOKEN = "<?= adminToken ?>";
   const APRI = "<?= apri ?>";
-  let DATI = null;          // risposta di getOrdiniAperti
+  let DATI = null;          // risposta di getRaccolteAperte
   let ESIST = {};           // ordini già presenti, per raccolta: { righe, note }
   let FIRMA = {};           // come erano gli ordini precaricati: si inviano solo le raccolte cambiate
   let SCELTO = null;        // modo amministratore: il socio per cui si ordina { tessera, nominativo, inElenco }
@@ -160,8 +160,8 @@
     return qty*base; }
 
   /* ---------- avvio ---------- */
-  google.script.run.withSuccessHandler(render).withFailureHandler(bootErr).getOrdiniAperti({ socioToken:SOCIO_TOKEN, adminToken:ADMIN_TOKEN });
-  function bootErr(e){ if(window.segnaErrore) segnaErrore('Caricamento pagina ordini: '+((e&&e.message)||e));
+  google.script.run.withSuccessHandler(render).withFailureHandler(bootErr).getRaccolteAperte({ socioToken:SOCIO_TOKEN, adminToken:ADMIN_TOKEN });
+  function bootErr(e){ if(window.segnaErrore) segnaErrore('Caricamento pagina Raccolte aperte: '+((e&&e.message)||e));
     document.getElementById('loading').innerHTML='Non riesco a caricare gli ordini. Riprova tra poco.<br><small>'+esc((e&&e.message)||e)+'</small>'; }
 
   function render(d){
@@ -173,7 +173,7 @@
     if(d.modo==='admin') document.getElementById('tb_name').textContent='Ordine per un socio';
 
     const intro=el('header','intro');
-    intro.appendChild(el('h1','serif', d.modo==='admin'?'Ordine per un socio':'Ordini aperti'));
+    intro.appendChild(el('h1','serif', d.modo==='admin'?'Ordine per un socio':'Raccolte aperte'));
     intro.appendChild(el('div','meta', d.modo==='admin'
       ? 'Scegli il socio, poi i prodotti. L\'ordine viene registrato a suo nome, come se l\'avesse fatto lui.'
       : 'Qui trovi tutte le raccolte aperte. Tocca un fornitore per vedere i prodotti: puoi ordinare da più fornitori e inviare tutto insieme.'));
@@ -393,7 +393,7 @@
       .submitOrdini({ tessera:id.tessera, nominativo:id.nominativo, socioToken:SOCIO_TOKEN, adminToken:ADMIN_TOKEN,
         ordini:l.map(o=>({ cicloId:o.cicloId, items:o.items, note:o.note, annulla:!!o.annulla })) });
   }
-  function mostra(cls, testo){ if(cls==='err' && window.segnaErrore) segnaErrore('Pagina ordini: '+testo); const e=document.getElementById('esito'); e.className='esito '+cls; e.textContent=testo; e.scrollIntoView({behavior:'smooth',block:'center'}); }
+  function mostra(cls, testo){ if(cls==='err' && window.segnaErrore) segnaErrore('Pagina Raccolte aperte: '+testo); const e=document.getElementById('esito'); e.className='esito '+cls; e.textContent=testo; e.scrollIntoView({behavior:'smooth',block:'center'}); }
 
   function successo(r, inviati){
     document.getElementById('bar').classList.add('hidden');
@@ -424,7 +424,7 @@
     document.body.appendChild(ov);
     ov.addEventListener('click',ev=>{ if(ev.target===ov) ov.remove(); });
     ov.querySelector('#aiuto_chiudi').onclick=()=>ov.remove();
-    Aiuto.mostra(ov.querySelector('#aiuto_box'), SOCIO_TOKEN||ADMIN_TOKEN, { profilo: ADMIN_TOKEN?'admin':(SOCIO_TOKEN?'socio':'form'), pagina:'pagina ordini', sezione:'ordine' });
+    Aiuto.mostra(ov.querySelector('#aiuto_box'), SOCIO_TOKEN||ADMIN_TOKEN, { profilo: ADMIN_TOKEN?'admin':(SOCIO_TOKEN?'socio':'form'), pagina:'Raccolte aperte', sezione:'ordine' });
   }
 </script>
 </body>

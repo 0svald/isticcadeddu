@@ -19,7 +19,7 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 
 - Tutto in **italiano**: interfaccia, messaggi, guide, commenti nel codice.
 - Linguaggio **semplice e concreto**: frasi brevi, "tocca il pulsante verde", niente gergo tecnico nelle parti per soci e fornitori.
-- Terminologia **obbligatoria**: Socio, **Fornitore** (mai "produttore"), **Amministratore** (mai "responsabile"), Raccolta, Consegna, Categoria, Listino. Non inventare termini nuovi.
+- Terminologia **obbligatoria**: Socio, **Fornitore** (mai "produttore"), **Amministratore** (mai "responsabile"), Raccolta, Consegna, Categoria, Listino, **Raccolte aperte** (la pagina con tutte le raccolte aperte: mai "Ordini aperti" né "pagina ordini"). Non inventare termini nuovi.
 - Date sempre nel formato **GG-MM-AAAA** (con ora: GG-MM-AAAA HH:MM).
 - Negli esempi, nelle schermate e nelle guide usare solo **dati inventati** (es. Anna Rossi, tessera 0123, Caseificio La Collina, 333 000 0000). Mai nomi reali di soci o fornitori.
 
@@ -38,7 +38,7 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 - **Fornitore** e **Amministratore** sono ruoli di un **socio**: tutti i fornitori e gli amministratori sono soci, **non esistono fornitori senza tessera**. Non hanno un token proprio: usano quello del socio.
 - `?u=` apre il pannello per gli amministratori, il portale per i fornitori, altrimenti la pagina del socio. Ogni pagina ha la voce **Profilo** per passare agli altri profili della stessa persona.
 - **API dei dati** (`Api.gs`, istruzioni in `API.md`): `doPost` con JSON `{chiave, azione, dati}`, solo per gli amministratori. La chiave è il token personale da amministratore (o `ADMIN_TOKEN`) e passa per `checkToken_`, come il pannello. Solo le azioni di `AZIONI_API_`, **nessuna cancellazione**, ogni modifica nel `Log` con autore `api`.
-- Rotte di `doGet` (`WebApp.gs`): `?u=`, `?socio=`, `?fornitore=`, `?admin=` (tutte con lo stesso token), `?ordini` (pagina unica degli ordini, vedi sotto), `?form=ID` (form di una sola raccolta: resta attivo per i link già girati, anche anonimo con tessera + nome; `&socio=TOKEN` per la versione precompilata).
+- Rotte di `doGet` (`WebApp.gs`): `?u=`, `?socio=`, `?fornitore=`, `?admin=` (tutte con lo stesso token), `?ordini` (pagina "Raccolte aperte", vedi sotto), `?form=ID` (form di una sola raccolta: resta attivo per i link già girati, anche anonimo con tessera + nome; `&socio=TOKEN` per la versione precompilata).
 - `ADMIN_TOKEN` (proprietà dello script) è solo un **accesso di emergenza**.
 - Se un socio viene **disattivato**, i suoi ruoli di amministratore e fornitore **decadono** (segnati come non attivi). Riattivando il socio **non tornano da soli**. Non si può disattivare la propria tessera né l'ultimo amministratore attivo.
 - **Rigenera link** invalida il vecchio link per tutti i profili della persona. Il link breve (is.gd / spoo.me) è salvato nella colonna `link_breve` di `Soci`.
@@ -46,11 +46,11 @@ Vincoli: **budget zero**, strumenti Google, utenti in gran parte anziani e poco 
 
 ## Ordini e raccolte
 
-- **Pagina unica "Ordini aperti"** (`?ordini`, `OrdiniAperti.html`, server in `Ordini.gs`): tutte le raccolte aperte, dalla chiusura più vicina (quelle senza data in fondo), una scheda per fornitore che si apre toccandola, con la data di chiusura ("Chiude oggi/domani" in arancione, "Chiusura non ancora fissata") e la consegna. Tessera e nome sempre in cima. Un solo invio (`submitOrdini`) crea **un ordine per ogni raccolta toccata**: Ordini, Righe, PDF e portale restano uguali; ogni raccolta ha il suo esito (se una si è chiusa nel frattempo, le altre passano). Tre modi:
-  - **link comune** `?ordini=1` (da fissare in cima alla Community; nel pannello "Copia il link della pagina ordini"): tessera + nome, regole del form generico;
+- **Pagina "Raccolte aperte"** (`?ordini`, `RaccolteAperte.html`, server `getRaccolteAperte` / `submitOrdini` in `Ordini.gs`; l'indirizzo resta `?ordini` perché i link sono già stati girati): tutte le raccolte aperte, dalla chiusura più vicina (quelle senza data in fondo), una scheda per fornitore che si apre toccandola, con la data di chiusura ("Chiude oggi/domani" in arancione, "Chiusura non ancora fissata") e la consegna. Tessera e nome sempre in cima. Un solo invio (`submitOrdini`) crea **un ordine per ogni raccolta toccata**: Ordini, Righe, PDF e portale restano uguali; ogni raccolta ha il suo esito (se una si è chiusa nel frattempo, le altre passano). Tre modi:
+  - **link comune** `?ordini=1` (da fissare in cima alla Community; nel pannello "Copia il link di Raccolte aperte"): tessera + nome, regole del form generico;
   - **link personale** `?ordini=1&socio=TOKEN` (anche `&u=`; è quella che apre "Attivi" della pagina socio, `&apri=ID` apre una raccolta): ordini già compilati, salvando si sostituiscono, quantità a zero = ordine annullato. Si inviano solo le raccolte cambiate;
   - **amministratore** `?ordini=1&admin=TOKEN` (pannello › Raccolte › "Ordine per un socio"): si cerca il socio per tessera o nome, il suo ordine è precompilato e salvando lo si sostituisce; l'ordine risulta del socio, nel `Log` c'è il nome dell'amministratore. Tessera non in elenco → `da_verificare`.
-- **Messaggi WhatsApp**: tutti i link portano alla pagina unica, con la raccolta del messaggio già aperta (`linkForm` in `WebApp.gs` → `?ordini=1&apri=ID`). Il link breve si salva nella colonna `link_ordini` di `Raccolte`; la vecchia `link_breve` di `Raccolte` punta al form della singola raccolta e non si usa più. Nel pannello "Apri pagina ordini" apre la stessa pagina.
+- **Messaggi WhatsApp**: tutti i link portano alla pagina "Raccolte aperte", con la raccolta del messaggio già aperta (`linkForm` in `WebApp.gs` → `?ordini=1&apri=ID`). Il link breve si salva nella colonna `link_ordini` di `Raccolte`; la vecchia `link_breve` di `Raccolte` punta al form della singola raccolta e non si usa più. Nel pannello "Apri Raccolte aperte" apre la stessa pagina.
 - **Ordini dopo la chiusura: rifiutati per tutti, anche per gli amministratori** (decisione del 16-10-2026: "se non diamo paletti le persone proveranno fino all'ultimo"). Unica eccezione, confermata dall'utente: l'azione `inserisciOrdine` dell'API, pensata per caricare ordini arrivati su WhatsApp.
 - Colonna **`origine`** della scheda `Ordini` (creata da sola): `link comune`, `link personale`, `amministratore`, `api` (vuota per gli ordini di prima). Serve alle Statistiche, grafico "Come arrivano gli ordini", per misurare il passaggio da WhatsApp all'app: prima gli amministratori inseriscono gli ordini per i soci, poi tutti usano la pagina comune, poi il link personale.
 - Una **raccolta** = un fornitore, con prodotti scelti (`prodotti_ids`), data di **chiusura**, eventuale `max_ordini`. Una **consegna** raggruppa più raccolte (stesso giorno e luogo).
@@ -112,7 +112,7 @@ Note su clasp e Claude Code:
 - Claude pubblica su Apps Script (push e deployment) **solo con l'autorizzazione esplicita** dell'utente, ogni volta.
 - Credenziali di clasp (`~/.clasprc.json`): mai in chat né nel repository. Per le sessioni cloud vanno nella variabile d'ambiente `CLASPRC_JSON` dell'ambiente, da scrivere in `~/.clasprc.json` all'avvio.
 - Le pagine si vedono dentro l'app installabile solo se il server le marca con `setXFrameOptionsMode(ALLOWALL)` (in `conFavicon_` di `WebApp.gs`): altrimenti l'app mostra "script.google.com refused to connect".
-- Ultima pubblicazione: versione **64** del deployment, 05-10-2026 (codice uguale al ramo `main`: API dei dati per gli amministratori, `Api.gs`).
+- Ultima pubblicazione: versione **66** del deployment, 16-10-2026 (pagina "Raccolte aperte" e ordine per un socio). La 65 (09-10-2026) ha aggiunto l'azione `pdf` dell'API.
 
 **Proprietà dello script: niente dati di servizio.** L'editor ne gestisce al massimo 50: salvando dall'editor, quelle oltre le 50 venivano cancellate (così si sono perse `SPREADSHEET_ID`, `GUIDA_*` e altre). Per questo link brevi e logo stanno in `CacheService` (6 ore) e non nelle proprietà; `pulisciProprieta()` (in `Short.gs`, eseguita anche dalla chiusura automatica) toglie i vecchi `short_…` e `LOGO_B64`. `diagnosiProprieta()` (in `AiutoServer.gs`) elenca dall'editor le proprietà che l'app vede, senza mostrare i valori.
 

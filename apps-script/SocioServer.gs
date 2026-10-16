@@ -2,7 +2,7 @@
  * SocioServer.gs — Portale personale del socio (link con token, senza account).
  *   ?socio=TOKEN  -> pagina personale: raccolte aperte (ordine modificabile fino alla chiusura),
  *                    prossime consegne, storico.
- *   ?ordini&socio=TOKEN -> pagina unica degli ordini, con i propri ordini già compilati; il salvataggio sostituisce l'ordine precedente.
+ *   ?ordini&socio=TOKEN -> pagina "Raccolte aperte", con i propri ordini già compilati; il salvataggio sostituisce l'ordine precedente.
  *   ?form=ID&socio=TOKEN -> form di una sola raccolta (link vecchi): stesso comportamento.
  * Il token del socio sta nella colonna "token" della scheda Soci.
  * Gli amministratori usano il loro stesso link (token admin) anche come socio: il token admin
@@ -124,7 +124,7 @@ function socioDati(token) {
   const so = socioDaToken_(token);
   try { chiusuraAutomatica('pagina socio'); } catch (e) {}
   const base = urlApp();
-  // tutte le raccolte aperte si ordinano dalla pagina unica (?ordini), la stessa del link comune
+  // tutte le raccolte aperte si ordinano dalla pagina "Raccolte aperte" (?ordini), la stessa del link comune
   const ordiniUrl = base + '?ordini=1&socio=' + encodeURIComponent(so.token);
   const cx = contestoOrdiniSocio_(so);
   const raccolte = cx.raccolte, dettOrdini = cx.dettOrdini, infoConsegna = cx.infoConsegna, nomeF = cx.nomeF, emojiF = cx.emojiF;

@@ -93,7 +93,7 @@
 
   // parametri da passare alla web app
   const p = new URLSearchParams();
-  if (qs.has('ordini')) {                    // pagina unica con tutte le raccolte aperte
+  if (qs.has('ordini')) {                    // pagina "Raccolte aperte"
     p.set('ordini', '1'); if (qs.get('apri')) p.set('apri', qs.get('apri')); if (token) p.set('socio', token);
   }
   else if (qs.get('form')) { p.set('form', qs.get('form')); if (token) p.set('socio', token); }  // link di una raccolta

@@ -1,7 +1,7 @@
 /**
  * WebApp.gs — punto d'ingresso della web app.
  * Rotte:
- *   ?ordini              -> pagina unica con tutte le raccolte aperte (link comune, tessera + nome)
+ *   ?ordini              -> pagina "Raccolte aperte": tutte le raccolte aperte in una pagina (link comune, tessera + nome)
  *   ?ordini&socio=T      -> la stessa pagina con il link personale (modifica i propri ordini)
  *   ?ordini&admin=T      -> la stessa pagina per un amministratore: ordine per conto di un socio
  *   ?form=CI01           -> form d'ordine per un ciclo (pubblico)
@@ -36,17 +36,17 @@ function conFavicon_(out) {
 function pagina_(e) {
   const p = (e && e.parameter) || {};
 
-  // pagina unica degli ordini: link comune, link personale (&socio= o &u=) o amministratore (&admin=)
+  // pagina "Raccolte aperte": link comune, link personale (&socio= o &u=) o amministratore (&admin=)
   if (p.ordini !== undefined) {
     const adminTok = String(p.admin || ''), socioTok = String(p.socio || p.u || '');
     try { if (adminTok) checkToken_(adminTok); else if (socioTok) socioDaToken_(socioTok); }
     catch (err) { return HtmlService.createHtmlOutput(paginaSemplice_('Link non valido', err.message)).addMetaTag('viewport', 'width=device-width, initial-scale=1'); }
-    const t = HtmlService.createTemplateFromFile('OrdiniAperti');
+    const t = HtmlService.createTemplateFromFile('RaccolteAperte');
     t.socioToken = adminTok ? '' : socioTok;
     t.adminToken = adminTok;
     t.apri = String(p.apri || '');
     return t.evaluate()
-      .setTitle(adminTok ? 'Ordine per un socio – GAS' : 'Ordini aperti – GAS')
+      .setTitle(adminTok ? 'Ordine per un socio – GAS' : 'Raccolte aperte – GAS')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
 
@@ -131,7 +131,7 @@ function salvaUrlApp() {
 }
 
 /**
- * Link da mettere nei messaggi WhatsApp di una raccolta: la pagina unica degli ordini
+ * Link da mettere nei messaggi WhatsApp di una raccolta: la pagina "Raccolte aperte"
  * con quella raccolta già aperta (?ordini=1&apri=ID), accorciato se lo shortener è attivo.
  * Il link breve si salva nella colonna "link_ordini" della scheda Raccolte (creata da sola).
  * La vecchia colonna "link_breve" punta al form della singola raccolta: quei link continuano

@@ -120,7 +120,7 @@
   }
   function riepAttivi(d){
     const nOrd=d.aperte.filter(r=>r.ordine).length, nDa=d.aperte.length-nOrd;
-    const titolo=d.aperte.length ? [nOrd?plurale(nOrd,'ordine aperto','ordini aperti'):'', nDa?plurale(nDa,'raccolta da ordinare','raccolte da ordinare'):''].filter(Boolean).join(' · ') : 'Nessuna raccolta aperta';
+    const titolo=d.aperte.length ? [nOrd?plurale(nOrd,'ordine in corso','ordini in corso'):'', nDa?plurale(nDa,'raccolta da ordinare','raccolte da ordinare'):''].filter(Boolean).join(' · ') : 'Nessuna raccolta aperta';
     const p=d.consegne.find(c=>c.ritiri.length); let testo='Nessun ritiro in programma.';
     if(p){ const tot=p.ritiri.reduce((a,x)=>a+x.ordine.totale,0), def=p.ritiri.every(x=>x.ordine.definitivo);
       testo='Prossimo ritiro: '+(p.data==='data da definire'?'data da definire':giorno(p.data))+(p.fascia?(', '+p.fascia):'')+(p.luogo?(' · '+p.luogo):'')+' · '+(def?'da pagare ':'circa ')+euro(tot)+' in contanti.'; }
@@ -132,8 +132,8 @@
     let h='';
     if(!d.socio.attiva) h+='<div class="notice warn">La tua tessera risulta non attiva: puoi ordinare, ma gli ordini verranno verificati. Chiedi informazioni al comitato.</div>';
 
-    // ordini aperti
-    h+='<h2 class="sez">Ordini aperti</h2>';
+    // raccolte aperte
+    h+='<h2 class="sez">Raccolte aperte</h2>';
     if(!d.aperte.length) h+='<div class="vuoto">In questo momento non ci sono raccolte aperte.</div>';
     else h+='<a class="btn block" href="'+d.ordiniUrl+'" style="margin:4px 0 14px">'+(d.aperte.some(r=>r.ordine)?'Ordina o modifica i tuoi ordini':'Ordina dalle raccolte aperte')+'</a>';
     d.aperte.forEach(r=>{

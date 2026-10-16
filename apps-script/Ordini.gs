@@ -239,15 +239,15 @@ function submitOrder(payload) {
   }
 }
 
-/* ===================== PAGINA UNICA "ORDINI APERTI" (?ordini) ===================== */
+/* ===================== PAGINA "RACCOLTE APERTE" (?ordini) ===================== */
 
 /**
  * Tutte le raccolte aperte, dalla chiusura più vicina (quelle senza data in fondo).
  * opz: { socioToken } (link personale), { adminToken } (ordine per conto di un socio) o niente (link comune).
  */
-function getOrdiniAperti(opz) {
+function getRaccolteAperte(opz) {
   opz = opz || {};
-  try { chiusuraAutomatica('pagina ordini'); } catch (e) {}
+  try { chiusuraAutomatica('pagina raccolte aperte'); } catch (e) {}
   const out = { modo: 'anonimo' };
   let so = null;
   if (opz.adminToken) {
@@ -301,7 +301,7 @@ function ordiniApertiSocio(adminToken, tessera) {
 }
 
 /**
- * Invio della pagina unica: un ordine per ogni raccolta toccata.
+ * Invio della pagina "Raccolte aperte": un ordine per ogni raccolta toccata.
  * payload = { tessera, nominativo, socioToken | adminToken,
  *             ordini: [{ cicloId, items:[{prodottoId, opzioneId, quantita, notaSocio}], note, annulla }] }
  * Ogni raccolta ha il suo esito: se una si è chiusa nel frattempo, le altre vengono registrate lo stesso.
@@ -332,12 +332,12 @@ function submitOrdini(payload) {
   }
 }
 
-/** Link della pagina unica, da fissare in cima alla Community (accorciato, se possibile). */
+/** Link della pagina "Raccolte aperte", da fissare in cima alla Community (accorciato, se possibile). */
 function linkPaginaOrdini() {
   return accorcia_(urlLink_() + '?ordini=1');
 }
 
-/** Pannello: link della pagina unica. */
+/** Pannello: link della pagina "Raccolte aperte". */
 function adminLinkPaginaOrdini(token) {
   checkToken_(token);
   return { link: linkPaginaOrdini(), lungo: urlLink_() + '?ordini=1' };

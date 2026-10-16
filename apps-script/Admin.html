@@ -110,7 +110,7 @@
     <div id="riep_racc" class="riep"></div>
     <div class="edact" id="racc_ordini" style="margin:0 0 12px">
       <a class="btnlink" href="#" target="_blank" rel="noopener" onclick="this.href=(APP_URL||'')+'?ordini=1&amp;admin='+encodeURIComponent(TOKEN)">Ordine per un socio</a>
-      <button type="button" class="sec mini" onclick="copiaLinkOrdini(this)">Copia il link della pagina ordini</button>
+      <button type="button" class="sec mini" onclick="copiaLinkOrdini(this)">Copia il link di Raccolte aperte</button>
     </div>
     <div class="seg" id="racc_seg"><button aria-pressed="true" data-v="in_corso" onclick="vistaRacc('in_corso')">In corso</button><button aria-pressed="false" data-v="storico" onclick="vistaRacc('storico')">Storico</button></div>
     <div id="racc_filtro" class="frow hidden"><label for="racc_forn">Fornitore</label><select id="racc_forn" onchange="renderRacc(RACC_L)"></select></div>
@@ -311,7 +311,7 @@
       const row=document.createElement('div'); row.className='litem rowflex'; row.dataset.id=c.id; row.dataset.nome=c.fornitore;
       const left=document.createElement('div'); left.className='rl'; left.innerHTML='<div class="li1">'+esc(c.fornitore)+' '+badge+'</div><div class="li2">'+c.nValidi+' ordini'+dav+' · chiusura '+(c.chiusura||'—')+'</div>';
       left.onclick=()=>openRacc(c.id, c.fornitore, row);
-      const af=document.createElement('a'); af.className='btnlink'; af.target='_blank'; af.rel='noopener'; af.textContent='Apri pagina ordini'; af.href=(APP_URL||'')+'?ordini=1&apri='+encodeURIComponent(c.id);
+      const af=document.createElement('a'); af.className='btnlink'; af.target='_blank'; af.rel='noopener'; af.textContent='Apri Raccolte aperte'; af.href=(APP_URL||'')+'?ordini=1&apri='+encodeURIComponent(c.id);
       row.appendChild(left); row.appendChild(af); box.appendChild(row); }); }
   // storico: dalla più recente, divise per mese della consegna
   function renderStoricoRacc(cicli){ const box=document.getElementById('lista'); box.innerHTML='';
@@ -335,7 +335,7 @@
     const html=
       '<button class="backlink" onclick="chiudiRacc()"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Raccolte</button>'+
       '<div class="ptitle"><div><h1>'+esc(c.fornitore)+'</h1><div>'+chipStato(c.stato)+' <span class="muted">chiusura '+esc(c.chiusura||'—')+'</span></div></div>'+
-      (conclusa?'':'<a class="btnlink" target="_blank" rel="noopener" href="'+(APP_URL||'')+'?ordini=1&amp;apri='+encodeURIComponent(id)+'">Apri pagina ordini</a>')+'</div>'+
+      (conclusa?'':'<a class="btnlink" target="_blank" rel="noopener" href="'+(APP_URL||'')+'?ordini=1&amp;apri='+encodeURIComponent(id)+'">Apri Raccolte aperte</a>')+'</div>'+
       (conclusa?'<p class="notice">Raccolta conclusa: è nello storico. Gli ordini si possono solo vedere, non modificare. Puoi scaricare il foglio definitivo.</p>':'')+
       '<div class="kpis"><div class="kpi"><b>'+c.nValidi+'</b><span>ordini</span></div><div class="kpi'+(c.nDaVerificare?' warn':'')+'"><b>'+c.nDaVerificare+'</b><span>da verificare</span></div><div class="kpi"><b id="kpi_cons">—</b><span>consegna</span></div></div>'+
       '<div id="verifica"></div>'+
@@ -381,11 +381,11 @@
   function genera(t){ document.getElementById('msgwrap').classList.remove('hidden'); document.getElementById('p_msg').value='…'; run().withSuccessHandler(x=>document.getElementById('p_msg').value=x).withFailureHandler(err).adminGeneraMessaggio(TOKEN,t,CICLO); }
   function scaricaPdf(t){ const fn=(t==='definitivo')?'adminPdfDefinitivo':'adminPdfStato'; document.getElementById('pdf_msg').textContent='genero…';
     run().withSuccessHandler(res=>{ document.getElementById('pdf_msg').textContent=res.filename+' scaricato'; const b=Uint8Array.from(atob(res.base64||''),c=>c.charCodeAt(0)); const url=URL.createObjectURL(new Blob([b],{type:'application/pdf'})); const a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); }).withFailureHandler(err)[fn](TOKEN,CICLO); }
-  // link unico della pagina con tutte le raccolte aperte, da fissare in cima alla Community
+  // link unico della pagina "Raccolte aperte", da fissare in cima alla Community
   function copiaLinkOrdini(b){ const t=b.textContent; b.disabled=true; b.textContent='Preparo il link…';
     run().withSuccessHandler(r=>{ b.disabled=false; b.textContent=t;
         navigator.clipboard.writeText(r.link).then(()=>avvisa('Link copiato: '+r.link+'\n\nÈ sempre lo stesso: fissalo in cima alla Community. Chi lo apre vede tutte le raccolte aperte e ordina con tessera e nome.'))
-          .catch(()=>chiediTesto('Copia il link della pagina ordini:', r.link, {ok:'Fatto'})); })
+          .catch(()=>chiediTesto('Copia il link della pagina Raccolte aperte:', r.link, {ok:'Fatto'})); })
       .withFailureHandler(e=>{ b.disabled=false; b.textContent=t; avvisa('Errore: '+e.message); }).adminLinkPaginaOrdini(TOKEN); }
   function copiaMsg(){ const ta=document.getElementById('p_msg'); ta.select(); navigator.clipboard.writeText(ta.value).then(()=>{ document.getElementById('copia_msg').textContent='Copiato ✓'; }).catch(()=>avvisa('Seleziona il testo e copialo a mano.')); }
   function chiudiCiclo(){ chiedi('I soci non potranno più ordinare per questa raccolta.',{titolo:'Chiudere gli ordini?',ok:'Chiudi gli ordini',pericolo:true}).then(ok=>{ if(!ok)return; run().withSuccessHandler(aggiornaDettaglio).withFailureHandler(err).adminChiudiCiclo(TOKEN,CICLO); }); }
