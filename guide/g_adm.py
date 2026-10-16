@@ -11,7 +11,7 @@ storico=side('Raccolte','''<div class="sopra">ORDINI</div><div class="h">Raccolt
 <div class="card"><b>Frantoio Monte Verde</b> <span class="badge off">non attivo</span> <span class="badge grey">Consegnata</span><div class="sub">consegna 21-09-2026 · 11 ordini</div></div>''')
 racc=top('GAS Isticcadeddu','Amministrazione')+'''<div class="body">
 <div class="sub" style="font-weight:700;color:var(--green-d)">‹ Raccolte</div>
-<div class="row"><div><div class="h" style="margin:0">Caseificio La Collina</div><span class="badge">Aperta</span> <span class="sub">chiusura 10-10-2026 20:00</span></div><span class="badge">Apri form</span></div>
+<div class="row"><div><div class="h" style="margin:0">Caseificio La Collina</div><span class="badge">Aperta</span> <span class="sub">chiusura 10-10-2026 20:00</span></div><span class="badge">Apri Raccolte aperte</span></div>
 <div class="btns" style="margin:6px 0"><div class="card" style="margin:0"><b>8</b><br><span class="sub">ordini</span></div><div class="card warn" style="margin:0"><b>1</b><br><span class="sub">da verificare</span></div><div class="card" style="margin:0"><b>12-10</b><br><span class="sub">consegna</span></div></div>
 <div class="card"><div class="grpt">Messaggi per WhatsApp<small>Il testo si apre pronto da copiare.</small></div><div class="btns2"><span class="btn sec">Apertura</span><span class="btn sec">Chiusura</span></div></div>
 <div class="card"><div class="grpt">Foglio per la consegna (PDF)</div><div class="btns2"><span class="btn sec">Provvisorio</span><span class="btn sec">Definitivo</span></div></div>
@@ -43,6 +43,7 @@ body=f'''
 <li><b>Fornitore:</b> un socio che vende; ha il suo listino e il portale del fornitore.</li>
 <li><b>Amministratore:</b> un socio che gestisce il pannello.</li>
 <li><b>Raccolta:</b> un giro di ordini per un fornitore, con una data di chiusura.</li>
+<li><b>Raccolte aperte:</b> la pagina con tutte le raccolte aperte, dove i soci ordinano. Ogni fornitore ha la sua scheda e il suo ordine.</li>
 <li><b>Consegna:</b> giorno e luogo del ritiro; può riunire più raccolte.</li>
 <li><b>Categorie:</b> Formaggi, Frutta, Verdura… uguali per tutti i fornitori.</li></ul>
 
@@ -70,13 +71,18 @@ body=f'''
 <div class="step"><div class="n">3</div><div>Scrivi la <b>data di chiusura</b>, per esempio <i>10-10-2026 20:00</i>, e se serve il <b>numero massimo di ordini</b>.</div></div>
 <div class="step"><div class="n">4</div><div>Salva, apri la raccolta e prepara il <b>messaggio di apertura</b>.</div></div>
 <h3>Dentro una raccolta</h3>
-<p>La raccolta si apre in una schermata propria, con <b>‹ Raccolte</b> per tornare indietro. In alto i numeri (ordini, da verificare, consegna) e il pulsante <span class="k">Apri form</span>, che mostra il modulo come lo vedono i soci. Sotto, i blocchi:</p>
+<p>La raccolta si apre in una schermata propria, con <b>‹ Raccolte</b> per tornare indietro. In alto i numeri (ordini, da verificare, consegna) e il pulsante <span class="k">Apri Raccolte aperte</span>, che apre la pagina dei soci con questa raccolta già aperta. Sotto, i blocchi:</p>
 <ul><li><b>Messaggi per WhatsApp:</b> <span class="k">Apertura</span> e <span class="k">Chiusura</span> preparano il testo; tocca <span class="k">Copia il messaggio</span> e incollalo nella Community. L'app non scrive da sola nei gruppi.</li>
 <li><b>Foglio per la consegna (PDF):</b> una riga per ogni tessera, i prodotti, l'importo e la colonna "Saldato" da spuntare a penna. Il <i>provvisorio</i> si usa mentre si raccolgono gli ordini, il <i>definitivo</i> dopo la conferma dei pesi. Per le raccolte concluse c'è solo il definitivo. Il foglio non mostra totali complessivi, perché è condiviso con tutti.</li>
 <li><b>Ordini dei soci:</b> <span class="k">Gestisci ordini</span> per correggere quantità o annullare, e <span class="k">Chiudi gli ordini adesso</span> (o "Riapri").</li>
 <li><b>Impostazioni:</b> prodotti, data di chiusura, massimo ordini, avvisi e consegna.</li></ul>
 {phone(racc,'Il dettaglio di una raccolta sul telefono.')}
-<div class="box">Le raccolte <b>si chiudono da sole</b> alla data di chiusura o al numero massimo di ordini: ogni 15 minuti e comunque appena qualcuno apre il form o il pannello. Se nelle Notifiche compare un avviso sulla chiusura, avvisa chi cura la parte tecnica.</div>
+<div class="box">Le raccolte <b>si chiudono da sole</b> alla data di chiusura o al numero massimo di ordini: ogni 15 minuti e comunque appena qualcuno apre la pagina Raccolte aperte o il pannello. Se nelle Notifiche compare un avviso sulla chiusura, avvisa chi cura la parte tecnica.</div>
+<h3>La pagina Raccolte aperte e gli ordini per un socio</h3>
+<p>I soci ordinano dalla pagina <b>Raccolte aperte</b>: tutte le raccolte aperte, una scheda per fornitore. Si apre <b>una scheda per volta</b> e ogni ordine si invia dalla sua scheda, con <span class="k">Controlla e invia</span>. I link nei messaggi WhatsApp aprono la pagina con la raccolta del messaggio già aperta.</p>
+<ul><li><span class="k">Copia il link di Raccolte aperte</span> (in <b>Raccolte</b>) copia il link comune: è sempre lo stesso, fissalo in cima alla Community. Chi lo apre ordina scrivendo tessera e nome.</li>
+<li><span class="k">Ordine per un socio</span> apre la stessa pagina per conto di un socio: cerca il socio per tessera o nome, tocca il fornitore e scegli i prodotti. Se il socio aveva già ordinato vedi il suo ordine, con <span class="k">Modifica l'ordine</span>; in modifica, in fondo, c'è anche <span class="k">Cancella l'ordine</span>. L'ordine risulta fatto dal socio, nel registro c'è il tuo nome.</li></ul>
+<div class="box warn"><b>Dopo la chiusura non si accettano ordini</b>, nemmeno da un amministratore: se si danno eccezioni, si prova a ordinare fino all'ultimo.</div>
 <h3>Raccolte concluse e storico</h3>
 <p>Il giorno dopo la data di consegna le raccolte chiuse diventano <b>Consegnata</b> da sole ed escono da quelle in corso, anche per soci e fornitori. Se una raccolta non ha la data di consegna, aprila e tocca <span class="k">Segna come consegnata</span>; se l'hai toccato per sbaglio, c'è <span class="k">Riporta tra le raccolte in corso</span>.</p>
 <p>In <b>Raccolte</b> e in <b>Consegne</b> il selettore <b>In corso | Storico</b> mostra quelle passate, divise per mese, con un filtro per <b>fornitore</b> (anche quelli non più attivi). Una raccolta conclusa è <b>in sola lettura</b>: puoi vedere gli ordini, ma non modificarli, e scaricare solo il foglio <i>definitivo</i>.</p>
@@ -95,13 +101,16 @@ body=f'''
 <div class="box warn">Quando un socio viene <b>disattivato</b>, decadono in automatico i suoi ruoli di fornitore e amministratore. Se viene riattivato, i ruoli vanno riassegnati. Non puoi disattivare la tua tessera né l'ultimo amministratore.</div>
 
 <h2>Fornitori e categorie</h2>
-<p>Ogni fornitore è un socio: per aggiungerlo tocca <b>+</b> e indica per prima cosa la <b>tessera del socio</b>, poi i dati dell'azienda. Il fornitore entra nel portale con il suo link personale di socio. Toccando un fornitore aggiorni i suoi dati, lo attivi o disattivi, e gestisci il listino per suo conto. Le <b>categorie</b> sono comuni a tutti i fornitori: qui le aggiungi e le rinomini. L'ordine della lista è quello che vedono i soci nel modulo d'ordine: sposta una categoria con le frecce <span class="k">▲</span> e <span class="k">▼</span>. Una categoria nuova va in fondo.</p>
+<p>Ogni fornitore è un socio: per aggiungerlo tocca <b>+</b> e indica per prima cosa la <b>tessera del socio</b>, poi i dati dell'azienda. Il fornitore entra nel portale con il suo link personale di socio: per mandarglielo tocca il fornitore e poi <span class="k">Invia link</span>, che apre WhatsApp con il messaggio già scritto. Toccando un fornitore aggiorni i suoi dati e lo attivi o disattivi; in fondo trovi il suo <b>Listino</b>.</p>
+<p><b>Il listino di un fornitore</b> si cambia dal pannello, con il tuo link, senza entrare con quello del fornitore: aggiungi prodotti con <span class="k">+ Nuovo prodotto</span>, tocca <span class="k">Disponibile</span> per togliere un prodotto finito, tocca un prodotto per cambiarlo, aggiungere opzioni (varianti e supplementi) o eliminarlo. Sono le stesse cose che il fornitore fa dal suo portale, e nel registro c'è il tuo nome.</p>
+<p>Le <b>categorie</b> sono comuni a tutti i fornitori: qui le aggiungi e le rinomini. L'ordine della lista è quello che vedono i soci nel modulo d'ordine: sposta una categoria con le frecce <span class="k">▲</span> e <span class="k">▼</span>. Una categoria nuova va in fondo.</p>
 
 <h2>Statistiche</h2>
 <p>In alto scegli il <b>periodo</b> (ultimi 3, 6 o 12 mesi, oppure da inizio anno) e, se vuoi, un <b>fornitore</b> o una <b>categoria</b>: tutta la pagina si aggiorna da sola.</p>
 <ul><li>I <b>numeri principali</b>: volume scambiato, ordini, <b>prezzo medio di un ordine</b> (volume diviso per il numero di ordini), soci che hanno ordinato e fornitori attivi. Sotto ognuno, ▲ o ▼ dice di quanto è cambiato rispetto al periodo prima della stessa durata.</li>
 <li><b>Quattro grafici</b> mese per mese: ordini, soci che hanno ordinato, fornitori attivi e prezzo medio. Tocca un punto per leggere il numero del mese.</li>
 <li>Il <b>volume per categoria</b>, a colonne colorate: le quattro categorie più vendute e "Altro".</li>
+<li><b>Come arrivano gli ordini</b>, mese per mese: inseriti da un amministratore, dalla pagina comune o con il link personale. Serve a vedere quanto i soci usano l'app da soli.</li>
 <li>Sotto ogni grafico, <span class="k">Mostra i numeri</span> apre la tabella mese per mese. In fondo resta il dettaglio per fornitore, consegna, prodotto e socio.</li></ul>
 <p>Sono numeri utili anche per presentare il GAS a nuovi fornitori. Il mese di una raccolta è quello della sua consegna; contano solo gli ordini validi.</p>
 {browser(stat,'Le statistiche (numeri inventati).')}
@@ -128,4 +137,4 @@ body=f'''
 <li>Documenti del GAS: il regolamento in <code>DOC_REGOLAMENTO_ID</code> e l'elenco dei fornitori in <code>DOC_FORNITORI_ID</code>. Li scaricano tutti i soci; l'elenco dei fornitori, che ha i telefoni, solo chi usa il link personale.</li>
 <li><code>ADMIN_TOKEN</code> è l'accesso di emergenza. <code>ACCORCIA_LINK_PERSONALI</code> = NO lascia lunghi i link personali. <code>FAVICON_URL</code> è l'icona della scheda del browser.</li></ul>
 '''
-open('guida-admin.html','w',encoding='utf-8').write(page('Gestire il Gruppo d\'Acquisto','Guida per gli amministratori',body))
+open('guida-admin.html','w',encoding='utf-8').write(page('Gestire il Gruppo d\'Acquisto','Guida per gli amministratori',body,'17-10-2026'))
